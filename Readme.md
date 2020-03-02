@@ -94,7 +94,7 @@ Connections Tab - Prety basic, simply groups captured packets into connections.
 			Number of Packets (Packets), the observed total number of packets
 			sent between local and remote host.
 			
-			Total Data Transmitted (Data Size), the total size of observed
+			Total Data Transmitted (Data Sent), the total size of observed
 			packet protocol payload data, in bytes.
 		
 # Known Issues / Bugs / Errata
