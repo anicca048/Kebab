@@ -42,13 +42,15 @@ Capture Tab - The controls on this tab are used to setup the packet capture.
 		interface to perform a packet capture on. It also provides controls to
 		start and stop a capture, and a method to rescan the libpcap interface
 		list, which could be usefull in the event of a network card
-		change / insersion.
+		change / insertion.
+	
 	Capture Filter Group - This group allows the user to set the libpcap
 		filter, which will be compiled and used to filter out packets from the
 		capture session. This filter is more efficeint than a display filter,
 		however, packets not matching the libpcap filter exactly will not show
 		up in the Connections tab, skewing the results. Use these pre-capture
 		filtering options conservativley.
+
 Connections Tab - Prety basic, simply groups captured packets into connections.
 	Display Filter Group - This group is used to filter and clear connetions in
 		the Connections Tab. Use the IP and Port filters to make matching
@@ -60,6 +62,7 @@ Connections Tab - Prety basic, simply groups captured packets into connections.
 		no activity in the last 10 seconds. The clear connections button, you
 		guessed it, clears all the connections from the list. Use these
 		destructive options with care.
+	
 	Connections Data Grid View - This is used to display the simplified
 		components of the connection in a list like fashion. All connections
 		are made up of several core components, and a few extra components
@@ -95,14 +98,13 @@ Connections Tab - Prety basic, simply groups captured packets into connections.
 Connection numbering: Currently if you use the connection timeout option,
 deleted entries may cause gaps in the connection numbering. The current fix
 prevents this, but can still lead to large numbering of a small list in the
-right conditions. Once the list reaches 0 however, the numbering will be
+right conditions. Once the list is cleared, however, the numbering will be
 restored to normalcy. Users will just have to deal with this until a proper
 non-destructive connection number reodering algorithim is implemented.
 (it's gonna be a while.)
 
 Connection Sorting: Currently if you sort the connection list (by any property)
-under heavy load it will bogg down the UI loop causing the delsyed responses
+under heavy load it will bogg down the UI loop causing delayed responses
 to user input and manipulation of the window / controls. The sort algorithim
 has been optimized to fight this, but nothing more can be done untill a new
 sort algorithim is implemnted. (should happen soon.)
-
