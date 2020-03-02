@@ -38,6 +38,7 @@ It is recommended that if you install Npcap, you check the "Install Npcap in
 
 # Instructions (RTFM edition)
 Capture Tab - The controls on this tab are used to setup the packet capture.
+	
 	Capture Options Group - This group allows the user to select the libpcap
 		interface to perform a packet capture on. It also provides controls to
 		start and stop a capture, and a method to rescan the libpcap interface
@@ -52,6 +53,7 @@ Capture Tab - The controls on this tab are used to setup the packet capture.
 		filtering options conservativley.
 
 Connections Tab - Prety basic, simply groups captured packets into connections.
+	
 	Display Filter Group - This group is used to filter and clear connetions in
 		the Connections Tab. Use the IP and Port filters to make matching
 		connections easier to spot, without removing non matching connections.
@@ -67,32 +69,33 @@ Connections Tab - Prety basic, simply groups captured packets into connections.
 		components of the connection in a list like fashion. All connections
 		are made up of several core components, and a few extra components
 		which are subject to change. The core components are as follows:
-		
-		Number (#), this is the number of the connection in order of first
-		observed packet.
-		
-		Protocol (Type), this is the level 4 protcol (TCP or UDP in our case)
-		of the connection.
-		
-		Local Address, this is the assumed local address (if there is one) in
-		the connection, or just the source address of the first observed packet.
-		
-		Local Port (Port), the matching port for the Local Address.
-		
-		Transmission Direction (State), the observed one or two way state of the
-		connection.
-		
-		Remote Address, the assumed remote address (if there is one) in the
-		connection, or just the destination address of the first observed
-		packet.
-		
-		Remote Port (Port), the matching port for the Remote Address.
-		
-		Number of Packets (Packets), the observed total number of packets sent
-		between local and remote host.
-		
-		Total Data Transmitted (Data Size), the total size of observed packet
-		protocol payload data, in bytes.
+			
+			Number (#), this is the number of the connection in order of first
+			observed packet.
+			
+			Protocol (Type), this is the L4 protcol (TCP or UDP in our case) of
+			the connection.
+			
+			Local Address, this is the assumed local address (if there is one)
+			in the connection, or just the source address of the first observed
+			packet if not.
+			
+			Local Port (Port), the matching port for the Local Address.
+			
+			Transmission Direction (State), the observed one or two way state of
+			the communication between the endpoints.
+			
+			Remote Address, the assumed remote address (if there is one) in the
+			connection, or just the destination address of the first observed
+			packet if not.
+			
+			Remote Port (Port), the matching port for the Remote Address.
+			
+			Number of Packets (Packets), the observed total number of packets
+			sent between local and remote host.
+			
+			Total Data Transmitted (Data Size), the total size of observed
+			packet protocol payload data, in bytes.
 		
 # Known Issues / Bugs / Errata
 Connection numbering: Currently if you use the connection timeout option,
