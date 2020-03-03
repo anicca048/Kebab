@@ -11,7 +11,18 @@ namespace Kebab
     public partial class MainForm : Form
     {
         // Name of program for repeated use.
-        private string programName = "Kebab";
+        private static string programName = "Kebab";
+        // Breif description of the program.
+        private static string aboutPage = "Written in C#, " + programName + " is published for free under the terms of the MIT opensource license.\n" +
+                                          "\n" +
+                                          programName + " uses PcapDotNet, which is published for free under a custom opensource license.\n" +
+                                          "\n" +
+                                          "Program and legal documentation is included in the *ReadMe* and *License* files.\n" +
+                                          "\n" +
+                                          "Further documentation and source code can be found on the project's github page.\n" +
+                                          "\n" +
+                                          "Project Github page URL: https://github.com/anicca048/Kebab\n" +
+                                          "PcapDotNet Github page URL: https://github.com/PcapDotNet/Pcap.Net";
 
         // Interface drop down list data source.
         private BindingList<string> deviceList;
@@ -676,6 +687,11 @@ namespace Kebab
         private void copyComponentToolStripMenuItem_MouseHover(object sender, EventArgs e)
         {
             copyComponentToolStripMenuItem.ShowDropDown();
+        }
+
+        private void aboutToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            MessageBox.Show(aboutPage, programName);
         }
     }
 }

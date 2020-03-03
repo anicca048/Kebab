@@ -48,6 +48,15 @@ namespace Kebab
             this.TimeoutCheckBox = new System.Windows.Forms.CheckBox();
             this.ClearConnectionsButton = new System.Windows.Forms.Button();
             this.ConnectionGridView = new System.Windows.Forms.DataGridView();
+            this.Number = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.Type = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.Source = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.SrcPort = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.State = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.Destination = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.DstPort = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.PacketCount = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.DataSent = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.ConnectionContextMenuStrip = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.copyToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.copyComponentToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -74,15 +83,8 @@ namespace Kebab
             this.SourcePortFilter = new System.Windows.Forms.TextBox();
             this.DestinationPortFilter = new System.Windows.Forms.TextBox();
             this.TabControl = new System.Windows.Forms.TabControl();
-            this.Number = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.Type = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.Source = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.SrcPort = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.State = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.Destination = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.DstPort = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.PacketCount = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.DataSent = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.helpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.TopMenu.SuspendLayout();
             this.ConnectionPage.SuspendLayout();
             this.DisplayFilterGroupBox.SuspendLayout();
@@ -97,7 +99,8 @@ namespace Kebab
             // TopMenu
             // 
             this.TopMenu.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.FileMenu});
+            this.FileMenu,
+            this.helpToolStripMenuItem});
             this.TopMenu.Location = new System.Drawing.Point(0, 0);
             this.TopMenu.Name = "TopMenu";
             this.TopMenu.Size = new System.Drawing.Size(984, 24);
@@ -115,7 +118,7 @@ namespace Kebab
             // 
             this.ExitMenuItem.Name = "ExitMenuItem";
             this.ExitMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Q)));
-            this.ExitMenuItem.Size = new System.Drawing.Size(136, 22);
+            this.ExitMenuItem.Size = new System.Drawing.Size(180, 22);
             this.ExitMenuItem.Text = "Exit";
             this.ExitMenuItem.Click += new System.EventHandler(this.ExitMenuItem_Click);
             // 
@@ -287,18 +290,108 @@ namespace Kebab
             this.ConnectionGridView.TabIndex = 1;
             this.ConnectionGridView.RowsAdded += new System.Windows.Forms.DataGridViewRowsAddedEventHandler(this.ConnectionGridView_RowsAdded);
             // 
+            // Number
+            // 
+            this.Number.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
+            this.Number.DataPropertyName = "Number";
+            this.Number.HeaderText = "#";
+            this.Number.MinimumWidth = 50;
+            this.Number.Name = "Number";
+            this.Number.ReadOnly = true;
+            this.Number.Width = 50;
+            // 
+            // Type
+            // 
+            this.Type.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
+            this.Type.DataPropertyName = "Type";
+            this.Type.HeaderText = "Type";
+            this.Type.MinimumWidth = 70;
+            this.Type.Name = "Type";
+            this.Type.ReadOnly = true;
+            this.Type.Width = 70;
+            // 
+            // Source
+            // 
+            this.Source.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
+            this.Source.DataPropertyName = "Source";
+            this.Source.HeaderText = "Local Address";
+            this.Source.MinimumWidth = 160;
+            this.Source.Name = "Source";
+            this.Source.ReadOnly = true;
+            this.Source.Width = 160;
+            // 
+            // SrcPort
+            // 
+            this.SrcPort.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
+            this.SrcPort.DataPropertyName = "SrcPort";
+            this.SrcPort.HeaderText = "Port";
+            this.SrcPort.MinimumWidth = 70;
+            this.SrcPort.Name = "SrcPort";
+            this.SrcPort.ReadOnly = true;
+            this.SrcPort.Width = 70;
+            // 
+            // State
+            // 
+            this.State.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
+            this.State.DataPropertyName = "State";
+            dataGridViewCellStyle3.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
+            this.State.DefaultCellStyle = dataGridViewCellStyle3;
+            this.State.HeaderText = "State";
+            this.State.MinimumWidth = 80;
+            this.State.Name = "State";
+            this.State.ReadOnly = true;
+            this.State.Width = 80;
+            // 
+            // Destination
+            // 
+            this.Destination.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
+            this.Destination.DataPropertyName = "Destination";
+            this.Destination.HeaderText = "Remote Address";
+            this.Destination.MinimumWidth = 160;
+            this.Destination.Name = "Destination";
+            this.Destination.ReadOnly = true;
+            this.Destination.Width = 160;
+            // 
+            // DstPort
+            // 
+            this.DstPort.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
+            this.DstPort.DataPropertyName = "DstPort";
+            this.DstPort.HeaderText = "Port";
+            this.DstPort.MinimumWidth = 70;
+            this.DstPort.Name = "DstPort";
+            this.DstPort.ReadOnly = true;
+            this.DstPort.Width = 70;
+            // 
+            // PacketCount
+            // 
+            this.PacketCount.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
+            this.PacketCount.DataPropertyName = "PacketCount";
+            this.PacketCount.HeaderText = "Packets";
+            this.PacketCount.MinimumWidth = 140;
+            this.PacketCount.Name = "PacketCount";
+            this.PacketCount.ReadOnly = true;
+            this.PacketCount.Width = 140;
+            // 
+            // DataSent
+            // 
+            this.DataSent.DataPropertyName = "DataSent";
+            this.DataSent.HeaderText = "Data Sent";
+            this.DataSent.MinimumWidth = 140;
+            this.DataSent.Name = "DataSent";
+            this.DataSent.ReadOnly = true;
+            // 
             // ConnectionContextMenuStrip
             // 
             this.ConnectionContextMenuStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.copyToolStripMenuItem,
             this.copyComponentToolStripMenuItem});
             this.ConnectionContextMenuStrip.Name = "ConnectionContextMenuStrip";
-            this.ConnectionContextMenuStrip.Size = new System.Drawing.Size(181, 70);
+            this.ConnectionContextMenuStrip.Size = new System.Drawing.Size(170, 48);
             // 
             // copyToolStripMenuItem
             // 
             this.copyToolStripMenuItem.Name = "copyToolStripMenuItem";
-            this.copyToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.copyToolStripMenuItem.Size = new System.Drawing.Size(169, 22);
             this.copyToolStripMenuItem.Text = "Copy";
             this.copyToolStripMenuItem.Click += new System.EventHandler(this.copyToolStripMenuItem_Click);
             // 
@@ -308,7 +401,7 @@ namespace Kebab
             this.localAddressPortToolStripMenuItem,
             this.remoteAddressPortToolStripMenuItem});
             this.copyComponentToolStripMenuItem.Name = "copyComponentToolStripMenuItem";
-            this.copyComponentToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.copyComponentToolStripMenuItem.Size = new System.Drawing.Size(169, 22);
             this.copyComponentToolStripMenuItem.Text = "Copy Component";
             this.copyComponentToolStripMenuItem.MouseHover += new System.EventHandler(this.copyComponentToolStripMenuItem_MouseHover);
             // 
@@ -565,95 +658,20 @@ namespace Kebab
             this.TabControl.Size = new System.Drawing.Size(984, 492);
             this.TabControl.TabIndex = 0;
             // 
-            // Number
+            // helpToolStripMenuItem
             // 
-            this.Number.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
-            this.Number.DataPropertyName = "Number";
-            this.Number.HeaderText = "#";
-            this.Number.MinimumWidth = 50;
-            this.Number.Name = "Number";
-            this.Number.ReadOnly = true;
-            this.Number.Width = 50;
+            this.helpToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.aboutToolStripMenuItem});
+            this.helpToolStripMenuItem.Name = "helpToolStripMenuItem";
+            this.helpToolStripMenuItem.Size = new System.Drawing.Size(44, 20);
+            this.helpToolStripMenuItem.Text = "Help";
             // 
-            // Type
+            // aboutToolStripMenuItem
             // 
-            this.Type.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
-            this.Type.DataPropertyName = "Type";
-            this.Type.HeaderText = "Type";
-            this.Type.MinimumWidth = 70;
-            this.Type.Name = "Type";
-            this.Type.ReadOnly = true;
-            this.Type.Width = 70;
-            // 
-            // Source
-            // 
-            this.Source.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
-            this.Source.DataPropertyName = "Source";
-            this.Source.HeaderText = "Local Address";
-            this.Source.MinimumWidth = 160;
-            this.Source.Name = "Source";
-            this.Source.ReadOnly = true;
-            this.Source.Width = 160;
-            // 
-            // SrcPort
-            // 
-            this.SrcPort.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
-            this.SrcPort.DataPropertyName = "SrcPort";
-            this.SrcPort.HeaderText = "Port";
-            this.SrcPort.MinimumWidth = 70;
-            this.SrcPort.Name = "SrcPort";
-            this.SrcPort.ReadOnly = true;
-            this.SrcPort.Width = 70;
-            // 
-            // State
-            // 
-            this.State.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
-            this.State.DataPropertyName = "State";
-            dataGridViewCellStyle3.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
-            this.State.DefaultCellStyle = dataGridViewCellStyle3;
-            this.State.HeaderText = "State";
-            this.State.MinimumWidth = 80;
-            this.State.Name = "State";
-            this.State.ReadOnly = true;
-            this.State.Width = 80;
-            // 
-            // Destination
-            // 
-            this.Destination.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
-            this.Destination.DataPropertyName = "Destination";
-            this.Destination.HeaderText = "Remote Address";
-            this.Destination.MinimumWidth = 160;
-            this.Destination.Name = "Destination";
-            this.Destination.ReadOnly = true;
-            this.Destination.Width = 160;
-            // 
-            // DstPort
-            // 
-            this.DstPort.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
-            this.DstPort.DataPropertyName = "DstPort";
-            this.DstPort.HeaderText = "Port";
-            this.DstPort.MinimumWidth = 70;
-            this.DstPort.Name = "DstPort";
-            this.DstPort.ReadOnly = true;
-            this.DstPort.Width = 70;
-            // 
-            // PacketCount
-            // 
-            this.PacketCount.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
-            this.PacketCount.DataPropertyName = "PacketCount";
-            this.PacketCount.HeaderText = "Packets";
-            this.PacketCount.MinimumWidth = 140;
-            this.PacketCount.Name = "PacketCount";
-            this.PacketCount.ReadOnly = true;
-            this.PacketCount.Width = 140;
-            // 
-            // DataSent
-            // 
-            this.DataSent.DataPropertyName = "DataSent";
-            this.DataSent.HeaderText = "Data Sent";
-            this.DataSent.MinimumWidth = 140;
-            this.DataSent.Name = "DataSent";
-            this.DataSent.ReadOnly = true;
+            this.aboutToolStripMenuItem.Name = "aboutToolStripMenuItem";
+            this.aboutToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.aboutToolStripMenuItem.Text = "About";
+            this.aboutToolStripMenuItem.Click += new System.EventHandler(this.aboutToolStripMenuItem_Click);
             // 
             // MainForm
             // 
@@ -737,6 +755,8 @@ namespace Kebab
         private System.Windows.Forms.DataGridViewTextBoxColumn DstPort;
         private System.Windows.Forms.DataGridViewTextBoxColumn PacketCount;
         private System.Windows.Forms.DataGridViewTextBoxColumn DataSent;
+        private System.Windows.Forms.ToolStripMenuItem helpToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem aboutToolStripMenuItem;
     }
 }
 
