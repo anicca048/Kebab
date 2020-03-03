@@ -17,7 +17,7 @@ namespace Kebab
                                           "\n" +
                                           programName + " uses PcapDotNet, which is published for free under a custom opensource license.\n" +
                                           "\n" +
-                                          "Program and legal documentation is included in the *ReadMe* and *License* files.\n" +
+                                          "Program and legal documentation is included in the *Readme* and *License* files.\n" +
                                           "\n" +
                                           "Further documentation and source code can be found on the project's github page.\n" +
                                           "\n" +
@@ -155,7 +155,7 @@ namespace Kebab
             _captureWorker.RunWorkerCompleted += DoBWCleanup;
             _captureWorker.RunWorkerAsync();
         }
-        // Does threaded pcap packet processing loop and adds new connection info to GUI.
+        // Threaded pcap packet processing loop.
         private void CaptureWorker_DoWork(object sender, DoWorkEventArgs e)
         {
             // Build a reference worker so we can check cancellationPending() from ProcessPackets().
@@ -168,7 +168,7 @@ namespace Kebab
                 {
                     L4Packet pkt;
 
-                    // Process a packet / connection, and update data grid with connection.
+                    // Process a packet / connection, and add it to queue.
                     if (captureSession.CapturePacket(out pkt) != -1)
                     {
                         // Obtain lock on queue and then add connection / packet.
@@ -435,7 +435,7 @@ namespace Kebab
         }
 
         // 
-        // Other UI element related members.
+        // UI and control event related members.
         // 
         // Disables certian bulk UI elements on when a capture is started.
         private void ChangeOnStartCapture(object sender, EventArgs e)
@@ -688,7 +688,7 @@ namespace Kebab
         {
             copyComponentToolStripMenuItem.ShowDropDown();
         }
-
+        // Show about page (well really a msgbox becuase I don't want to waste a form on an about page).
         private void aboutToolStripMenuItem_Click(object sender, EventArgs e)
         {
             MessageBox.Show(aboutPage, programName);

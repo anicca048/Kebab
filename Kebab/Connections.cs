@@ -41,7 +41,7 @@ namespace Kebab
             if ((obj == null) || !(obj is ConnectionAddress))
                 throw new NotSupportedException("Error: compared object is not a IP4Address type!");
 
-            // Cast obj as IP4Address for numerical comparison.
+            // Cast objest to usable current type.
             ConnectionAddress addr = (obj as ConnectionAddress);
 
             // Compare numerical ip value.
@@ -115,7 +115,7 @@ namespace Kebab
             if ((obj == null) || !(obj is ConnectionType))
                 throw new NotSupportedException("Error: compared object is not a ConnectionType type!");
 
-            // Cast obj as ConnectionProtocol for enum comparing.
+            // Cast objest to usable current type.
             ConnectionType connType = (obj as ConnectionType);
 
             // Compare numerical value based on enum.
@@ -151,7 +151,7 @@ namespace Kebab
             if ((obj == null) || !(obj is ConnectionState))
                 throw new NotSupportedException("Error: compared object is not a ConnectionState type!");
 
-            // Cast obj as ConnectionDirection for enum comparing.
+            // Cast objest to usable current type.
             ConnectionState connState = (obj as ConnectionState);
 
             //Compare numerical value based on enum
@@ -391,7 +391,7 @@ namespace Kebab
             get { return _sortDirectionValue; }
         }
 
-        //Allows sorting by all properties of Connection object. (Compiler inline suggestion).
+        // Allows sorting by all properties of Connection object. (Compiler inline suggestion).
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private bool SwapTest(Connection left, Connection right)
         {
@@ -513,7 +513,8 @@ namespace Kebab
                 base.OnListChanged(args);
         }
 
-        // Using this for deriving the next connection number partially resolves issues with using connection timeouts.
+        // Using this for deriving the next connection number partially resolves issues with using connection timeouts. (Compiler inline suggestion).
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public uint GetNewConnNumber()
         {
             uint LargestConnNumber = 0;
