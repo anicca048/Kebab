@@ -45,6 +45,11 @@ namespace Kebab
         System.Windows.Forms.Timer packetTimer = new System.Windows.Forms.Timer();
         System.Windows.Forms.Timer filterTimer = new System.Windows.Forms.Timer();
 
+        // Tweakable settings for packet queue batching and list display filter processing.
+        private const int packetBatchInterval = 50;
+        private const int packetBatchSize = 500;
+        private const int filterInterval = 333;
+
         // Indicates that the form closing event has been called and that the worker completion method needs to close the form.
         private bool formClosePending = false;
 
@@ -64,12 +69,8 @@ namespace Kebab
             filterTimer.Tick += new EventHandler(FilterConnList);
 
             // Set timer intervals.
-            packetTimer.Interval = 10;
-            filterTimer.Interval = 333;
-
-            // Enable timers.
-            packetTimer.Enabled = true;
-            filterTimer.Enabled = true;
+            packetTimer.Interval = packetBatchInterval;
+            filterTimer.Interval = filterInterval;
         }
         // User defined init (runs after MainForm constructor).
         private void MainForm_Load(object sender, EventArgs e)
@@ -239,6 +240,7 @@ namespace Kebab
 
             // Loop through connectionList and hide any connections that don't match filter (and unhide ones that do).
             foreach (DataGridViewRow row in ConnectionGridView.Rows)
+            {
                 if (!CheckDisplayFilter(row.DataBoundItem))
                 {
                     row.DefaultCellStyle.ForeColor = System.Drawing.Color.Gray;
@@ -251,6 +253,7 @@ namespace Kebab
                                                          ConnectionGridView.DefaultCellStyle.Font.Size,
                                                          FontStyle.Bold);
                 }
+            }
 
             // Show displayfilter changes.
             ConnectionGridView.Update();
@@ -261,8 +264,7 @@ namespace Kebab
             // Clear display filter text.
             IPDisplayFilter.Clear();
             PortDisplayFilter.Clear();
-
-            RemoveDisplayFilter();
+            TimeoutCheckBox.Checked = false;
         }
         // Removes filter from connection list.
         private void RemoveDisplayFilter()
@@ -315,12 +317,6 @@ namespace Kebab
                 EnforceDisplayFilter();
             }
         }
-        // Disable connection timeout filtering and clear checkbox.
-        private void ClearDisplayTimeout()
-        {
-            if (TimeoutCheckBox.Checked)
-                TimeoutCheckBox.Checked = false;
-        }
 
         // 
         // ConnectionGridView modifiers.
@@ -338,8 +334,8 @@ namespace Kebab
             }
 
             // Need to limit how much we process per run or we will bottleneck the UI loop.
-            if (packetsToProcess > 1000)
-                packetsToProcess = 1000;
+            if (packetsToProcess > packetBatchSize)
+                packetsToProcess = packetBatchSize;
 
             while (packetsToProcess > 0)
             {
@@ -383,7 +379,7 @@ namespace Kebab
                 if (!packetMatched)
                 {
                     Connection conn = new Connection(pkt);
-                    conn.Number = connectionList.GetNewConnNumber();
+                    conn.Number = ConnectionList.GetNewConnNumber(connectionList as IList<Connection>);
 
                     connectionList.Add(conn);
 
@@ -392,37 +388,33 @@ namespace Kebab
                 }
             }
         }
-        // Runs filter and timeout operations on Connection List.
+        // Runs connection timeout removal operations on Connection List.
         private void FilterConnList(object sender, EventArgs e)
         {
-            // Check if user enabled connection timeout autoremoval.
-            if (TimeoutCheckBox.Checked)
+            // Loop through connections list and see if we have any inactive connections to remove.
+            while (true)
             {
-                // Loop through connections list and see if we have any inactive connections to remove.
-                while (true)
+                // Flag to see if we removed any connections.
+                bool removedConnection = false;
+
+                // Loop through connectionList and remove an inactive entry if we find one.
+                foreach (Connection loopConn in connectionList)
                 {
-                    // Flag to see if we removed any connections.
-                    bool removedConnection = false;
-
-                    // Loop through connectionList and remove an inactive entry if we find one.
-                    foreach (Connection loopConn in connectionList)
+                    // Find Inactive connetion based on timestamp.
+                    if ((DateTime.Now - loopConn.TimeStamp).TotalSeconds >= 10)
                     {
-                        // Find Inactive connetion based on timestamp.
-                        if ((DateTime.Now - loopConn.TimeStamp).TotalSeconds >= 10)
-                        {
-                            // Remove inactive entry and mark flag so that we will do another inactive connection check.
-                            connectionList.Remove(loopConn);
-                            removedConnection = true;
+                        // Remove inactive entry and mark flag so that we will do another inactive connection check.
+                        connectionList.Remove(loopConn);
+                        removedConnection = true;
 
-                            // Must break beause loop limit was changed.
-                            break;
-                        }
-                    }
-
-                    // Stop checking for inactive connections if all have been checked.
-                    if (!removedConnection)
+                        // Must break beause loop limit was changed.
                         break;
+                    }
                 }
+
+                // Stop checking for inactive connections if all have been checked.
+                if (!removedConnection)
+                    break;
             }
         }
         // Allows thread safe clearing of binded data list from background worker.
@@ -449,7 +441,6 @@ namespace Kebab
 
             // Enable Connection page elements.
             ClearDisplayFilter();
-            ClearDisplayTimeout();
             DisplayFilterGroupBox.Enabled = true;
         }
         // Enables certian bulk UI elements on when a capture is stoped.
@@ -544,9 +535,8 @@ namespace Kebab
                 // Sets up all background workers.
                 DoBWSetup();
 
-                // Start timers.
+                // Start packet batching timer.
                 packetTimer.Start();
-                filterTimer.Start();
 
                 // Allow user to stop background worker.
                 CaptureStopButton.Enabled = true;
@@ -622,6 +612,7 @@ namespace Kebab
         private void ClearDisplayFiltersButton_Click(object sender, EventArgs e)
         {
             ClearDisplayFilter();
+            RemoveDisplayFilter();
         }
         // Allow user to quite without using window quit button (Shortcut ^Q).
         private void ExitMenuItem_Click(object sender, EventArgs e)
@@ -692,6 +683,14 @@ namespace Kebab
         private void aboutToolStripMenuItem_Click(object sender, EventArgs e)
         {
             MessageBox.Show(aboutPage, programName);
+        }
+        // Decide if filter timer needs to be started or stoped.
+        private void TimeoutCheckBox_CheckedChanged(object sender, EventArgs e)
+        {
+            if (this.TimeoutCheckBox.Checked)
+                this.filterTimer.Start();
+            else
+                this.filterTimer.Stop();
         }
     }
 }

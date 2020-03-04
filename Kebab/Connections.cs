@@ -271,9 +271,7 @@ namespace Kebab
         private void NotifyPropertyChanged([CallerMemberName] String propertyName = "")
         {
             if (PropertyChanged != null)
-            {
                 PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
-            }
         }
 
         // Match packet to connection.
@@ -373,36 +371,46 @@ namespace Kebab
         }
 
         // Check if Sorting Has Occurred.
-        private bool _isSortedValue;
+        private bool _isSortedValue = false;
         protected override bool IsSortedCore
         {
             get { return _isSortedValue; }
         }
 
-        // Sort Direction and Sort Property Accessors.
+        // Allow external functions to access what sort direction is bneing used.
         private ListSortDirection _sortDirectionValue;
+        protected override ListSortDirection SortDirectionCore
+        {
+            get { return _sortDirectionValue; }
+        }
+        // Allow external functions to access what property is being used to sort the list.
         private PropertyDescriptor _sortPropertyValue;
         protected override PropertyDescriptor SortPropertyCore
         {
             get { return _sortPropertyValue; }
         }
-        protected override ListSortDirection SortDirectionCore
+
+        // Exchange two items in list during sort.
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static void Exchange(IList<Connection> connList, int first, int second)
         {
-            get { return _sortDirectionValue; }
+            Connection tmpConn = connList[first];
+            connList[first] = connList[second];
+            connList[second] = tmpConn;
         }
 
-        // Allows sorting by all properties of Connection object. (Compiler inline suggestion).
+        // Determine if two items in list need to be exchanged during sort.
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private bool SwapTest(Connection left, Connection right)
+        private static bool ExchangeTest(IList<Connection> connList, int first, int second, PropertyDescriptor prop, ListSortDirection direction)
         {
-            if (Equals(_sortDirectionValue, ListSortDirection.Ascending))
+            if (Equals(direction, ListSortDirection.Ascending))
             {
-                if (((IComparable)(_sortPropertyValue.GetValue(left))).CompareTo((IComparable)(_sortPropertyValue.GetValue(right))) > 0)
+                if (((IComparable)(prop.GetValue(connList[first]))).CompareTo((IComparable)(prop.GetValue(connList[second]))) > 0)
                     return true;
             }
             else
             {
-                if (((IComparable)(_sortPropertyValue.GetValue(left))).CompareTo((IComparable)(_sortPropertyValue.GetValue(right))) < 0)
+                if (((IComparable)(prop.GetValue(connList[first]))).CompareTo((IComparable)(prop.GetValue(connList[second]))) < 0)
                     return true;
             }
 
@@ -414,51 +422,46 @@ namespace Kebab
         private bool _suppressNotification = false;
         protected override void ApplySortCore(PropertyDescriptor prop, ListSortDirection direction)
         {
-            // Check to see if the property type implements the IComparable interface.
-            Type interfaceType = prop.PropertyType.GetInterface("IComparable");
+            // No need to check if property is Icomparable, becuase all properties of Connection object are.
 
-            // Make sure that we have a comparable property.
-            if (interfaceType == null)
-            {
-                // If the property type does not implement IComparable, let the user know.
-                throw new NotSupportedException("Error: property: " + prop.Name + " type: " + prop.PropertyType.ToString() +
-                                                " does not implement IComparable!");
-            }
-
-            // Stop stack overflow and binded events.
-            _suppressNotification = true;
-            _suppressSort = true;
-
-            // If so, set the SortPropertyValue and SortDirectionValue.
+            // Set internal property and direction.
             _sortPropertyValue = prop;
             _sortDirectionValue = direction;
 
-            // Swap loop limiter.
+            // Do not sort if sorting is already occuring.
+            if (_suppressSort)
+                return;
+
+            _suppressSort = true;
+
+            // Stop stack overflow and binded events.
+            if (!_suppressNotification)
+                _suppressNotification = true;
+
+            // Sort loop limiter.
             int sortLength = this.Count;
 
             // Optimized bubblesort (Skip tail sort).
             while (sortLength > 1)
             {
-                // Initialize default value before each run of swap loop.
-                int swapLocation = 0;
+                // Initialize default value before each run of Exchange loop.
+                int exchLocation = 0;
 
-                // Swap loop.
+                // Exchange loop.
                 for (int i = 1; i < sortLength; i++)
                 {
-                    if (SwapTest(this[i - 1], this[i]))
+                    if (ConnectionList.ExchangeTest(this.Items, (i - 1), i, _sortPropertyValue, _sortDirectionValue))
                     {
-                        // Swap elements.
-                        Connection temp = this[i - 1];
-                        this[i - 1] = this[i];
-                        this[i] = temp;
+                        // Exchange elements.
+                        ConnectionList.Exchange(this.Items, (i - 1), i);
 
-                        // Set location of last swap (functions as optimizing swap flag).
-                        swapLocation = i;
+                        // Set location of last Exchange.
+                        exchLocation = i;
                     }
                 }
 
                 // Set the loop limit based on the position of the last element sorted.
-                sortLength = swapLocation;
+                sortLength = exchLocation;
             }
 
             // Indicate that a sort has occured.
@@ -515,11 +518,11 @@ namespace Kebab
 
         // Using this for deriving the next connection number partially resolves issues with using connection timeouts. (Compiler inline suggestion).
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public uint GetNewConnNumber()
+        public static uint GetNewConnNumber(IList<Connection> connList)
         {
             uint LargestConnNumber = 0;
 
-            foreach (Connection conn in (this.Items as List<Connection>))
+            foreach (Connection conn in connList)
             {
                 if (conn.Number > LargestConnNumber)
                     LargestConnNumber = conn.Number;
