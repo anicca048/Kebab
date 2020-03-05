@@ -1,5 +1,5 @@
 # Kebab
-Kebab is a "connection oriented" graphical packet sniffer for MS Windows.
+Kebab is a graphical "connection oriented" packet sniffer for MS Windows.
 It simplifies packets captured on an interface into connections for real time
 	traffic analysis and debugging.
 Written in C#, Kebab is published for free under the terms of the MIT
