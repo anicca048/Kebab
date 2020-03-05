@@ -109,5 +109,5 @@ non-destructive connection number reodering algorithim is implemented.
 Connection Sorting: Currently if you sort the connection list (by any property)
 under heavy load it will bogg down the UI loop causing delayed responses
 to user input and manipulation of the window / controls. The sort algorithim
-has been optimized to fight this, but nothing more can be done untill a new
+has been optimized to fight this, but not much more can be done untill a new
 sort algorithim is implemnted. (should happen soon.)
