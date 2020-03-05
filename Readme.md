@@ -47,7 +47,10 @@ Capture Tab - The controls on this tab are used to setup the packet capture.
 	
 	Capture Filter Group - This group allows the user to set the libpcap
 		filter, which will be compiled and used to filter out packets from the
-		capture session. This filter is more efficeint than a display filter,
+		capture session. There are several displayed filtering options, such as
+		Destination and Source IP. And a "ComplexFilter" box, where a libpcap
+		filter string can be entered, for the more advanced users. Options from
+		this filter group are much more efficeint than any display filter,
 		however, packets not matching the libpcap filter exactly will not show
 		up in the Connections tab, skewing the results. Use these pre-capture
 		filtering options conservativley.
@@ -107,7 +110,7 @@ non-destructive connection number reodering algorithim is implemented.
 (it's gonna be a while.)
 
 Connection Sorting: Currently if you sort the connection list (by any property)
-under heavy load it will bogg down the UI loop causing delayed responses
+under heavy load it will bog down the UI loop causing delayed responses
 to user input and manipulation of the window / controls. The sort algorithim
 has been optimized to fight this, but not much more can be done untill a new
 sort algorithim is implemnted. (should happen soon.)

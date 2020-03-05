@@ -43,12 +43,16 @@ namespace Kebab
 
         // Timers for updating the connection stats.
         System.Windows.Forms.Timer packetTimer = new System.Windows.Forms.Timer();
-        System.Windows.Forms.Timer filterTimer = new System.Windows.Forms.Timer();
+        System.Windows.Forms.Timer timeoutTimer = new System.Windows.Forms.Timer();
 
-        // Tweakable settings for packet queue batching and list display filter processing.
-        private const int packetBatchInterval = 50;
+        // Minimal wait time between packet batch processing in milliseconds.
+        private const int packetBatchInterval = 10;
+        // Batch packet number limit.
         private const int packetBatchSize = 500;
-        private const int filterInterval = 333;
+        // Minimal wait time between inactive entry removal operations in milliseconds.
+        private const int timeoutInterval = 500;
+        // Inactive entry time limit in seconds.
+        private const int timeoutLimit = 10;
 
         // Indicates that the form closing event has been called and that the worker completion method needs to close the form.
         private bool formClosePending = false;
@@ -66,11 +70,11 @@ namespace Kebab
 
             // Add timer event handlers.
             packetTimer.Tick += new EventHandler(UpdateConnList);
-            filterTimer.Tick += new EventHandler(FilterConnList);
+            timeoutTimer.Tick += new EventHandler(TimeoutConnList);
 
             // Set timer intervals.
             packetTimer.Interval = packetBatchInterval;
-            filterTimer.Interval = filterInterval;
+            timeoutTimer.Interval = timeoutInterval;
         }
         // User defined init (runs after MainForm constructor).
         private void MainForm_Load(object sender, EventArgs e)
@@ -264,7 +268,6 @@ namespace Kebab
             // Clear display filter text.
             IPDisplayFilter.Clear();
             PortDisplayFilter.Clear();
-            TimeoutCheckBox.Checked = false;
         }
         // Removes filter from connection list.
         private void RemoveDisplayFilter()
@@ -355,15 +358,20 @@ namespace Kebab
                 foreach (Connection tmpConn in connectionList)
                 {
                     // Find matching connections(regardless of source and dest orientation).
-                    if (tmpConn.PacketMatch(pkt))
+                    if (tmpConn.PacketMatch(pkt) != Match.NO_MATCH)
                     {
                         tmpConn.PacketCount++;
                         tmpConn.DataSent += pkt.PayloadSize;
                         tmpConn.TimeStamp = DateTime.Now;
 
                         // Check if direction needs to be updated to both ways.
-                        if ((tmpConn.State.Direction != TransmissionDirection.TWO_WAY) && (tmpConn.State.Direction != pkt.Direction))
-                            tmpConn.State.Direction = TransmissionDirection.TWO_WAY;
+                        if (tmpConn.State.Direction != TransmissionDirection.TWO_WAY)
+                        {
+                            if (tmpConn.PacketMatch(pkt) == Match.REV_MATCH)
+                                tmpConn.State.Direction = TransmissionDirection.TWO_WAY;
+                            else if (tmpConn.State.Direction != pkt.Direction)
+                                tmpConn.State.Direction = TransmissionDirection.TWO_WAY;
+                        }
 
                         // Match made.
                         packetMatched = true;
@@ -375,21 +383,37 @@ namespace Kebab
                     }
                 }
 
-                // If a match was not found, add new connection to the connList and thereby gui
+                // If a match was not found, create a new connection and add it to the list.
                 if (!packetMatched)
                 {
+                    // Create new connection.
                     Connection conn = new Connection(pkt);
-                    conn.Number = ConnectionList.GetNewConnNumber(connectionList as IList<Connection>);
 
+                    // Need to do a check to make sure that local and loobpack connections get priority for the Source address.
+                    if (conn.Destination.AddressIsLocal() && !conn.Source.AddressIsLocal())
+                    {
+                        // Swap source and destination ip addresses and ports.
+                        conn.Destination.Address = pkt.Source;
+                        conn.DstPort = pkt.SrcPort;
+                        conn.Source.Address = pkt.Destination;
+                        conn.SrcPort = pkt.DstPort;
+
+                        // Flip direction.
+                        conn.State.Direction = TransmissionDirection.REV_ONE_WAY;
+                    }
+
+                    // Asing the connection a number.
+                    conn.Number = ConnectionList.GetNewConnNumber(connectionList as IList<Connection>);
+                    // And add it to the list.
                     connectionList.Add(conn);
 
-                    // One less to process.
+                    // Finaly, we have one less to process.
                     packetsToProcess--;
                 }
             }
         }
         // Runs connection timeout removal operations on Connection List.
-        private void FilterConnList(object sender, EventArgs e)
+        private void TimeoutConnList(object sender, EventArgs e)
         {
             // Loop through connections list and see if we have any inactive connections to remove.
             while (true)
@@ -424,6 +448,7 @@ namespace Kebab
             ConnectionGridView.CurrentCell = null;
             ConnectionGridView.ClearSelection();
             connectionList.Clear();
+            ConnectionGridView.Update();
         }
 
         // 
@@ -487,20 +512,26 @@ namespace Kebab
                         throw new CaptureSessionException("Error: you must select at least one protocol!");
 
                     // Create new SessionFilter object based on user filter settings to pass to SetupCapture().
-                    SessionFilter userFilter = new SessionFilter { TCP = TCPCheckBox.Checked, UDP = UDPCheckBox.Checked };
+                    SessionFilter simpleFilter = new SessionFilter { TCP = TCPCheckBox.Checked, UDP = UDPCheckBox.Checked };
                     
                     // Add user IP and Port filter settings to SessionFilter.
                     if (SourceIPFilter.Text.Trim().Length > 0)
-                        userFilter.SourceIP = SourceIPFilter.Text.Trim();
+                        simpleFilter.SourceIP = SourceIPFilter.Text.Trim();
                     if (DestinationIPFilter.Text.Trim().Length > 0)
-                        userFilter.DestinationIP = DestinationIPFilter.Text.Trim();
+                        simpleFilter.DestinationIP = DestinationIPFilter.Text.Trim();
                     if (SourcePortFilter.Text.Trim().Length > 0)
-                        userFilter.SourcePort = SourcePortFilter.Text.Trim();
+                        simpleFilter.SourcePort = SourcePortFilter.Text.Trim();
                     if (DestinationPortFilter.Text.Trim().Length > 0)
-                        userFilter.DestinationPort = DestinationPortFilter.Text.Trim();
+                        simpleFilter.DestinationPort = DestinationPortFilter.Text.Trim();
+
+                    // Check and see if user opted to use complexFilter (directly using libpcap filter string).
+                    string complexFilterStr = String.Empty;
+
+                    if (complexFilter.Text.Trim().Length > 0)
+                        complexFilterStr = complexFilter.Text.Trim();
 
                     // Open pcap live session (offset index by -1 because of invalid first entry in drop down list).
-                    captureSession.SetupCapture((InterfaceDropDownList.SelectedIndex - 1), userFilter);
+                    captureSession.SetupCapture((InterfaceDropDownList.SelectedIndex - 1), simpleFilter, complexFilterStr);
                 }
                 catch (CaptureSessionException ex)
                 {
@@ -561,7 +592,7 @@ namespace Kebab
 
             // Stop timers.
             packetTimer.Stop();
-            filterTimer.Stop();
+            timeoutTimer.Stop();
         }
         // Refreshes interface list / info.
         private void RefreshInterfacesButton_Click(object sender, EventArgs e)
@@ -688,9 +719,9 @@ namespace Kebab
         private void TimeoutCheckBox_CheckedChanged(object sender, EventArgs e)
         {
             if (this.TimeoutCheckBox.Checked)
-                this.filterTimer.Start();
+                this.timeoutTimer.Start();
             else
-                this.filterTimer.Stop();
+                this.timeoutTimer.Stop();
         }
     }
 }

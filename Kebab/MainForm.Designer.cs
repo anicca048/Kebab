@@ -77,7 +77,7 @@ namespace Kebab
             this.UDPCheckBox = new System.Windows.Forms.CheckBox();
             this.TCPCheckBox = new System.Windows.Forms.CheckBox();
             this.SourceIPLabel = new System.Windows.Forms.Label();
-            this.label1 = new System.Windows.Forms.Label();
+            this.DestinationIPLabel = new System.Windows.Forms.Label();
             this.SourceIPFilter = new System.Windows.Forms.TextBox();
             this.DestinationPortLabel = new System.Windows.Forms.Label();
             this.DestinationIPFilter = new System.Windows.Forms.TextBox();
@@ -85,6 +85,9 @@ namespace Kebab
             this.SourcePortFilter = new System.Windows.Forms.TextBox();
             this.DestinationPortFilter = new System.Windows.Forms.TextBox();
             this.TabControl = new System.Windows.Forms.TabControl();
+            this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
+            this.complexFilter = new System.Windows.Forms.TextBox();
+            this.ComplexFilterLabel = new System.Windows.Forms.Label();
             this.TopMenu.SuspendLayout();
             this.ConnectionPage.SuspendLayout();
             this.DisplayFilterGroupBox.SuspendLayout();
@@ -400,9 +403,10 @@ namespace Kebab
             // 
             this.ConnectionContextMenuStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.copyToolStripMenuItem,
-            this.copyComponentToolStripMenuItem});
+            this.copyComponentToolStripMenuItem,
+            this.toolStripSeparator1});
             this.ConnectionContextMenuStrip.Name = "ConnectionContextMenuStrip";
-            this.ConnectionContextMenuStrip.Size = new System.Drawing.Size(170, 48);
+            this.ConnectionContextMenuStrip.Size = new System.Drawing.Size(170, 54);
             // 
             // copyToolStripMenuItem
             // 
@@ -418,7 +422,7 @@ namespace Kebab
             this.remoteAddressPortToolStripMenuItem});
             this.copyComponentToolStripMenuItem.Name = "copyComponentToolStripMenuItem";
             this.copyComponentToolStripMenuItem.Size = new System.Drawing.Size(169, 22);
-            this.copyComponentToolStripMenuItem.Text = "Copy Component";
+            this.copyComponentToolStripMenuItem.Text = "Component Copy";
             this.copyComponentToolStripMenuItem.MouseHover += new System.EventHandler(this.copyComponentToolStripMenuItem_MouseHover);
             // 
             // localAddressPortToolStripMenuItem
@@ -460,14 +464,14 @@ namespace Kebab
             this.CaptureOptionsGroupBox.Controls.Add(this.CaptureStartButton);
             this.CaptureOptionsGroupBox.Location = new System.Drawing.Point(6, 6);
             this.CaptureOptionsGroupBox.Name = "CaptureOptionsGroupBox";
-            this.CaptureOptionsGroupBox.Size = new System.Drawing.Size(964, 116);
+            this.CaptureOptionsGroupBox.Size = new System.Drawing.Size(964, 147);
             this.CaptureOptionsGroupBox.TabIndex = 12;
             this.CaptureOptionsGroupBox.TabStop = false;
             this.CaptureOptionsGroupBox.Text = "Capture Options";
             // 
             // RefreshInterfacesButton
             // 
-            this.RefreshInterfacesButton.Location = new System.Drawing.Point(371, 53);
+            this.RefreshInterfacesButton.Location = new System.Drawing.Point(371, 76);
             this.RefreshInterfacesButton.Name = "RefreshInterfacesButton";
             this.RefreshInterfacesButton.Size = new System.Drawing.Size(190, 40);
             this.RefreshInterfacesButton.TabIndex = 3;
@@ -477,7 +481,7 @@ namespace Kebab
             // 
             // InterfaceLabel
             // 
-            this.InterfaceLabel.Location = new System.Drawing.Point(56, 22);
+            this.InterfaceLabel.Location = new System.Drawing.Point(20, 46);
             this.InterfaceLabel.Name = "InterfaceLabel";
             this.InterfaceLabel.Size = new System.Drawing.Size(77, 20);
             this.InterfaceLabel.TabIndex = 0;
@@ -488,7 +492,7 @@ namespace Kebab
             this.InterfaceDropDownList.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.InterfaceDropDownList.Font = new System.Drawing.Font("Microsoft Sans Serif", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.InterfaceDropDownList.FormattingEnabled = true;
-            this.InterfaceDropDownList.Location = new System.Drawing.Point(139, 21);
+            this.InterfaceDropDownList.Location = new System.Drawing.Point(139, 44);
             this.InterfaceDropDownList.Name = "InterfaceDropDownList";
             this.InterfaceDropDownList.Size = new System.Drawing.Size(422, 26);
             this.InterfaceDropDownList.TabIndex = 0;
@@ -497,7 +501,7 @@ namespace Kebab
             // CaptureStopButton
             // 
             this.CaptureStopButton.Enabled = false;
-            this.CaptureStopButton.Location = new System.Drawing.Point(255, 53);
+            this.CaptureStopButton.Location = new System.Drawing.Point(255, 76);
             this.CaptureStopButton.Name = "CaptureStopButton";
             this.CaptureStopButton.Size = new System.Drawing.Size(110, 40);
             this.CaptureStopButton.TabIndex = 2;
@@ -508,7 +512,7 @@ namespace Kebab
             // CaptureStartButton
             // 
             this.CaptureStartButton.Enabled = false;
-            this.CaptureStartButton.Location = new System.Drawing.Point(139, 53);
+            this.CaptureStartButton.Location = new System.Drawing.Point(139, 76);
             this.CaptureStartButton.Name = "CaptureStartButton";
             this.CaptureStartButton.Size = new System.Drawing.Size(110, 40);
             this.CaptureStartButton.TabIndex = 1;
@@ -520,12 +524,14 @@ namespace Kebab
             // 
             this.CaptureFilterGroupBox.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
+            this.CaptureFilterGroupBox.Controls.Add(this.ComplexFilterLabel);
+            this.CaptureFilterGroupBox.Controls.Add(this.complexFilter);
             this.CaptureFilterGroupBox.Controls.Add(this.ClearFiltersButton);
             this.CaptureFilterGroupBox.Controls.Add(this.ProtocolLabel);
             this.CaptureFilterGroupBox.Controls.Add(this.UDPCheckBox);
             this.CaptureFilterGroupBox.Controls.Add(this.TCPCheckBox);
             this.CaptureFilterGroupBox.Controls.Add(this.SourceIPLabel);
-            this.CaptureFilterGroupBox.Controls.Add(this.label1);
+            this.CaptureFilterGroupBox.Controls.Add(this.DestinationIPLabel);
             this.CaptureFilterGroupBox.Controls.Add(this.SourceIPFilter);
             this.CaptureFilterGroupBox.Controls.Add(this.DestinationPortLabel);
             this.CaptureFilterGroupBox.Controls.Add(this.DestinationIPFilter);
@@ -533,16 +539,16 @@ namespace Kebab
             this.CaptureFilterGroupBox.Controls.Add(this.SourcePortFilter);
             this.CaptureFilterGroupBox.Controls.Add(this.DestinationPortFilter);
             this.CaptureFilterGroupBox.Enabled = false;
-            this.CaptureFilterGroupBox.Location = new System.Drawing.Point(6, 128);
+            this.CaptureFilterGroupBox.Location = new System.Drawing.Point(6, 159);
             this.CaptureFilterGroupBox.Name = "CaptureFilterGroupBox";
-            this.CaptureFilterGroupBox.Size = new System.Drawing.Size(964, 328);
+            this.CaptureFilterGroupBox.Size = new System.Drawing.Size(964, 297);
             this.CaptureFilterGroupBox.TabIndex = 12;
             this.CaptureFilterGroupBox.TabStop = false;
             this.CaptureFilterGroupBox.Text = "Capture Filter";
             // 
             // ClearFiltersButton
             // 
-            this.ClearFiltersButton.Location = new System.Drawing.Point(139, 124);
+            this.ClearFiltersButton.Location = new System.Drawing.Point(139, 139);
             this.ClearFiltersButton.Name = "ClearFiltersButton";
             this.ClearFiltersButton.Size = new System.Drawing.Size(110, 40);
             this.ClearFiltersButton.TabIndex = 13;
@@ -553,7 +559,7 @@ namespace Kebab
             // ProtocolLabel
             // 
             this.ProtocolLabel.AutoSize = true;
-            this.ProtocolLabel.Location = new System.Drawing.Point(20, 95);
+            this.ProtocolLabel.Location = new System.Drawing.Point(20, 110);
             this.ProtocolLabel.Name = "ProtocolLabel";
             this.ProtocolLabel.Size = new System.Drawing.Size(71, 20);
             this.ProtocolLabel.TabIndex = 2;
@@ -564,7 +570,7 @@ namespace Kebab
             this.UDPCheckBox.AutoSize = true;
             this.UDPCheckBox.Checked = true;
             this.UDPCheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.UDPCheckBox.Location = new System.Drawing.Point(203, 94);
+            this.UDPCheckBox.Location = new System.Drawing.Point(203, 109);
             this.UDPCheckBox.Name = "UDPCheckBox";
             this.UDPCheckBox.Size = new System.Drawing.Size(62, 24);
             this.UDPCheckBox.TabIndex = 15;
@@ -576,7 +582,7 @@ namespace Kebab
             this.TCPCheckBox.AutoSize = true;
             this.TCPCheckBox.Checked = true;
             this.TCPCheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.TCPCheckBox.Location = new System.Drawing.Point(139, 94);
+            this.TCPCheckBox.Location = new System.Drawing.Point(139, 109);
             this.TCPCheckBox.Name = "TCPCheckBox";
             this.TCPCheckBox.Size = new System.Drawing.Size(58, 24);
             this.TCPCheckBox.TabIndex = 14;
@@ -586,25 +592,25 @@ namespace Kebab
             // SourceIPLabel
             // 
             this.SourceIPLabel.AutoSize = true;
-            this.SourceIPLabel.Location = new System.Drawing.Point(20, 33);
+            this.SourceIPLabel.Location = new System.Drawing.Point(20, 48);
             this.SourceIPLabel.Name = "SourceIPLabel";
             this.SourceIPLabel.Size = new System.Drawing.Size(83, 20);
             this.SourceIPLabel.TabIndex = 8;
             this.SourceIPLabel.Text = "Source IP:";
             // 
-            // label1
+            // DestinationIPLabel
             // 
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(20, 65);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(113, 20);
-            this.label1.TabIndex = 11;
-            this.label1.Text = "Destination IP:";
+            this.DestinationIPLabel.AutoSize = true;
+            this.DestinationIPLabel.Location = new System.Drawing.Point(20, 80);
+            this.DestinationIPLabel.Name = "DestinationIPLabel";
+            this.DestinationIPLabel.Size = new System.Drawing.Size(113, 20);
+            this.DestinationIPLabel.TabIndex = 11;
+            this.DestinationIPLabel.Text = "Destination IP:";
             // 
             // SourceIPFilter
             // 
             this.SourceIPFilter.Font = new System.Drawing.Font("Consolas", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.SourceIPFilter.Location = new System.Drawing.Point(139, 30);
+            this.SourceIPFilter.Location = new System.Drawing.Point(139, 45);
             this.SourceIPFilter.MaxLength = 15;
             this.SourceIPFilter.Name = "SourceIPFilter";
             this.SourceIPFilter.Size = new System.Drawing.Size(226, 26);
@@ -614,7 +620,7 @@ namespace Kebab
             // DestinationPortLabel
             // 
             this.DestinationPortLabel.AutoSize = true;
-            this.DestinationPortLabel.Location = new System.Drawing.Point(371, 65);
+            this.DestinationPortLabel.Location = new System.Drawing.Point(371, 80);
             this.DestinationPortLabel.Name = "DestinationPortLabel";
             this.DestinationPortLabel.Size = new System.Drawing.Size(80, 20);
             this.DestinationPortLabel.TabIndex = 10;
@@ -623,7 +629,7 @@ namespace Kebab
             // DestinationIPFilter
             // 
             this.DestinationIPFilter.Font = new System.Drawing.Font("Consolas", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.DestinationIPFilter.Location = new System.Drawing.Point(139, 62);
+            this.DestinationIPFilter.Location = new System.Drawing.Point(139, 77);
             this.DestinationIPFilter.MaxLength = 15;
             this.DestinationIPFilter.Name = "DestinationIPFilter";
             this.DestinationIPFilter.Size = new System.Drawing.Size(226, 26);
@@ -633,7 +639,7 @@ namespace Kebab
             // SourcePortLabel
             // 
             this.SourcePortLabel.AutoSize = true;
-            this.SourcePortLabel.Location = new System.Drawing.Point(371, 33);
+            this.SourcePortLabel.Location = new System.Drawing.Point(371, 48);
             this.SourcePortLabel.Name = "SourcePortLabel";
             this.SourcePortLabel.Size = new System.Drawing.Size(70, 20);
             this.SourcePortLabel.TabIndex = 9;
@@ -642,7 +648,7 @@ namespace Kebab
             // SourcePortFilter
             // 
             this.SourcePortFilter.Font = new System.Drawing.Font("Consolas", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.SourcePortFilter.Location = new System.Drawing.Point(457, 30);
+            this.SourcePortFilter.Location = new System.Drawing.Point(457, 45);
             this.SourcePortFilter.MaxLength = 5;
             this.SourcePortFilter.Name = "SourcePortFilter";
             this.SourcePortFilter.Size = new System.Drawing.Size(104, 26);
@@ -652,7 +658,7 @@ namespace Kebab
             // DestinationPortFilter
             // 
             this.DestinationPortFilter.Font = new System.Drawing.Font("Consolas", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.DestinationPortFilter.Location = new System.Drawing.Point(457, 62);
+            this.DestinationPortFilter.Location = new System.Drawing.Point(457, 77);
             this.DestinationPortFilter.MaxLength = 5;
             this.DestinationPortFilter.Name = "DestinationPortFilter";
             this.DestinationPortFilter.Size = new System.Drawing.Size(104, 26);
@@ -673,6 +679,27 @@ namespace Kebab
             this.TabControl.SelectedIndex = 0;
             this.TabControl.Size = new System.Drawing.Size(984, 492);
             this.TabControl.TabIndex = 0;
+            // 
+            // toolStripSeparator1
+            // 
+            this.toolStripSeparator1.Name = "toolStripSeparator1";
+            this.toolStripSeparator1.Size = new System.Drawing.Size(166, 6);
+            // 
+            // complexFilter
+            // 
+            this.complexFilter.Location = new System.Drawing.Point(139, 232);
+            this.complexFilter.Name = "complexFilter";
+            this.complexFilter.Size = new System.Drawing.Size(619, 26);
+            this.complexFilter.TabIndex = 16;
+            // 
+            // ComplexFilterLabel
+            // 
+            this.ComplexFilterLabel.AutoSize = true;
+            this.ComplexFilterLabel.Location = new System.Drawing.Point(20, 235);
+            this.ComplexFilterLabel.Name = "ComplexFilterLabel";
+            this.ComplexFilterLabel.Size = new System.Drawing.Size(113, 20);
+            this.ComplexFilterLabel.TabIndex = 17;
+            this.ComplexFilterLabel.Text = "Complex Filter:";
             // 
             // MainForm
             // 
@@ -734,7 +761,7 @@ namespace Kebab
         private System.Windows.Forms.CheckBox UDPCheckBox;
         private System.Windows.Forms.CheckBox TCPCheckBox;
         private System.Windows.Forms.Label SourceIPLabel;
-        private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.Label DestinationIPLabel;
         private System.Windows.Forms.TextBox SourceIPFilter;
         private System.Windows.Forms.Label DestinationPortLabel;
         private System.Windows.Forms.TextBox DestinationIPFilter;
@@ -758,6 +785,9 @@ namespace Kebab
         private System.Windows.Forms.DataGridViewTextBoxColumn DataSent;
         private System.Windows.Forms.ToolStripMenuItem helpToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem aboutToolStripMenuItem;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
+        private System.Windows.Forms.Label ComplexFilterLabel;
+        private System.Windows.Forms.TextBox complexFilter;
     }
 }
 

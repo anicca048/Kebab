@@ -148,39 +148,6 @@ namespace Kebab
             get { return _deviceDisplayList; }
         }
 
-        private bool IPIsLocal(IpV4Address address)
-        {
-            // Class A (10.0.0.0/8).
-            const UInt32 CLASS_A_ADDRESS = 0x0A000000;
-            const UInt32 CLASS_A_NETMASK = 0xFF000000;
-            // Class B (172.16.0.0/12).
-            const UInt32 CLASS_B_MINADDR = 0xAC100000;
-            const UInt32 CLASS_B_MAXADDR = 0xAC1F0000;
-            const UInt32 CLASS_B_NETMASK = 0xFFF00000;
-            // Class C (192.168.0.0/16).
-            const UInt32 CLASS_C_ADDRESS = 0xC0A80000;
-            const UInt32 CLASS_C_NETMASK = 0xFFFF0000;
-            //Local / Loopback (127.0.0.0/8)
-            const UInt32 LOOPBAK_ADDRESS = 0x7F000000;
-            const UInt32 LOOPBAK_NETMASK = 0xFF000000;
-
-            // Convert IP to 4byte segment.
-            UInt32 bytes = ((UInt32)(address.ToValue()));
-
-            // Compares bytes to local ip ranges using netmask anding.
-            if ((bytes & CLASS_A_NETMASK) == CLASS_A_ADDRESS)
-                return true;
-            else if (((bytes & CLASS_B_NETMASK) >= CLASS_B_MINADDR) &&
-                     ((bytes & CLASS_B_NETMASK) <= CLASS_B_MAXADDR))
-                return true;
-            else if ((bytes & CLASS_C_NETMASK) == CLASS_C_ADDRESS)
-                return true;
-            else if ((bytes & LOOPBAK_NETMASK) == LOOPBAK_ADDRESS)
-                return true;
-            else
-                return false;
-        }
-
         public CaptureSession()
         {
            // Obtain host information?
@@ -337,24 +304,7 @@ namespace Kebab
                     pkt.PayloadSize = ((uint)(UDPPacket.Payload.Length));
                 }
 
-                // Need to do a check to make sure that local and loobpack connections get priority for the Source address.
-                if (IPIsLocal(pkt.Destination) && !IPIsLocal(pkt.Source))
-                {
-                    // Swap source and destination ip addresses.
-                    IpV4Address tempAddr = pkt.Destination;
-                    pkt.Destination = pkt.Source;
-                    pkt.Source = tempAddr;
-
-                    // Swap source and destination port numbers.
-                    ushort tempPort = pkt.DstPort;
-                    pkt.DstPort = pkt.SrcPort;
-                    pkt.SrcPort = tempPort;
-
-                    // Flip direction.
-                    pkt.Direction = TransmissionDirection.REV_ONE_WAY;
-                }
-                else
-                    pkt.Direction = TransmissionDirection.ONE_WAY;
+                pkt.Direction = TransmissionDirection.ONE_WAY;
 
                 return 0;
             }
@@ -366,7 +316,7 @@ namespace Kebab
         }
 
         // Packet capture loop initializer.
-        public void SetupCapture(int deviceIndex, SessionFilter userFilter)
+        public void SetupCapture(int deviceIndex, SessionFilter simpleFilter, string complexFilterStr)
         {
             try
             {
@@ -400,41 +350,45 @@ namespace Kebab
                     _packetCommunicator.DataLink.Kind != DataLinkKind.IpV4)
                     throw new CaptureSessionException(("Error: device: " + _packetDevice.Description + " is not an Ethernet or raw IP device!"));
 
+                // Create string that will become the libpcap packet filter.
+                string packetFilterStr = String.Empty;
+
                 // Set compiled packet filter.
-                if (userFilter.IsDefaultState())
+                if (simpleFilter.IsDefaultState())
                 {
                     // Create packet filter with default options.
-                    _packetFilter = _packetCommunicator.CreateFilter("tcp or udp");
+                    packetFilterStr = "(tcp or udp)";
                 }
                 else
                 {
-                    // Create filterstring from SessionFilter object.
-                    string userFilterString = "";
-
                     // Set all or one protocol.
-                    if (userFilter.TCP && userFilter.UDP)
-                        userFilterString += "(tcp or udp) and ";
-                    else if (userFilter.TCP)
-                        userFilterString += "tcp and ";
-                    else if (userFilter.UDP)
-                        userFilterString += "udp and ";
+                    if (simpleFilter.TCP && simpleFilter.UDP)
+                        packetFilterStr += "(tcp or udp) and ";
+                    else if (simpleFilter.TCP)
+                        packetFilterStr += "tcp and ";
+                    else if (simpleFilter.UDP)
+                        packetFilterStr += "udp and ";
 
                     // Set src ip and or src port and or dst ip and or dst port.
-                    if (userFilter.SourceIP != default(string))
-                        userFilterString += ("src host " + userFilter.SourceIP + " and ");
-                    if (userFilter.SourcePort != default(string))
-                        userFilterString += ("src port " + userFilter.SourcePort + " and ");
-                    if (userFilter.DestinationIP != default(string))
-                        userFilterString += ("dst host " + userFilter.DestinationIP + " and ");
-                    if (userFilter.DestinationPort != default(string))
-                        userFilterString += ("dst port " + userFilter.DestinationPort + " and ");
+                    if (simpleFilter.SourceIP != default(string))
+                        packetFilterStr += ("src host " + simpleFilter.SourceIP + " and ");
+                    if (simpleFilter.SourcePort != default(string))
+                        packetFilterStr += ("src port " + simpleFilter.SourcePort + " and ");
+                    if (simpleFilter.DestinationIP != default(string))
+                        packetFilterStr += ("dst host " + simpleFilter.DestinationIP + " and ");
+                    if (simpleFilter.DestinationPort != default(string))
+                        packetFilterStr += ("dst port " + simpleFilter.DestinationPort + " and ");
 
                     // Strip trailing (and ) from string.
-                    userFilterString = userFilterString.Remove(userFilterString.Length - 5);
-
-                    // Create packet filter from user options.
-                    _packetFilter = _packetCommunicator.CreateFilter(userFilterString);
+                    packetFilterStr = packetFilterStr.Remove(packetFilterStr.Length - 5);
                 }
+
+                // Add complex filter to the end if it was used.
+                if (complexFilterStr != String.Empty)
+                    packetFilterStr += " and " + complexFilterStr;
+
+                // Create packet filter from user options.
+                _packetFilter = _packetCommunicator.CreateFilter(packetFilterStr);
 
                 _packetCommunicator.SetFilter(_packetFilter);
             }

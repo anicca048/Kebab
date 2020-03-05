@@ -8,19 +8,27 @@ using PcapDotNet.Packets.IpV4;
 
 namespace Kebab
 {
-    // Enum to describe layer 4 protocol of connection.
+    // Describe layer 4 protocol of connection.
     public enum L4Protocol
     {
         TCP,
         UDP
     }
 
-    // Enum to describe direction of a transmission.
+    // Describe direction of transmission.
     public enum TransmissionDirection
     {
         ONE_WAY,
         REV_ONE_WAY,
         TWO_WAY
+    }
+
+    // Describe type of connection packet match.
+    public enum Match
+    {
+        NO_MATCH,
+        MATCH,
+        REV_MATCH
     }
 
     // Wrapperclass to implement IComparable for IPV4Address from pacapdotnet.
@@ -71,7 +79,41 @@ namespace Kebab
         // Get hash code override (cause compiler warnings got to me!).
         public override int GetHashCode()
         {
-            throw new NotImplementedException("Error: ConnectionAddress object has not implemented GetHashCode()!");
+            // Just return the raw value of ip as int hash.
+            return ((int)(this.Address.ToValue()));
+        }
+
+        public bool AddressIsLocal()
+        {
+            // Class A (10.0.0.0/8).
+            const UInt32 CLASS_A_ADDRESS = 0x0A000000;
+            const UInt32 CLASS_A_NETMASK = 0xFF000000;
+            // Class B (172.16.0.0/12).
+            const UInt32 CLASS_B_MINADDR = 0xAC100000;
+            const UInt32 CLASS_B_MAXADDR = 0xAC1F0000;
+            const UInt32 CLASS_B_NETMASK = 0xFFF00000;
+            // Class C (192.168.0.0/16).
+            const UInt32 CLASS_C_ADDRESS = 0xC0A80000;
+            const UInt32 CLASS_C_NETMASK = 0xFFFF0000;
+            //Local / Loopback (127.0.0.0/8)
+            const UInt32 LOOPBAK_ADDRESS = 0x7F000000;
+            const UInt32 LOOPBAK_NETMASK = 0xFF000000;
+
+            // Convert IP to 4byte segment.
+            UInt32 bytes = ((UInt32)(Address.ToValue()));
+
+            // Compares bytes to local ip ranges using netmask anding.
+            if ((bytes & CLASS_A_NETMASK) == CLASS_A_ADDRESS)
+                return true;
+            else if (((bytes & CLASS_B_NETMASK) >= CLASS_B_MINADDR) &&
+                     ((bytes & CLASS_B_NETMASK) <= CLASS_B_MAXADDR))
+                return true;
+            else if ((bytes & CLASS_C_NETMASK) == CLASS_C_ADDRESS)
+                return true;
+            else if ((bytes & LOOPBAK_NETMASK) == LOOPBAK_ADDRESS)
+                return true;
+            else
+                return false;
         }
     }
 
@@ -250,7 +292,7 @@ namespace Kebab
         public DateTime TimeStamp { get; set; }
 
         // Default ctor so we don't have to use the one that takes L4Packets.
-        public Connection() { this.PacketCount = 1; this.DataSent = 0; }
+        //public Connection() { this.PacketCount = 1; this.DataSent = 0; }
 
         // Ctor allows conversion from L4Packet to Connection.
         public Connection(L4Packet pkt)
@@ -274,22 +316,22 @@ namespace Kebab
                 PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
         }
 
-        // Match packet to connection.
-        public bool PacketMatch(L4Packet pkt)
+        // Match packet to connection (-1 = no match, 0 = match, 1 = reverse match.
+        public Match PacketMatch(L4Packet pkt)
         {
             // Check protocol first (biggest devider of connections).
             if (!Equals(this.Type.Protocol, pkt.Protocol))
-                return false;
+                return Match.NO_MATCH;
 
             // Check if IP's and ports (or inverse) match.
             if ((Equals(this.Source.Address, pkt.Source) && Equals(this.SrcPort, pkt.SrcPort)) &&
                 (Equals(this.Destination.Address, pkt.Destination) && Equals(this.DstPort, pkt.DstPort)))
-                return true;
+                return Match.MATCH;
             else if ((Equals(this.Source.Address, pkt.Destination) && Equals(this.SrcPort, pkt.DstPort)) &&
                      (Equals(this.Destination.Address, pkt.Source) && Equals(this.DstPort, pkt.SrcPort)))
-                return true;
+                return Match.REV_MATCH;
 
-            return false;
+            return Match.NO_MATCH;
         }
 
         // Match pre-existing connections (Equals() is check value, == is check reference).
@@ -309,9 +351,6 @@ namespace Kebab
                 if ((Equals(this.Source, conn.Source) && Equals(this.SrcPort, conn.SrcPort)) &&
                     (Equals(this.Destination, conn.Destination) && Equals(this.DstPort, conn.DstPort)))
                     return true;
-                else if ((Equals(this.Source, conn.Destination) && Equals(this.SrcPort, conn.DstPort)) &&
-                         (Equals(this.Destination, conn.Source) && Equals(this.DstPort, conn.SrcPort)))
-                    return true;
 
                 return false;
             }
@@ -321,7 +360,11 @@ namespace Kebab
         // Get hash code override (cause compiler warnings got to me!).
         public override int GetHashCode()
         {
-            throw new NotImplementedException("Error: Connection object has not implemented GetHashCode()!");
+            // Just xor address port combos to get a fairly collision resistent hash.
+            uint result = (this.Source.Address.ToValue() + this.SrcPort);
+            result ^= (this.Destination.Address.ToValue() + this.DstPort);
+
+            return ((int)(result));
         }
         // ToString override (cause I can).
         public override string ToString()
@@ -422,21 +465,14 @@ namespace Kebab
         private bool _suppressNotification = false;
         protected override void ApplySortCore(PropertyDescriptor prop, ListSortDirection direction)
         {
-            // No need to check if property is Icomparable, becuase all properties of Connection object are.
-
             // Set internal property and direction.
             _sortPropertyValue = prop;
             _sortDirectionValue = direction;
 
-            // Do not sort if sorting is already occuring.
-            if (_suppressSort)
-                return;
-
+            // Don't allow sort to be called by OnListChanged() until the sort is over.
             _suppressSort = true;
-
             // Stop stack overflow and binded events.
-            if (!_suppressNotification)
-                _suppressNotification = true;
+            _suppressNotification = true;
 
             // Sort loop limiter.
             int sortLength = this.Count;
@@ -466,12 +502,8 @@ namespace Kebab
 
             // Indicate that a sort has occured.
             _isSortedValue = true;
-
             // Stop suppressing notification events.
             _suppressNotification = false;
-
-            // Raise the ListChanged event so bound controls refresh their values.
-            OnListChanged(new ListChangedEventArgs(ListChangedType.Reset, -1));
 
             // Stop suppressing sorting events.
             _suppressSort = false;
@@ -487,11 +519,8 @@ namespace Kebab
         protected override void RemoveSortCore()
         {
             // Ensure the list has been sorted.
-            if (_isSortedValue == true)
+            if (_isSortedValue)
             {
-                // Revert list to unsorted version by sorting with connection number.
-                ApplySortCore(TypeDescriptor.GetProperties(new Connection())["Number"], ListSortDirection.Ascending);
-
                 // Reset sorted vars.
                 _isSortedValue = false;
                 _sortDirectionValue = default(ListSortDirection);
@@ -508,10 +537,11 @@ namespace Kebab
         // Ensure sorting occurs when elements of the list are updated.
         protected override void OnListChanged(ListChangedEventArgs args)
         {
-            // Check to see if a sort is in effect.
+            // Don't call sort from end of sort function, but allow sorting of list in general on item change.
             if (_isSortedValue == true && !_suppressSort)
                 ApplySortCore(_sortPropertyValue, _sortDirectionValue);
 
+            // Do base operations so long as a sort is not currently in effect.
             if (!_suppressNotification)
                 base.OnListChanged(args);
         }
