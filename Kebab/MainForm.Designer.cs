@@ -88,6 +88,11 @@ namespace Kebab
             this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
             this.complexFilter = new System.Windows.Forms.TextBox();
             this.ComplexFilterLabel = new System.Windows.Forms.Label();
+            this.localAddressToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.localPortToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.remoteAddressToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.remotePortToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
             this.TopMenu.SuspendLayout();
             this.ConnectionPage.SuspendLayout();
             this.DisplayFilterGroupBox.SuspendLayout();
@@ -406,37 +411,42 @@ namespace Kebab
             this.copyComponentToolStripMenuItem,
             this.toolStripSeparator1});
             this.ConnectionContextMenuStrip.Name = "ConnectionContextMenuStrip";
-            this.ConnectionContextMenuStrip.Size = new System.Drawing.Size(170, 54);
+            this.ConnectionContextMenuStrip.Size = new System.Drawing.Size(181, 76);
             // 
             // copyToolStripMenuItem
             // 
             this.copyToolStripMenuItem.Name = "copyToolStripMenuItem";
-            this.copyToolStripMenuItem.Size = new System.Drawing.Size(169, 22);
+            this.copyToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.copyToolStripMenuItem.Text = "Copy";
             this.copyToolStripMenuItem.Click += new System.EventHandler(this.copyToolStripMenuItem_Click);
             // 
             // copyComponentToolStripMenuItem
             // 
             this.copyComponentToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.localAddressToolStripMenuItem,
+            this.localPortToolStripMenuItem,
             this.localAddressPortToolStripMenuItem,
-            this.remoteAddressPortToolStripMenuItem});
+            this.remoteAddressToolStripMenuItem,
+            this.remotePortToolStripMenuItem,
+            this.remoteAddressPortToolStripMenuItem,
+            this.toolStripSeparator2});
             this.copyComponentToolStripMenuItem.Name = "copyComponentToolStripMenuItem";
-            this.copyComponentToolStripMenuItem.Size = new System.Drawing.Size(169, 22);
+            this.copyComponentToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.copyComponentToolStripMenuItem.Text = "Component Copy";
             this.copyComponentToolStripMenuItem.MouseHover += new System.EventHandler(this.copyComponentToolStripMenuItem_MouseHover);
             // 
             // localAddressPortToolStripMenuItem
             // 
             this.localAddressPortToolStripMenuItem.Name = "localAddressPortToolStripMenuItem";
-            this.localAddressPortToolStripMenuItem.Size = new System.Drawing.Size(208, 22);
-            this.localAddressPortToolStripMenuItem.Text = "Local Address and Port";
+            this.localAddressPortToolStripMenuItem.Size = new System.Drawing.Size(235, 22);
+            this.localAddressPortToolStripMenuItem.Text = "Local Address : Local Port";
             this.localAddressPortToolStripMenuItem.Click += new System.EventHandler(this.localAddressPortToolStripMenuItem_Click);
             // 
             // remoteAddressPortToolStripMenuItem
             // 
             this.remoteAddressPortToolStripMenuItem.Name = "remoteAddressPortToolStripMenuItem";
-            this.remoteAddressPortToolStripMenuItem.Size = new System.Drawing.Size(208, 22);
-            this.remoteAddressPortToolStripMenuItem.Text = "Remote Address and Port";
+            this.remoteAddressPortToolStripMenuItem.Size = new System.Drawing.Size(235, 22);
+            this.remoteAddressPortToolStripMenuItem.Text = "Remote Address : Remote Port";
             this.remoteAddressPortToolStripMenuItem.Click += new System.EventHandler(this.remoteAddressPortToolStripMenuItem_Click);
             // 
             // CapturePage
@@ -683,7 +693,7 @@ namespace Kebab
             // toolStripSeparator1
             // 
             this.toolStripSeparator1.Name = "toolStripSeparator1";
-            this.toolStripSeparator1.Size = new System.Drawing.Size(166, 6);
+            this.toolStripSeparator1.Size = new System.Drawing.Size(177, 6);
             // 
             // complexFilter
             // 
@@ -700,6 +710,39 @@ namespace Kebab
             this.ComplexFilterLabel.Size = new System.Drawing.Size(113, 20);
             this.ComplexFilterLabel.TabIndex = 17;
             this.ComplexFilterLabel.Text = "Complex Filter:";
+            // 
+            // localAddressToolStripMenuItem
+            // 
+            this.localAddressToolStripMenuItem.Name = "localAddressToolStripMenuItem";
+            this.localAddressToolStripMenuItem.Size = new System.Drawing.Size(235, 22);
+            this.localAddressToolStripMenuItem.Text = "Local Address";
+            this.localAddressToolStripMenuItem.Click += new System.EventHandler(this.localAddressToolStripMenuItem_Click);
+            // 
+            // localPortToolStripMenuItem
+            // 
+            this.localPortToolStripMenuItem.Name = "localPortToolStripMenuItem";
+            this.localPortToolStripMenuItem.Size = new System.Drawing.Size(235, 22);
+            this.localPortToolStripMenuItem.Text = "Local Port";
+            this.localPortToolStripMenuItem.Click += new System.EventHandler(this.localPortToolStripMenuItem_Click);
+            // 
+            // remoteAddressToolStripMenuItem
+            // 
+            this.remoteAddressToolStripMenuItem.Name = "remoteAddressToolStripMenuItem";
+            this.remoteAddressToolStripMenuItem.Size = new System.Drawing.Size(235, 22);
+            this.remoteAddressToolStripMenuItem.Text = "Remote Address";
+            this.remoteAddressToolStripMenuItem.Click += new System.EventHandler(this.remoteAddressToolStripMenuItem_Click);
+            // 
+            // remotePortToolStripMenuItem
+            // 
+            this.remotePortToolStripMenuItem.Name = "remotePortToolStripMenuItem";
+            this.remotePortToolStripMenuItem.Size = new System.Drawing.Size(235, 22);
+            this.remotePortToolStripMenuItem.Text = "Remote Port";
+            this.remotePortToolStripMenuItem.Click += new System.EventHandler(this.remotePortToolStripMenuItem_Click);
+            // 
+            // toolStripSeparator2
+            // 
+            this.toolStripSeparator2.Name = "toolStripSeparator2";
+            this.toolStripSeparator2.Size = new System.Drawing.Size(232, 6);
             // 
             // MainForm
             // 
@@ -788,6 +831,11 @@ namespace Kebab
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
         private System.Windows.Forms.Label ComplexFilterLabel;
         private System.Windows.Forms.TextBox complexFilter;
+        private System.Windows.Forms.ToolStripMenuItem localAddressToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem localPortToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem remoteAddressToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem remotePortToolStripMenuItem;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator2;
     }
 }
 

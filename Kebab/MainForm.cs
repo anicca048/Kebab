@@ -60,6 +60,7 @@ namespace Kebab
         // 
         // Main form directly related methods.
         // 
+
         public MainForm()
         {
             // Combat form flickering and resize drawing glitching.
@@ -76,6 +77,7 @@ namespace Kebab
             packetTimer.Interval = packetBatchInterval;
             timeoutTimer.Interval = timeoutInterval;
         }
+
         // User defined init (runs after MainForm constructor).
         private void MainForm_Load(object sender, EventArgs e)
         {
@@ -112,6 +114,7 @@ namespace Kebab
             // Enable form after init is done.
             this.Enabled = true;
         }
+
         // Overide form close to do background worker cleanup.
         protected override void OnFormClosing(FormClosingEventArgs e)
         {
@@ -134,6 +137,7 @@ namespace Kebab
         // 
         // Background worker related methods
         // 
+
         // Last background worker does form cleanup.
         private void DoBWCleanup(object sender, RunWorkerCompletedEventArgs e)
         {
@@ -144,6 +148,7 @@ namespace Kebab
             // Re enable start button now that a new capture can be started.
             ChangeOnStopCapture(sender, e);
         }
+
         // Setup all background workers.
         private void DoBWSetup()
         {
@@ -160,6 +165,7 @@ namespace Kebab
             _captureWorker.RunWorkerCompleted += DoBWCleanup;
             _captureWorker.RunWorkerAsync();
         }
+
         // Threaded pcap packet processing loop.
         private void CaptureWorker_DoWork(object sender, DoWorkEventArgs e)
         {
@@ -193,6 +199,7 @@ namespace Kebab
         // 
         // Display filter related methods.
         // 
+
         // Checks if display filters match a connection.
         private bool CheckDisplayFilter(object DataSource)
         {
@@ -234,6 +241,7 @@ namespace Kebab
                 return true;
             }
         }
+
         // Make sure we don't paint rows that don't match the display filter.
         private bool _displayFilterSet = false;
         private void EnforceDisplayFilter()
@@ -262,6 +270,7 @@ namespace Kebab
             // Show displayfilter changes.
             ConnectionGridView.Update();
         }
+
         // Clears text from display filter and removes filter from connections list.
         private void ClearDisplayFilter()
         {
@@ -269,6 +278,7 @@ namespace Kebab
             IPDisplayFilter.Clear();
             PortDisplayFilter.Clear();
         }
+
         // Removes filter from connection list.
         private void RemoveDisplayFilter()
         {
@@ -286,6 +296,7 @@ namespace Kebab
             // Show displayfilter changes.
             ConnectionGridView.Update();
         }
+
         // Force repaint for display filter adhearence.
         private void IPDisplayFilter_TextChanged(object sender, EventArgs e)
         {
@@ -299,6 +310,7 @@ namespace Kebab
 
             EnforceDisplayFilter();
         }
+
         // Force repaint for display filter adhearence.
         private void PortDisplayFilter_TextChanged(object sender, EventArgs e)
         {
@@ -312,6 +324,7 @@ namespace Kebab
 
             EnforceDisplayFilter();
         }
+
         // Force repaint for display filter adhearence.
         private void ConnectionGridView_RowsAdded(object sender, DataGridViewRowsAddedEventArgs e)
         {
@@ -324,6 +337,7 @@ namespace Kebab
         // 
         // ConnectionGridView modifiers.
         // 
+
         // Update connection stats with packets remaining in the queue.
         private void UpdateConnList(object sender, EventArgs e)
         {
@@ -412,6 +426,7 @@ namespace Kebab
                 }
             }
         }
+
         // Runs connection timeout removal operations on Connection List.
         private void TimeoutConnList(object sender, EventArgs e)
         {
@@ -441,19 +456,22 @@ namespace Kebab
                     break;
             }
         }
+
         // Allows thread safe clearing of binded data list from background worker.
         private void ClearConnList()
         {
             // Clear the binded list of entries.
-            ConnectionGridView.CurrentCell = null;
             ConnectionGridView.ClearSelection();
             connectionList.Clear();
+            
+            // Make control redraw.
             ConnectionGridView.Update();
         }
 
         // 
         // UI and control event related members.
         // 
+
         // Disables certian bulk UI elements on when a capture is started.
         private void ChangeOnStartCapture(object sender, EventArgs e)
         {
@@ -468,6 +486,7 @@ namespace Kebab
             ClearDisplayFilter();
             DisplayFilterGroupBox.Enabled = true;
         }
+
         // Enables certian bulk UI elements on when a capture is stoped.
         private void ChangeOnStopCapture(object sender, EventArgs e)
         {
@@ -481,6 +500,7 @@ namespace Kebab
             InterfaceDropDownList.Enabled = true;
             CaptureFilterGroupBox.Enabled = true;
         }
+
         // Determine if the user can start a capture or not based on valid drop down selection.
         private void InterfaceDropDownList_SelectedIndexChanged(object sender, EventArgs e)
         {
@@ -497,6 +517,7 @@ namespace Kebab
                 CaptureFilterGroupBox.Enabled = false;
             }
         }
+
         // Starts the whole pcap process after user presses button.
         private void CaptureStartButton_Click(object sender, EventArgs e)
         {
@@ -580,6 +601,7 @@ namespace Kebab
                 MessageBox.Show("Error: you must select an interface!", programName);
             }
         }
+
         // Kill background thread doing pcap processing when user presses button.
         private void CaptureStopButton_Click(object sender, EventArgs e)
         {
@@ -594,6 +616,7 @@ namespace Kebab
             packetTimer.Stop();
             timeoutTimer.Stop();
         }
+
         // Refreshes interface list / info.
         private void RefreshInterfacesButton_Click(object sender, EventArgs e)
         {
@@ -620,6 +643,7 @@ namespace Kebab
             foreach (string device in captureSession.DeviceDisplayList)
                 deviceList.Add(device);
         }
+
         // Removes any user filter settings.
         private void ClearFiltersButton_Click(object sender, EventArgs e)
         {
@@ -633,18 +657,21 @@ namespace Kebab
             DestinationIPFilter.Clear();
             DestinationPortFilter.Clear();
         }
+
         // Clear binded connection list if user presses button.
         private void ClearConnectionsButton_Click(object sender, EventArgs e)
         {
             // Clear connections list.
             ClearConnList();
         }
+
         // Removes connections tab display filters.
         private void ClearDisplayFiltersButton_Click(object sender, EventArgs e)
         {
             ClearDisplayFilter();
             RemoveDisplayFilter();
         }
+
         // Allow user to quite without using window quit button (Shortcut ^Q).
         private void ExitMenuItem_Click(object sender, EventArgs e)
         {
@@ -663,7 +690,73 @@ namespace Kebab
             this.Close();
         }
 
-        // Copy local address and port pair instead of whole connection for all selected connections.
+        // Show about page (well really a msgbox becuase I don't want to waste a form on an about page).
+        private void aboutToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            MessageBox.Show(aboutPage, programName);
+        }
+
+        // Decide if filter timer needs to be started or stoped.
+        private void TimeoutCheckBox_CheckedChanged(object sender, EventArgs e)
+        {
+            if (this.TimeoutCheckBox.Checked)
+                this.timeoutTimer.Start();
+            else
+                this.timeoutTimer.Stop();
+        }
+
+        // Copy all selected rows with right click.
+        private void copyToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if ((connectionList == null) || (connectionList.Count == 0) ||
+                    (ConnectionGridView == null) || (ConnectionGridView.SelectedRows.Count == 0))
+                return;
+
+            DataObject dataObj = ConnectionGridView.GetClipboardContent();
+
+            if (dataObj != null)
+                Clipboard.SetDataObject(dataObj);
+        }
+
+        // Show dropdown menu on mouse hover.
+        private void copyComponentToolStripMenuItem_MouseHover(object sender, EventArgs e)
+        {
+            copyComponentToolStripMenuItem.ShowDropDown();
+        }
+
+        // Copy local address of connection for all selected connections.
+        private void localAddressToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if ((connectionList == null) || (connectionList.Count == 0) ||
+                (ConnectionGridView == null) || (ConnectionGridView.SelectedRows.Count == 0))
+                return;
+
+            string copyString = "";
+
+            foreach (DataGridViewRow row in ConnectionGridView.SelectedRows)
+                copyString += (row.Cells[2].Value.ToString() + "\n");
+
+            if (copyString != "")
+                Clipboard.SetText(copyString);
+        }
+
+        // Copy local port of connection for all selected connections.
+        private void localPortToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if ((connectionList == null) || (connectionList.Count == 0) ||
+                (ConnectionGridView == null) || (ConnectionGridView.SelectedRows.Count == 0))
+                return;
+
+            string copyString = "";
+
+            foreach (DataGridViewRow row in ConnectionGridView.SelectedRows)
+                copyString += (row.Cells[3].Value.ToString() + "\n");
+
+            if (copyString != "")
+                Clipboard.SetText(copyString);
+        }
+
+        // Copy local address and port pair of connection for all selected connections.
         private void localAddressPortToolStripMenuItem_Click(object sender, EventArgs e)
         {
             if ((connectionList == null) || (connectionList.Count == 0) ||
@@ -678,7 +771,40 @@ namespace Kebab
             if (copyString != "")
                 Clipboard.SetText(copyString);
         }
-        // Copy remote address and port pair instead of whole connection for all selected connections.
+
+        // Copy remote address of connection for all selected connections.
+        private void remoteAddressToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if ((connectionList == null) || (connectionList.Count == 0) ||
+                (ConnectionGridView == null) || (ConnectionGridView.SelectedRows.Count == 0))
+                return;
+
+            string copyString = "";
+
+            foreach (DataGridViewRow row in ConnectionGridView.SelectedRows)
+                copyString += (row.Cells[5].Value.ToString() + "\n");
+
+            if (copyString != "")
+                Clipboard.SetText(copyString);
+        }
+
+        // Copy remote pair of connection for all selected connections.
+        private void remotePortToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if ((connectionList == null) || (connectionList.Count == 0) ||
+                (ConnectionGridView == null) || (ConnectionGridView.SelectedRows.Count == 0))
+                return;
+
+            string copyString = "";
+
+            foreach (DataGridViewRow row in ConnectionGridView.SelectedRows)
+                copyString += (row.Cells[6].Value.ToString() + "\n");
+
+            if (copyString != "")
+                Clipboard.SetText(copyString);
+        }
+
+        // Copy remote address and port pair of connection for all selected connections.
         private void remoteAddressPortToolStripMenuItem_Click(object sender, EventArgs e)
         {
             if ((connectionList == null) || (connectionList.Count == 0) ||
@@ -692,36 +818,6 @@ namespace Kebab
 
             if (copyString != "")
                 Clipboard.SetText(copyString);
-        }
-        // Copy all selected rows with right click.
-        private void copyToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            if ((connectionList == null) || (connectionList.Count == 0) ||
-                    (ConnectionGridView == null) || (ConnectionGridView.SelectedRows.Count == 0))
-                return;
-
-            DataObject dataObj = ConnectionGridView.GetClipboardContent();
-
-            if (dataObj != null)
-                Clipboard.SetDataObject(dataObj);
-        }
-        // Show dropdown menu on mouse hover.
-        private void copyComponentToolStripMenuItem_MouseHover(object sender, EventArgs e)
-        {
-            copyComponentToolStripMenuItem.ShowDropDown();
-        }
-        // Show about page (well really a msgbox becuase I don't want to waste a form on an about page).
-        private void aboutToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            MessageBox.Show(aboutPage, programName);
-        }
-        // Decide if filter timer needs to be started or stoped.
-        private void TimeoutCheckBox_CheckedChanged(object sender, EventArgs e)
-        {
-            if (this.TimeoutCheckBox.Checked)
-                this.timeoutTimer.Start();
-            else
-                this.timeoutTimer.Stop();
         }
     }
 }
