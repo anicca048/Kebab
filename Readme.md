@@ -109,8 +109,9 @@ restored to normalcy. Users will just have to deal with this until a proper
 non-destructive connection number reodering algorithim is implemented.
 (it's gonna be a while.)
 
-Connection Sorting: Currently if you sort the connection list (by any property)
-under heavy load it will bog down the UI loop causing delayed responses
-to user input and manipulation of the window / controls. The sort algorithim
-has been optimized to fight this, but not much more can be done untill a new
-sort algorithim is implemnted. (should happen soon.)
+Connection Sorting: Currently if you sort the connection list in any way
+(except by property "Number" in ascending order), under heavy load the UI loop
+can get bogged down by the constant resorting of the list. This may cause
+delayed responses to user input and manipulation of the window / controls. The
+sort algorithim has been optimized to combat this issue, but not much more can
+be done untill a new algorithim is implemnted. (should happen soon.)

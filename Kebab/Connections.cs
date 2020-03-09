@@ -105,8 +105,8 @@ namespace Kebab
             // Compares bytes to local ip ranges using netmask anding.
             if ((bytes & CLASS_A_NETMASK) == CLASS_A_ADDRESS)
                 return true;
-            else if (((bytes & CLASS_B_NETMASK) >= CLASS_B_MINADDR) &&
-                     ((bytes & CLASS_B_NETMASK) <= CLASS_B_MAXADDR))
+            else if (((bytes & CLASS_B_NETMASK) >= CLASS_B_MINADDR)
+                     && ((bytes & CLASS_B_NETMASK) <= CLASS_B_MAXADDR))
                 return true;
             else if ((bytes & CLASS_C_NETMASK) == CLASS_C_ADDRESS)
                 return true;
@@ -291,9 +291,6 @@ namespace Kebab
         // Timestamp for checking if this is an old / dead connection.
         public DateTime TimeStamp { get; set; }
 
-        // Default ctor so we don't have to use the one that takes L4Packets.
-        //public Connection() { this.PacketCount = 1; this.DataSent = 0; }
-
         // Ctor allows conversion from L4Packet to Connection.
         public Connection(L4Packet pkt)
         {
@@ -324,11 +321,11 @@ namespace Kebab
                 return PMatch.NO_MATCH;
 
             // Check if IP's and ports (or inverse) match.
-            if ((Equals(this.Source.Address, pkt.Source) && Equals(this.SrcPort, pkt.SrcPort)) &&
-                (Equals(this.Destination.Address, pkt.Destination) && Equals(this.DstPort, pkt.DstPort)))
+            if ((Equals(this.Source.Address, pkt.Source) && Equals(this.SrcPort, pkt.SrcPort))
+                && (Equals(this.Destination.Address, pkt.Destination) && Equals(this.DstPort, pkt.DstPort)))
                 return PMatch.MATCH;
-            else if ((Equals(this.Source.Address, pkt.Destination) && Equals(this.SrcPort, pkt.DstPort)) &&
-                     (Equals(this.Destination.Address, pkt.Source) && Equals(this.DstPort, pkt.SrcPort)))
+            else if ((Equals(this.Source.Address, pkt.Destination) && Equals(this.SrcPort, pkt.DstPort))
+                     && (Equals(this.Destination.Address, pkt.Source) && Equals(this.DstPort, pkt.SrcPort)))
                 return PMatch.REV_MATCH;
 
             return PMatch.NO_MATCH;
@@ -348,8 +345,8 @@ namespace Kebab
                     return false;
 
                 // Check if IP's and ports (or inverse) match.
-                if ((Equals(this.Source, conn.Source) && Equals(this.SrcPort, conn.SrcPort)) &&
-                    (Equals(this.Destination, conn.Destination) && Equals(this.DstPort, conn.DstPort)))
+                if ((Equals(this.Source, conn.Source) && Equals(this.SrcPort, conn.SrcPort))
+                    && (Equals(this.Destination, conn.Destination) && Equals(this.DstPort, conn.DstPort)))
                     return true;
 
                 return false;

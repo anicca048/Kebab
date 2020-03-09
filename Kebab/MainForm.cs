@@ -1,10 +1,12 @@
 ﻿
 using System;
+using System.Linq;
 using System.Reflection;
 using System.Drawing;
 using System.ComponentModel;
 using System.Windows.Forms;
 using System.Collections.Generic;
+using System.IO;
 
 namespace Kebab
 {
@@ -23,6 +25,9 @@ namespace Kebab
                                           "\n" +
                                           "Project Github page URL: https://github.com/anicca048/Kebab\n" +
                                           "PcapDotNet Github page URL: https://github.com/PcapDotNet/Pcap.Net";
+
+        // Header to match connections for saving list.
+        private const string connListHdr = "#    Type LocalAddress:Port     State RemoteAddress:Port    Packets   DataSent\n";
 
         // Interface drop down list data source.
         private BindingList<string> deviceList;
@@ -53,6 +58,11 @@ namespace Kebab
         private const int timeoutInterval = 500;
         // Inactive entry time limit in seconds.
         private const int timeoutLimit = 10;
+
+        // File stream for using save option without reprompting dialog.
+        private string saveFileName;
+        // Filter string to use for file dialog window.
+        private const string saveFileFilter = "text files (*.txt)|*.txt|All files (*.*)|*.*";
 
         // Indicates that the form closing event has been called and that the worker completion method needs to close the form.
         private bool formClosePending = false;
@@ -213,26 +223,26 @@ namespace Kebab
 
             if (IPFilter && PortFilter)
             {
-                if (((connection.Source.ToString() == IPDisplayFilter.Text.Trim()) ||
-                     (connection.Destination.ToString() == IPDisplayFilter.Text.Trim())) &&
-                    ((connection.SrcPort.ToString() == PortDisplayFilter.Text.Trim()) ||
-                     (connection.DstPort.ToString() == PortDisplayFilter.Text.Trim())))
+                if (((connection.Source.ToString() == IPDisplayFilter.Text.Trim())
+                     || (connection.Destination.ToString() == IPDisplayFilter.Text.Trim()))
+                    && ((connection.SrcPort.ToString() == PortDisplayFilter.Text.Trim())
+                     || (connection.DstPort.ToString() == PortDisplayFilter.Text.Trim())))
                     return true;
                 else
                     return false;
             }
             else if (IPFilter)
             {
-                if ((connection.Source.ToString() == IPDisplayFilter.Text.Trim()) ||
-                    (connection.Destination.ToString() == IPDisplayFilter.Text.Trim()))
+                if ((connection.Source.ToString() == IPDisplayFilter.Text.Trim())
+                    || (connection.Destination.ToString() == IPDisplayFilter.Text.Trim()))
                     return true;
                 else
                     return false;
             }
             else if (PortFilter)
             {
-                if ((connection.SrcPort.ToString() == PortDisplayFilter.Text.Trim()) ||
-                    (connection.DstPort.ToString() == PortDisplayFilter.Text.Trim()))
+                if ((connection.SrcPort.ToString() == PortDisplayFilter.Text.Trim())
+                    || (connection.DstPort.ToString() == PortDisplayFilter.Text.Trim()))
                     return true;
                 else
                     return false;
@@ -475,8 +485,285 @@ namespace Kebab
             ConnectionGridView.Update();
         }
 
+        //
+        // Copy and save functionality members.
+        //
+
+        // Return selected row list (fixes reverse order bug).
+        private List<DataGridViewRow> getSelectedRows()
+        {
+            List<DataGridViewRow> rows =
+            (from DataGridViewRow row in ConnectionGridView.SelectedRows
+             where !row.IsNewRow
+             orderby row.Index
+             select row).ToList<DataGridViewRow>();
+
+            return rows;
+        }
+
+        // Turns specified rows from connListView into formated conn lines as a string for copy and save functions.
+        private string getConnsFromRows(List<DataGridViewRow> rows)
+        {
+            string outputStr = "";
+
+            foreach (DataGridViewRow row in rows)
+            {
+                outputStr += (row.Cells[0].Value.ToString().PadRight(4) + " "
+                              + row.Cells[1].Value.ToString().PadRight(4) + " "
+                              + (row.Cells[2].Value.ToString() + ":" + row.Cells[3].Value.ToString()).PadRight(21) + " "
+                              + row.Cells[4].Value.ToString().PadRight(5) + " "
+                              + (row.Cells[5].Value.ToString() + ":" + row.Cells[6].Value.ToString()).PadRight(21) + " "
+                              + row.Cells[7].Value.ToString().PadRight(9) + " "
+                              + row.Cells[8].Value.ToString().PadRight(9)
+                              + "\n");
+            }
+
+            return outputStr;
+        }
+
+        // Copy all selected rows with right click.
+        private void copyToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            // Make sure there is something to copy.
+            if ((connectionList == null) || (connectionList.Count == 0)
+                || (ConnectionGridView == null) || (ConnectionGridView.SelectedRows.Count == 0))
+                return;
+
+            string copyStr = getConnsFromRows(getSelectedRows());
+
+            if (copyStr != "")
+                Clipboard.SetText(copyStr);
+        }
+
+        // Copy local address of connection for all selected connections.
+        private void localAddressToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            // Make sure there is something to copy.
+            if ((connectionList == null) || (connectionList.Count == 0)
+                || (ConnectionGridView == null) || (ConnectionGridView.SelectedRows.Count == 0))
+                return;
+
+            string copyString = "";
+
+            foreach (DataGridViewRow row in getSelectedRows())
+                copyString += (row.Cells[2].Value.ToString() + "\n");
+
+            if (copyString != "")
+                Clipboard.SetText(copyString);
+        }
+
+        // Copy local port of connection for all selected connections.
+        private void localPortToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            // Make sure there is something to copy.
+            if ((connectionList == null) || (connectionList.Count == 0)
+                || (ConnectionGridView == null) || (ConnectionGridView.SelectedRows.Count == 0))
+                return;
+
+            string copyString = "";
+
+            foreach (DataGridViewRow row in getSelectedRows())
+                copyString += (row.Cells[3].Value.ToString() + "\n");
+
+            if (copyString != "")
+                Clipboard.SetText(copyString);
+        }
+
+        // Copy local address and port pair of connection for all selected connections.
+        private void localAddressPortToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            // Make sure there is something to copy.
+            if ((connectionList == null) || (connectionList.Count == 0)
+                || (ConnectionGridView == null) || (ConnectionGridView.SelectedRows.Count == 0))
+                return;
+
+            string copyString = "";
+
+            foreach (DataGridViewRow row in getSelectedRows())
+                copyString += (row.Cells[2].Value.ToString() + ":" + row.Cells[3].Value.ToString() + "\n");
+
+            if (copyString != "")
+                Clipboard.SetText(copyString);
+        }
+
+        // Copy remote address of connection for all selected connections.
+        private void remoteAddressToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            // Make sure there is something to copy.
+            if ((connectionList == null) || (connectionList.Count == 0)
+                || (ConnectionGridView == null) || (ConnectionGridView.SelectedRows.Count == 0))
+                return;
+
+            string copyString = "";
+
+            foreach (DataGridViewRow row in getSelectedRows())
+                copyString += (row.Cells[5].Value.ToString() + "\n");
+
+            if (copyString != "")
+                Clipboard.SetText(copyString);
+        }
+
+        // Copy remote pair of connection for all selected connections.
+        private void remotePortToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            // Make sure there is something to copy.
+            if ((connectionList == null) || (connectionList.Count == 0)
+                || (ConnectionGridView == null) || (ConnectionGridView.SelectedRows.Count == 0))
+                return;
+
+            string copyString = "";
+
+            foreach (DataGridViewRow row in getSelectedRows())
+                copyString += (row.Cells[6].Value.ToString() + "\n");
+
+            if (copyString != "")
+                Clipboard.SetText(copyString);
+        }
+
+        // Copy remote address and port pair of connection for all selected connections.
+        private void remoteAddressPortToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            // Make sure there is something to copy.
+            if ((connectionList == null) || (connectionList.Count == 0)
+                || (ConnectionGridView == null) || (ConnectionGridView.SelectedRows.Count == 0))
+                return;
+
+            string copyString = "";
+
+            foreach (DataGridViewRow row in getSelectedRows())
+                copyString += (row.Cells[5].Value.ToString() + ":" + row.Cells[6].Value.ToString() + "\n");
+
+            if (copyString != "")
+                Clipboard.SetText(copyString);
+        }
+
+        // Saves connectionlist to file either with dialog or manually if a dialog was already used.
+        private void saveConnListToFile(bool useSaveDialog)
+        {
+            // Create output stream for file writing.
+            Stream saveFileStream;
+
+            // Use save file dialog if requested.
+            if (useSaveDialog)
+            {
+                // Create and setup save file dialog.
+                SaveFileDialog saveFileDialog = new SaveFileDialog();
+                saveFileDialog.Title =
+                saveFileDialog.Filter = saveFileFilter;
+                saveFileDialog.FilterIndex = 1;
+                saveFileDialog.RestoreDirectory = true;
+
+                // If a file was already saved to before, select that as the assumed save file.
+                if (saveFileName != default(string))
+                    saveFileDialog.FileName = Path.GetFileName(saveFileName);
+
+                // Show file save dialog.
+                if (saveFileDialog.ShowDialog() != DialogResult.OK)
+                    return;
+
+                // Check if file opened correctly (shouldn't happen as dialog checks for potential failures).
+                if ((saveFileStream = saveFileDialog.OpenFile()) == null)
+                {
+                    MessageBox.Show("Error: failed to open save file for writing!", programName);
+
+                    return;
+                }
+
+                // Save new file name for later operations.
+                saveFileName = saveFileDialog.FileName;
+            }
+            // Open file directly if dialog wasn't requested.
+            else
+            {
+                // If file no longer exists, then prompt the user for new file to save.
+                if (!File.Exists(saveFileName))
+                {
+                    // Call member recursivley to get dialog.
+                    saveConnListToFile(true);
+
+                    return;
+                }
+
+                // Open file stream for writing.
+                try
+                {
+                    saveFileStream = File.OpenWrite(saveFileName);
+                }
+                catch (UnauthorizedAccessException)
+                {
+                    MessageBox.Show("Error: failed to open save file for writing!\nReason: Permision denied!", programName);
+
+                    return;
+                }
+
+                // Shouldn't happen, checked for file path existence and permissions.
+                if (saveFileStream == null)
+                {
+                    MessageBox.Show("Error: failed to open save file for writing!", programName);
+
+                    return;
+                }
+            }
+
+            // Make sure file is empty before writing list.
+            if (saveFileStream.Length > 0)
+            {
+                saveFileStream.SetLength(0);
+                saveFileStream.Flush();
+            }
+
+            // Create sream writer for pushing strings to file.
+            StreamWriter saveFileWriter = new StreamWriter(saveFileStream);
+
+            // Write header to file first.
+            saveFileWriter.Write(connListHdr);
+
+            // Write all connections to file.
+            saveFileWriter.Write(getConnsFromRows(ConnectionGridView.Rows.Cast<DataGridViewRow>().ToList()));
+
+            // Write all data to file before close.
+            saveFileWriter.Flush(); 
+            // Close file.
+            saveFileStream.Close();
+        }
+
+        // Save all connections in list to selected file.
+        private void saveToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            // Make sure there is something to save.
+            if ((connectionList == null) || (connectionList.Count == 0)
+                || (ConnectionGridView == null) || (ConnectionGridView.RowCount == 0))
+            {
+                // Inform user of failure to save and exit.
+                MessageBox.Show("Error: cannot save an empty list!", programName);
+
+                return;
+            }
+
+            if (saveFileName != default(string))
+                saveConnListToFile(false);
+            else
+                saveConnListToFile(true);
+        }
+
+        // Save all connections to new file.
+        private void saveAsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            // Make sure there is something to save.
+            if ((connectionList == null) || (connectionList.Count == 0)
+                || (ConnectionGridView == null) || (ConnectionGridView.RowCount == 0))
+            {
+                // Inform user of failure to save and exit.
+                MessageBox.Show("Error: list is empty, nothing to save!", programName);
+
+                return;
+            }
+
+            saveConnListToFile(true);
+        }
+
         // 
-        // UI and control event related members.
+        // Other UI and control event related members.
         // 
 
         // Disables certian bulk UI elements on when a capture is started.
@@ -713,119 +1000,10 @@ namespace Kebab
                 this.timeoutTimer.Stop();
         }
 
-        // Copy all selected rows with right click.
-        private void copyToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            if ((connectionList == null) || (connectionList.Count == 0) ||
-                    (ConnectionGridView == null) || (ConnectionGridView.SelectedRows.Count == 0))
-                return;
-
-            DataObject dataObj = ConnectionGridView.GetClipboardContent();
-
-            if (dataObj != null)
-                Clipboard.SetDataObject(dataObj);
-        }
-
         // Show dropdown menu on mouse hover.
         private void copyComponentToolStripMenuItem_MouseHover(object sender, EventArgs e)
         {
             copyComponentToolStripMenuItem.ShowDropDown();
-        }
-
-        // Copy local address of connection for all selected connections.
-        private void localAddressToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            if ((connectionList == null) || (connectionList.Count == 0) ||
-                (ConnectionGridView == null) || (ConnectionGridView.SelectedRows.Count == 0))
-                return;
-
-            string copyString = "";
-
-            foreach (DataGridViewRow row in ConnectionGridView.SelectedRows)
-                copyString += (row.Cells[2].Value.ToString() + "\n");
-
-            if (copyString != "")
-                Clipboard.SetText(copyString);
-        }
-
-        // Copy local port of connection for all selected connections.
-        private void localPortToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            if ((connectionList == null) || (connectionList.Count == 0) ||
-                (ConnectionGridView == null) || (ConnectionGridView.SelectedRows.Count == 0))
-                return;
-
-            string copyString = "";
-
-            foreach (DataGridViewRow row in ConnectionGridView.SelectedRows)
-                copyString += (row.Cells[3].Value.ToString() + "\n");
-
-            if (copyString != "")
-                Clipboard.SetText(copyString);
-        }
-
-        // Copy local address and port pair of connection for all selected connections.
-        private void localAddressPortToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            if ((connectionList == null) || (connectionList.Count == 0) ||
-                (ConnectionGridView == null) || (ConnectionGridView.SelectedRows.Count == 0))
-                return;
-
-            string copyString = "";
-
-            foreach (DataGridViewRow row in ConnectionGridView.SelectedRows)
-                copyString += (row.Cells[2].Value.ToString() + ":" + row.Cells[3].Value.ToString() + "\n");
-
-            if (copyString != "")
-                Clipboard.SetText(copyString);
-        }
-
-        // Copy remote address of connection for all selected connections.
-        private void remoteAddressToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            if ((connectionList == null) || (connectionList.Count == 0) ||
-                (ConnectionGridView == null) || (ConnectionGridView.SelectedRows.Count == 0))
-                return;
-
-            string copyString = "";
-
-            foreach (DataGridViewRow row in ConnectionGridView.SelectedRows)
-                copyString += (row.Cells[5].Value.ToString() + "\n");
-
-            if (copyString != "")
-                Clipboard.SetText(copyString);
-        }
-
-        // Copy remote pair of connection for all selected connections.
-        private void remotePortToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            if ((connectionList == null) || (connectionList.Count == 0) ||
-                (ConnectionGridView == null) || (ConnectionGridView.SelectedRows.Count == 0))
-                return;
-
-            string copyString = "";
-
-            foreach (DataGridViewRow row in ConnectionGridView.SelectedRows)
-                copyString += (row.Cells[6].Value.ToString() + "\n");
-
-            if (copyString != "")
-                Clipboard.SetText(copyString);
-        }
-
-        // Copy remote address and port pair of connection for all selected connections.
-        private void remoteAddressPortToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            if ((connectionList == null) || (connectionList.Count == 0) ||
-                (ConnectionGridView == null) || (ConnectionGridView.SelectedRows.Count == 0))
-                return;
-
-            string copyString = "";
-
-            foreach (DataGridViewRow row in ConnectionGridView.SelectedRows)
-                copyString += (row.Cells[5].Value.ToString() + ":" + row.Cells[6].Value.ToString() + "\n");
-
-            if (copyString != "")
-                Clipboard.SetText(copyString);
         }
     }
 }

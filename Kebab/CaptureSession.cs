@@ -197,8 +197,8 @@ namespace Kebab
             {
                 // Description looks like: "Network Adapter 'Loopback Adapter' on local host".
                 if (_deviceList[i].Description != null)
-                    _deviceDisplayList.Add((i + 1).ToString() + ".) " + _deviceList[i].Description.ToString().Split('\'')[1] +
-                                            " [ " + GetDeviceIPV4Address(_deviceList[i]) + " ]");
+                    _deviceDisplayList.Add((i + 1).ToString() + ".) " + _deviceList[i].Description.ToString().Split('\'')[1]
+                                           + " [ " + GetDeviceIPV4Address(_deviceList[i]) + " ]");
                 else
                     _deviceDisplayList.Add((i + 1).ToString() + ".) " + "No Device Description");
             }
