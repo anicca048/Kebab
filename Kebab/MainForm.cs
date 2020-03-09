@@ -725,6 +725,9 @@ namespace Kebab
             saveFileWriter.Flush(); 
             // Close file.
             saveFileStream.Close();
+
+            if (!saveToolStripMenuItem.Enabled)
+                saveToolStripMenuItem.Enabled = true;
         }
 
         // Save all connections in list to selected file.
