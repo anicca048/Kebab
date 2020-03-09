@@ -11,9 +11,9 @@ namespace Kebab
     public partial class MainForm : Form
     {
         // Name of program for repeated use.
-        private static string programName = "Kebab";
+        private const string programName = "Kebab";
         // Breif description of the program.
-        private static string aboutPage = "Written in C#, " + programName + " is published for free under the terms of the MIT opensource license.\n" +
+        private const string aboutPage = "Written in C#, " + programName + " is published for free under the terms of the MIT opensource license.\n" +
                                           "\n" +
                                           programName + " uses PcapDotNet, which is published for free under a custom opensource license.\n" +
                                           "\n" +
@@ -61,6 +61,7 @@ namespace Kebab
         // Main form directly related methods.
         // 
 
+        // Entry function for the form.
         public MainForm()
         {
             // Combat form flickering and resize drawing glitching.
@@ -372,7 +373,7 @@ namespace Kebab
                 foreach (Connection tmpConn in connectionList)
                 {
                     // Find matching connections(regardless of source and dest orientation).
-                    if (tmpConn.PacketMatch(pkt) != Match.NO_MATCH)
+                    if (tmpConn.PacketMatch(pkt) != PMatch.NO_MATCH)
                     {
                         tmpConn.PacketCount++;
                         tmpConn.DataSent += pkt.PayloadSize;
@@ -381,7 +382,7 @@ namespace Kebab
                         // Check if direction needs to be updated to both ways.
                         if (tmpConn.State.Direction != TransmissionDirection.TWO_WAY)
                         {
-                            if (tmpConn.PacketMatch(pkt) == Match.REV_MATCH)
+                            if (tmpConn.PacketMatch(pkt) == PMatch.REV_MATCH)
                                 tmpConn.State.Direction = TransmissionDirection.TWO_WAY;
                             else if (tmpConn.State.Direction != pkt.Direction)
                                 tmpConn.State.Direction = TransmissionDirection.TWO_WAY;
@@ -460,6 +461,12 @@ namespace Kebab
         // Allows thread safe clearing of binded data list from background worker.
         private void ClearConnList()
         {
+            // Clear the queue first.
+            lock (pendingPacketsLock)
+            {
+                pendingPackets.Clear();
+            }
+
             // Clear the binded list of entries.
             ConnectionGridView.ClearSelection();
             connectionList.Clear();
@@ -656,6 +663,7 @@ namespace Kebab
             SourcePortFilter.Clear();
             DestinationIPFilter.Clear();
             DestinationPortFilter.Clear();
+            complexFilter.Clear();
         }
 
         // Clear binded connection list if user presses button.

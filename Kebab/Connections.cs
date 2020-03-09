@@ -24,7 +24,7 @@ namespace Kebab
     }
 
     // Describe type of connection packet match.
-    public enum Match
+    public enum PMatch
     {
         NO_MATCH,
         MATCH,
@@ -317,21 +317,21 @@ namespace Kebab
         }
 
         // Match packet to connection (-1 = no match, 0 = match, 1 = reverse match.
-        public Match PacketMatch(L4Packet pkt)
+        public PMatch PacketMatch(L4Packet pkt)
         {
             // Check protocol first (biggest devider of connections).
             if (!Equals(this.Type.Protocol, pkt.Protocol))
-                return Match.NO_MATCH;
+                return PMatch.NO_MATCH;
 
             // Check if IP's and ports (or inverse) match.
             if ((Equals(this.Source.Address, pkt.Source) && Equals(this.SrcPort, pkt.SrcPort)) &&
                 (Equals(this.Destination.Address, pkt.Destination) && Equals(this.DstPort, pkt.DstPort)))
-                return Match.MATCH;
+                return PMatch.MATCH;
             else if ((Equals(this.Source.Address, pkt.Destination) && Equals(this.SrcPort, pkt.DstPort)) &&
                      (Equals(this.Destination.Address, pkt.Source) && Equals(this.DstPort, pkt.SrcPort)))
-                return Match.REV_MATCH;
+                return PMatch.REV_MATCH;
 
-            return Match.NO_MATCH;
+            return PMatch.NO_MATCH;
         }
 
         // Match pre-existing connections (Equals() is check value, == is check reference).
@@ -460,9 +460,13 @@ namespace Kebab
             return false;
         }
 
-        // Sort Functionallity.
+        // Used to prevent excessive ascending Number sorting.
+        private bool _alreadyInOrder = true;
+        // Tracks stage of sorting.
         private bool _suppressSort = false;
         private bool _suppressNotification = false;
+
+        // Sort Functionallity.
         protected override void ApplySortCore(PropertyDescriptor prop, ListSortDirection direction)
         {
             // Set internal property and direction.
@@ -474,6 +478,23 @@ namespace Kebab
             // Stop stack overflow and binded events.
             _suppressNotification = true;
 
+            // Only do an ascending sort by "Number" once.
+            if ((prop.DisplayName == "Number") && (direction == ListSortDirection.Ascending) && _alreadyInOrder)
+            {
+                // Indicate that a sort has occured.
+                if (!_isSortedValue)
+                    _isSortedValue = true;
+
+                // Stop suppressing notification events.
+                _suppressNotification = false;
+
+                // Stop suppressing sorting events.
+                _suppressSort = false;
+
+                // Don't sort the list.
+                return;
+            }
+            
             // Sort loop limiter.
             int sortLength = this.Count;
 
@@ -500,8 +521,16 @@ namespace Kebab
                 sortLength = exchLocation;
             }
 
+            // If an ascending sort by "Number" was performed, than we don't need to keep sorting on list changes.
+            if ((prop.DisplayName == "Number") && (direction == ListSortDirection.Ascending))
+                _alreadyInOrder = true;
+            else
+                _alreadyInOrder = false;
+
             // Indicate that a sort has occured.
-            _isSortedValue = true;
+            if (!_isSortedValue)
+                _isSortedValue = true;
+
             // Stop suppressing notification events.
             _suppressNotification = false;
 

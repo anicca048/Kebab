@@ -62,8 +62,14 @@ namespace Kebab
             this.ConnectionContextMenuStrip = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.copyToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.copyComponentToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.localAddressToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.localPortToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.localAddressPortToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.remoteAddressToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.remotePortToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.remoteAddressPortToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
+            this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
             this.CapturePage = new System.Windows.Forms.TabPage();
             this.CaptureOptionsGroupBox = new System.Windows.Forms.GroupBox();
             this.RefreshInterfacesButton = new System.Windows.Forms.Button();
@@ -72,6 +78,8 @@ namespace Kebab
             this.CaptureStopButton = new System.Windows.Forms.Button();
             this.CaptureStartButton = new System.Windows.Forms.Button();
             this.CaptureFilterGroupBox = new System.Windows.Forms.GroupBox();
+            this.ComplexFilterLabel = new System.Windows.Forms.Label();
+            this.complexFilter = new System.Windows.Forms.TextBox();
             this.ClearFiltersButton = new System.Windows.Forms.Button();
             this.ProtocolLabel = new System.Windows.Forms.Label();
             this.UDPCheckBox = new System.Windows.Forms.CheckBox();
@@ -85,14 +93,6 @@ namespace Kebab
             this.SourcePortFilter = new System.Windows.Forms.TextBox();
             this.DestinationPortFilter = new System.Windows.Forms.TextBox();
             this.TabControl = new System.Windows.Forms.TabControl();
-            this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
-            this.complexFilter = new System.Windows.Forms.TextBox();
-            this.ComplexFilterLabel = new System.Windows.Forms.Label();
-            this.localAddressToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.localPortToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.remoteAddressToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.remotePortToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
             this.TopMenu.SuspendLayout();
             this.ConnectionPage.SuspendLayout();
             this.DisplayFilterGroupBox.SuspendLayout();
@@ -180,7 +180,7 @@ namespace Kebab
             // ClearDisplayFiltersButton
             // 
             this.ClearDisplayFiltersButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.ClearDisplayFiltersButton.Location = new System.Drawing.Point(508, 30);
+            this.ClearDisplayFiltersButton.Location = new System.Drawing.Point(593, 30);
             this.ClearDisplayFiltersButton.MinimumSize = new System.Drawing.Size(98, 27);
             this.ClearDisplayFiltersButton.Name = "ClearDisplayFiltersButton";
             this.ClearDisplayFiltersButton.Size = new System.Drawing.Size(111, 27);
@@ -193,10 +193,10 @@ namespace Kebab
             // 
             this.PortDisplayFilter.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.PortDisplayFilter.Font = new System.Drawing.Font("Consolas", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.PortDisplayFilter.Location = new System.Drawing.Point(398, 30);
+            this.PortDisplayFilter.Location = new System.Drawing.Point(456, 31);
             this.PortDisplayFilter.MaxLength = 5;
             this.PortDisplayFilter.Name = "PortDisplayFilter";
-            this.PortDisplayFilter.Size = new System.Drawing.Size(104, 26);
+            this.PortDisplayFilter.Size = new System.Drawing.Size(131, 26);
             this.PortDisplayFilter.TabIndex = 5;
             this.PortDisplayFilter.WordWrap = false;
             this.PortDisplayFilter.TextChanged += new System.EventHandler(this.PortDisplayFilter_TextChanged);
@@ -205,7 +205,7 @@ namespace Kebab
             // 
             this.PortDisplayFilterLabel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.PortDisplayFilterLabel.AutoSize = true;
-            this.PortDisplayFilterLabel.Location = new System.Drawing.Point(311, 32);
+            this.PortDisplayFilterLabel.Location = new System.Drawing.Point(369, 33);
             this.PortDisplayFilterLabel.Name = "PortDisplayFilterLabel";
             this.PortDisplayFilterLabel.Size = new System.Drawing.Size(81, 20);
             this.PortDisplayFilterLabel.TabIndex = 4;
@@ -218,7 +218,7 @@ namespace Kebab
             this.IPDisplayFilter.Location = new System.Drawing.Point(79, 30);
             this.IPDisplayFilter.MaxLength = 15;
             this.IPDisplayFilter.Name = "IPDisplayFilter";
-            this.IPDisplayFilter.Size = new System.Drawing.Size(226, 26);
+            this.IPDisplayFilter.Size = new System.Drawing.Size(284, 26);
             this.IPDisplayFilter.TabIndex = 3;
             this.IPDisplayFilter.WordWrap = false;
             this.IPDisplayFilter.TextChanged += new System.EventHandler(this.IPDisplayFilter_TextChanged);
@@ -411,12 +411,12 @@ namespace Kebab
             this.copyComponentToolStripMenuItem,
             this.toolStripSeparator1});
             this.ConnectionContextMenuStrip.Name = "ConnectionContextMenuStrip";
-            this.ConnectionContextMenuStrip.Size = new System.Drawing.Size(181, 76);
+            this.ConnectionContextMenuStrip.Size = new System.Drawing.Size(170, 54);
             // 
             // copyToolStripMenuItem
             // 
             this.copyToolStripMenuItem.Name = "copyToolStripMenuItem";
-            this.copyToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.copyToolStripMenuItem.Size = new System.Drawing.Size(169, 22);
             this.copyToolStripMenuItem.Text = "Copy";
             this.copyToolStripMenuItem.Click += new System.EventHandler(this.copyToolStripMenuItem_Click);
             // 
@@ -431,9 +431,23 @@ namespace Kebab
             this.remoteAddressPortToolStripMenuItem,
             this.toolStripSeparator2});
             this.copyComponentToolStripMenuItem.Name = "copyComponentToolStripMenuItem";
-            this.copyComponentToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.copyComponentToolStripMenuItem.Size = new System.Drawing.Size(169, 22);
             this.copyComponentToolStripMenuItem.Text = "Component Copy";
             this.copyComponentToolStripMenuItem.MouseHover += new System.EventHandler(this.copyComponentToolStripMenuItem_MouseHover);
+            // 
+            // localAddressToolStripMenuItem
+            // 
+            this.localAddressToolStripMenuItem.Name = "localAddressToolStripMenuItem";
+            this.localAddressToolStripMenuItem.Size = new System.Drawing.Size(235, 22);
+            this.localAddressToolStripMenuItem.Text = "Local Address";
+            this.localAddressToolStripMenuItem.Click += new System.EventHandler(this.localAddressToolStripMenuItem_Click);
+            // 
+            // localPortToolStripMenuItem
+            // 
+            this.localPortToolStripMenuItem.Name = "localPortToolStripMenuItem";
+            this.localPortToolStripMenuItem.Size = new System.Drawing.Size(235, 22);
+            this.localPortToolStripMenuItem.Text = "Local Port";
+            this.localPortToolStripMenuItem.Click += new System.EventHandler(this.localPortToolStripMenuItem_Click);
             // 
             // localAddressPortToolStripMenuItem
             // 
@@ -442,12 +456,36 @@ namespace Kebab
             this.localAddressPortToolStripMenuItem.Text = "Local Address : Local Port";
             this.localAddressPortToolStripMenuItem.Click += new System.EventHandler(this.localAddressPortToolStripMenuItem_Click);
             // 
+            // remoteAddressToolStripMenuItem
+            // 
+            this.remoteAddressToolStripMenuItem.Name = "remoteAddressToolStripMenuItem";
+            this.remoteAddressToolStripMenuItem.Size = new System.Drawing.Size(235, 22);
+            this.remoteAddressToolStripMenuItem.Text = "Remote Address";
+            this.remoteAddressToolStripMenuItem.Click += new System.EventHandler(this.remoteAddressToolStripMenuItem_Click);
+            // 
+            // remotePortToolStripMenuItem
+            // 
+            this.remotePortToolStripMenuItem.Name = "remotePortToolStripMenuItem";
+            this.remotePortToolStripMenuItem.Size = new System.Drawing.Size(235, 22);
+            this.remotePortToolStripMenuItem.Text = "Remote Port";
+            this.remotePortToolStripMenuItem.Click += new System.EventHandler(this.remotePortToolStripMenuItem_Click);
+            // 
             // remoteAddressPortToolStripMenuItem
             // 
             this.remoteAddressPortToolStripMenuItem.Name = "remoteAddressPortToolStripMenuItem";
             this.remoteAddressPortToolStripMenuItem.Size = new System.Drawing.Size(235, 22);
             this.remoteAddressPortToolStripMenuItem.Text = "Remote Address : Remote Port";
             this.remoteAddressPortToolStripMenuItem.Click += new System.EventHandler(this.remoteAddressPortToolStripMenuItem_Click);
+            // 
+            // toolStripSeparator2
+            // 
+            this.toolStripSeparator2.Name = "toolStripSeparator2";
+            this.toolStripSeparator2.Size = new System.Drawing.Size(232, 6);
+            // 
+            // toolStripSeparator1
+            // 
+            this.toolStripSeparator1.Name = "toolStripSeparator1";
+            this.toolStripSeparator1.Size = new System.Drawing.Size(166, 6);
             // 
             // CapturePage
             // 
@@ -481,9 +519,9 @@ namespace Kebab
             // 
             // RefreshInterfacesButton
             // 
-            this.RefreshInterfacesButton.Location = new System.Drawing.Point(371, 76);
+            this.RefreshInterfacesButton.Location = new System.Drawing.Point(441, 76);
             this.RefreshInterfacesButton.Name = "RefreshInterfacesButton";
-            this.RefreshInterfacesButton.Size = new System.Drawing.Size(190, 40);
+            this.RefreshInterfacesButton.Size = new System.Drawing.Size(205, 40);
             this.RefreshInterfacesButton.TabIndex = 3;
             this.RefreshInterfacesButton.Text = "Refresh Interfaces";
             this.RefreshInterfacesButton.UseVisualStyleBackColor = true;
@@ -504,16 +542,16 @@ namespace Kebab
             this.InterfaceDropDownList.FormattingEnabled = true;
             this.InterfaceDropDownList.Location = new System.Drawing.Point(139, 44);
             this.InterfaceDropDownList.Name = "InterfaceDropDownList";
-            this.InterfaceDropDownList.Size = new System.Drawing.Size(422, 26);
+            this.InterfaceDropDownList.Size = new System.Drawing.Size(507, 26);
             this.InterfaceDropDownList.TabIndex = 0;
             this.InterfaceDropDownList.SelectedIndexChanged += new System.EventHandler(this.InterfaceDropDownList_SelectedIndexChanged);
             // 
             // CaptureStopButton
             // 
             this.CaptureStopButton.Enabled = false;
-            this.CaptureStopButton.Location = new System.Drawing.Point(255, 76);
+            this.CaptureStopButton.Location = new System.Drawing.Point(290, 76);
             this.CaptureStopButton.Name = "CaptureStopButton";
-            this.CaptureStopButton.Size = new System.Drawing.Size(110, 40);
+            this.CaptureStopButton.Size = new System.Drawing.Size(145, 40);
             this.CaptureStopButton.TabIndex = 2;
             this.CaptureStopButton.Text = "Stop Sniffing";
             this.CaptureStopButton.UseVisualStyleBackColor = true;
@@ -524,7 +562,7 @@ namespace Kebab
             this.CaptureStartButton.Enabled = false;
             this.CaptureStartButton.Location = new System.Drawing.Point(139, 76);
             this.CaptureStartButton.Name = "CaptureStartButton";
-            this.CaptureStartButton.Size = new System.Drawing.Size(110, 40);
+            this.CaptureStartButton.Size = new System.Drawing.Size(145, 40);
             this.CaptureStartButton.TabIndex = 1;
             this.CaptureStartButton.Text = "Start Sniffing";
             this.CaptureStartButton.UseVisualStyleBackColor = true;
@@ -556,9 +594,26 @@ namespace Kebab
             this.CaptureFilterGroupBox.TabStop = false;
             this.CaptureFilterGroupBox.Text = "Capture Filter";
             // 
+            // ComplexFilterLabel
+            // 
+            this.ComplexFilterLabel.AutoSize = true;
+            this.ComplexFilterLabel.Location = new System.Drawing.Point(20, 142);
+            this.ComplexFilterLabel.Name = "ComplexFilterLabel";
+            this.ComplexFilterLabel.Size = new System.Drawing.Size(113, 20);
+            this.ComplexFilterLabel.TabIndex = 17;
+            this.ComplexFilterLabel.Text = "Complex Filter:";
+            // 
+            // complexFilter
+            // 
+            this.complexFilter.Location = new System.Drawing.Point(139, 139);
+            this.complexFilter.MaxLength = 1000;
+            this.complexFilter.Name = "complexFilter";
+            this.complexFilter.Size = new System.Drawing.Size(507, 26);
+            this.complexFilter.TabIndex = 16;
+            // 
             // ClearFiltersButton
             // 
-            this.ClearFiltersButton.Location = new System.Drawing.Point(139, 139);
+            this.ClearFiltersButton.Location = new System.Drawing.Point(139, 171);
             this.ClearFiltersButton.Name = "ClearFiltersButton";
             this.ClearFiltersButton.Size = new System.Drawing.Size(110, 40);
             this.ClearFiltersButton.TabIndex = 13;
@@ -623,14 +678,14 @@ namespace Kebab
             this.SourceIPFilter.Location = new System.Drawing.Point(139, 45);
             this.SourceIPFilter.MaxLength = 15;
             this.SourceIPFilter.Name = "SourceIPFilter";
-            this.SourceIPFilter.Size = new System.Drawing.Size(226, 26);
+            this.SourceIPFilter.Size = new System.Drawing.Size(284, 26);
             this.SourceIPFilter.TabIndex = 4;
             this.SourceIPFilter.WordWrap = false;
             // 
             // DestinationPortLabel
             // 
             this.DestinationPortLabel.AutoSize = true;
-            this.DestinationPortLabel.Location = new System.Drawing.Point(371, 80);
+            this.DestinationPortLabel.Location = new System.Drawing.Point(429, 80);
             this.DestinationPortLabel.Name = "DestinationPortLabel";
             this.DestinationPortLabel.Size = new System.Drawing.Size(80, 20);
             this.DestinationPortLabel.TabIndex = 10;
@@ -642,14 +697,14 @@ namespace Kebab
             this.DestinationIPFilter.Location = new System.Drawing.Point(139, 77);
             this.DestinationIPFilter.MaxLength = 15;
             this.DestinationIPFilter.Name = "DestinationIPFilter";
-            this.DestinationIPFilter.Size = new System.Drawing.Size(226, 26);
+            this.DestinationIPFilter.Size = new System.Drawing.Size(284, 26);
             this.DestinationIPFilter.TabIndex = 5;
             this.DestinationIPFilter.WordWrap = false;
             // 
             // SourcePortLabel
             // 
             this.SourcePortLabel.AutoSize = true;
-            this.SourcePortLabel.Location = new System.Drawing.Point(371, 48);
+            this.SourcePortLabel.Location = new System.Drawing.Point(439, 48);
             this.SourcePortLabel.Name = "SourcePortLabel";
             this.SourcePortLabel.Size = new System.Drawing.Size(70, 20);
             this.SourcePortLabel.TabIndex = 9;
@@ -658,20 +713,20 @@ namespace Kebab
             // SourcePortFilter
             // 
             this.SourcePortFilter.Font = new System.Drawing.Font("Consolas", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.SourcePortFilter.Location = new System.Drawing.Point(457, 45);
+            this.SourcePortFilter.Location = new System.Drawing.Point(515, 42);
             this.SourcePortFilter.MaxLength = 5;
             this.SourcePortFilter.Name = "SourcePortFilter";
-            this.SourcePortFilter.Size = new System.Drawing.Size(104, 26);
+            this.SourcePortFilter.Size = new System.Drawing.Size(131, 26);
             this.SourcePortFilter.TabIndex = 6;
             this.SourcePortFilter.WordWrap = false;
             // 
             // DestinationPortFilter
             // 
             this.DestinationPortFilter.Font = new System.Drawing.Font("Consolas", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.DestinationPortFilter.Location = new System.Drawing.Point(457, 77);
+            this.DestinationPortFilter.Location = new System.Drawing.Point(515, 78);
             this.DestinationPortFilter.MaxLength = 5;
             this.DestinationPortFilter.Name = "DestinationPortFilter";
-            this.DestinationPortFilter.Size = new System.Drawing.Size(104, 26);
+            this.DestinationPortFilter.Size = new System.Drawing.Size(131, 26);
             this.DestinationPortFilter.TabIndex = 7;
             this.DestinationPortFilter.WordWrap = false;
             // 
@@ -689,60 +744,6 @@ namespace Kebab
             this.TabControl.SelectedIndex = 0;
             this.TabControl.Size = new System.Drawing.Size(984, 492);
             this.TabControl.TabIndex = 0;
-            // 
-            // toolStripSeparator1
-            // 
-            this.toolStripSeparator1.Name = "toolStripSeparator1";
-            this.toolStripSeparator1.Size = new System.Drawing.Size(177, 6);
-            // 
-            // complexFilter
-            // 
-            this.complexFilter.Location = new System.Drawing.Point(139, 232);
-            this.complexFilter.Name = "complexFilter";
-            this.complexFilter.Size = new System.Drawing.Size(619, 26);
-            this.complexFilter.TabIndex = 16;
-            // 
-            // ComplexFilterLabel
-            // 
-            this.ComplexFilterLabel.AutoSize = true;
-            this.ComplexFilterLabel.Location = new System.Drawing.Point(20, 235);
-            this.ComplexFilterLabel.Name = "ComplexFilterLabel";
-            this.ComplexFilterLabel.Size = new System.Drawing.Size(113, 20);
-            this.ComplexFilterLabel.TabIndex = 17;
-            this.ComplexFilterLabel.Text = "Complex Filter:";
-            // 
-            // localAddressToolStripMenuItem
-            // 
-            this.localAddressToolStripMenuItem.Name = "localAddressToolStripMenuItem";
-            this.localAddressToolStripMenuItem.Size = new System.Drawing.Size(235, 22);
-            this.localAddressToolStripMenuItem.Text = "Local Address";
-            this.localAddressToolStripMenuItem.Click += new System.EventHandler(this.localAddressToolStripMenuItem_Click);
-            // 
-            // localPortToolStripMenuItem
-            // 
-            this.localPortToolStripMenuItem.Name = "localPortToolStripMenuItem";
-            this.localPortToolStripMenuItem.Size = new System.Drawing.Size(235, 22);
-            this.localPortToolStripMenuItem.Text = "Local Port";
-            this.localPortToolStripMenuItem.Click += new System.EventHandler(this.localPortToolStripMenuItem_Click);
-            // 
-            // remoteAddressToolStripMenuItem
-            // 
-            this.remoteAddressToolStripMenuItem.Name = "remoteAddressToolStripMenuItem";
-            this.remoteAddressToolStripMenuItem.Size = new System.Drawing.Size(235, 22);
-            this.remoteAddressToolStripMenuItem.Text = "Remote Address";
-            this.remoteAddressToolStripMenuItem.Click += new System.EventHandler(this.remoteAddressToolStripMenuItem_Click);
-            // 
-            // remotePortToolStripMenuItem
-            // 
-            this.remotePortToolStripMenuItem.Name = "remotePortToolStripMenuItem";
-            this.remotePortToolStripMenuItem.Size = new System.Drawing.Size(235, 22);
-            this.remotePortToolStripMenuItem.Text = "Remote Port";
-            this.remotePortToolStripMenuItem.Click += new System.EventHandler(this.remotePortToolStripMenuItem_Click);
-            // 
-            // toolStripSeparator2
-            // 
-            this.toolStripSeparator2.Name = "toolStripSeparator2";
-            this.toolStripSeparator2.Size = new System.Drawing.Size(232, 6);
             // 
             // MainForm
             // 
