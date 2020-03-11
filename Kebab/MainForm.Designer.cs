@@ -37,6 +37,9 @@ namespace Kebab
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             this.TopMenu = new System.Windows.Forms.MenuStrip();
             this.FileMenu = new System.Windows.Forms.ToolStripMenuItem();
+            this.saveToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.saveAsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripSeparator3 = new System.Windows.Forms.ToolStripSeparator();
             this.ExitMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.helpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -56,10 +59,10 @@ namespace Kebab
             this.localAddressToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.localPortToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.localAddressPortToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
             this.remoteAddressToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.remotePortToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.remoteAddressPortToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
             this.CapturePage = new System.Windows.Forms.TabPage();
             this.CaptureOptionsGroupBox = new System.Windows.Forms.GroupBox();
             this.RefreshInterfacesButton = new System.Windows.Forms.Button();
@@ -68,7 +71,7 @@ namespace Kebab
             this.CaptureStopButton = new System.Windows.Forms.Button();
             this.CaptureStartButton = new System.Windows.Forms.Button();
             this.CaptureFilterGroupBox = new System.Windows.Forms.GroupBox();
-            this.ComplexFilterLabel = new System.Windows.Forms.Label();
+            this.FilterStringLabel = new System.Windows.Forms.Label();
             this.complexFilter = new System.Windows.Forms.TextBox();
             this.ClearFiltersButton = new System.Windows.Forms.Button();
             this.ProtocolLabel = new System.Windows.Forms.Label();
@@ -91,10 +94,7 @@ namespace Kebab
             this.Destination = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.DstPort = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.PacketCount = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.DataSent = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.saveToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.saveAsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.toolStripSeparator3 = new System.Windows.Forms.ToolStripSeparator();
+            this.ByteCount = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.TopMenu.SuspendLayout();
             this.ConnectionPage.SuspendLayout();
             this.DisplayFilterGroupBox.SuspendLayout();
@@ -127,6 +127,29 @@ namespace Kebab
             this.FileMenu.Size = new System.Drawing.Size(37, 20);
             this.FileMenu.Text = "File";
             // 
+            // saveToolStripMenuItem
+            // 
+            this.saveToolStripMenuItem.Enabled = false;
+            this.saveToolStripMenuItem.Name = "saveToolStripMenuItem";
+            this.saveToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.S)));
+            this.saveToolStripMenuItem.Size = new System.Drawing.Size(186, 22);
+            this.saveToolStripMenuItem.Text = "Save";
+            this.saveToolStripMenuItem.Click += new System.EventHandler(this.saveToolStripMenuItem_Click);
+            // 
+            // saveAsToolStripMenuItem
+            // 
+            this.saveAsToolStripMenuItem.Name = "saveAsToolStripMenuItem";
+            this.saveAsToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)(((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Alt) 
+            | System.Windows.Forms.Keys.S)));
+            this.saveAsToolStripMenuItem.Size = new System.Drawing.Size(186, 22);
+            this.saveAsToolStripMenuItem.Text = "Save As...";
+            this.saveAsToolStripMenuItem.Click += new System.EventHandler(this.saveAsToolStripMenuItem_Click);
+            // 
+            // toolStripSeparator3
+            // 
+            this.toolStripSeparator3.Name = "toolStripSeparator3";
+            this.toolStripSeparator3.Size = new System.Drawing.Size(183, 6);
+            // 
             // ExitMenuItem
             // 
             this.ExitMenuItem.Name = "ExitMenuItem";
@@ -146,7 +169,7 @@ namespace Kebab
             // aboutToolStripMenuItem
             // 
             this.aboutToolStripMenuItem.Name = "aboutToolStripMenuItem";
-            this.aboutToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.aboutToolStripMenuItem.Size = new System.Drawing.Size(107, 22);
             this.aboutToolStripMenuItem.Text = "About";
             this.aboutToolStripMenuItem.Click += new System.EventHandler(this.aboutToolStripMenuItem_Click);
             // 
@@ -295,7 +318,7 @@ namespace Kebab
             this.Destination,
             this.DstPort,
             this.PacketCount,
-            this.DataSent});
+            this.ByteCount});
             this.ConnectionGridView.ContextMenuStrip = this.ConnectionContextMenuStrip;
             this.ConnectionGridView.EditMode = System.Windows.Forms.DataGridViewEditMode.EditProgrammatically;
             this.ConnectionGridView.Location = new System.Drawing.Point(3, 3);
@@ -370,6 +393,11 @@ namespace Kebab
             this.localAddressPortToolStripMenuItem.Text = "Local Address : Local Port";
             this.localAddressPortToolStripMenuItem.Click += new System.EventHandler(this.localAddressPortToolStripMenuItem_Click);
             // 
+            // toolStripSeparator2
+            // 
+            this.toolStripSeparator2.Name = "toolStripSeparator2";
+            this.toolStripSeparator2.Size = new System.Drawing.Size(232, 6);
+            // 
             // remoteAddressToolStripMenuItem
             // 
             this.remoteAddressToolStripMenuItem.Name = "remoteAddressToolStripMenuItem";
@@ -390,11 +418,6 @@ namespace Kebab
             this.remoteAddressPortToolStripMenuItem.Size = new System.Drawing.Size(235, 22);
             this.remoteAddressPortToolStripMenuItem.Text = "Remote Address : Remote Port";
             this.remoteAddressPortToolStripMenuItem.Click += new System.EventHandler(this.remoteAddressPortToolStripMenuItem_Click);
-            // 
-            // toolStripSeparator2
-            // 
-            this.toolStripSeparator2.Name = "toolStripSeparator2";
-            this.toolStripSeparator2.Size = new System.Drawing.Size(232, 6);
             // 
             // CapturePage
             // 
@@ -481,7 +504,7 @@ namespace Kebab
             // 
             this.CaptureFilterGroupBox.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.CaptureFilterGroupBox.Controls.Add(this.ComplexFilterLabel);
+            this.CaptureFilterGroupBox.Controls.Add(this.FilterStringLabel);
             this.CaptureFilterGroupBox.Controls.Add(this.complexFilter);
             this.CaptureFilterGroupBox.Controls.Add(this.ClearFiltersButton);
             this.CaptureFilterGroupBox.Controls.Add(this.ProtocolLabel);
@@ -503,14 +526,14 @@ namespace Kebab
             this.CaptureFilterGroupBox.TabStop = false;
             this.CaptureFilterGroupBox.Text = "Capture Filter";
             // 
-            // ComplexFilterLabel
+            // FilterStringLabel
             // 
-            this.ComplexFilterLabel.AutoSize = true;
-            this.ComplexFilterLabel.Location = new System.Drawing.Point(20, 142);
-            this.ComplexFilterLabel.Name = "ComplexFilterLabel";
-            this.ComplexFilterLabel.Size = new System.Drawing.Size(113, 20);
-            this.ComplexFilterLabel.TabIndex = 17;
-            this.ComplexFilterLabel.Text = "Complex Filter:";
+            this.FilterStringLabel.AutoSize = true;
+            this.FilterStringLabel.Location = new System.Drawing.Point(20, 142);
+            this.FilterStringLabel.Name = "FilterStringLabel";
+            this.FilterStringLabel.Size = new System.Drawing.Size(94, 20);
+            this.FilterStringLabel.TabIndex = 17;
+            this.FilterStringLabel.Text = "Filter String:";
             // 
             // complexFilter
             // 
@@ -730,42 +753,19 @@ namespace Kebab
             // 
             this.PacketCount.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
             this.PacketCount.DataPropertyName = "PacketCount";
-            this.PacketCount.HeaderText = "Packets";
+            this.PacketCount.HeaderText = "Packets Sent";
             this.PacketCount.MinimumWidth = 140;
             this.PacketCount.Name = "PacketCount";
             this.PacketCount.ReadOnly = true;
             this.PacketCount.Width = 140;
             // 
-            // DataSent
+            // ByteCount
             // 
-            this.DataSent.DataPropertyName = "DataSent";
-            this.DataSent.HeaderText = "Data Sent";
-            this.DataSent.MinimumWidth = 140;
-            this.DataSent.Name = "DataSent";
-            this.DataSent.ReadOnly = true;
-            // 
-            // saveToolStripMenuItem
-            // 
-            this.saveToolStripMenuItem.Enabled = false;
-            this.saveToolStripMenuItem.Name = "saveToolStripMenuItem";
-            this.saveToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.S)));
-            this.saveToolStripMenuItem.Size = new System.Drawing.Size(186, 22);
-            this.saveToolStripMenuItem.Text = "Save";
-            this.saveToolStripMenuItem.Click += new System.EventHandler(this.saveToolStripMenuItem_Click);
-            // 
-            // saveAsToolStripMenuItem
-            // 
-            this.saveAsToolStripMenuItem.Name = "saveAsToolStripMenuItem";
-            this.saveAsToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)(((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Alt) 
-            | System.Windows.Forms.Keys.S)));
-            this.saveAsToolStripMenuItem.Size = new System.Drawing.Size(186, 22);
-            this.saveAsToolStripMenuItem.Text = "Save As...";
-            this.saveAsToolStripMenuItem.Click += new System.EventHandler(this.saveAsToolStripMenuItem_Click);
-            // 
-            // toolStripSeparator3
-            // 
-            this.toolStripSeparator3.Name = "toolStripSeparator3";
-            this.toolStripSeparator3.Size = new System.Drawing.Size(183, 6);
+            this.ByteCount.DataPropertyName = "ByteCount";
+            this.ByteCount.HeaderText = "Data Sent";
+            this.ByteCount.MinimumWidth = 140;
+            this.ByteCount.Name = "ByteCount";
+            this.ByteCount.ReadOnly = true;
             // 
             // MainForm
             // 
@@ -842,13 +842,16 @@ namespace Kebab
         private System.Windows.Forms.ToolStripMenuItem copyToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem helpToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem aboutToolStripMenuItem;
-        private System.Windows.Forms.Label ComplexFilterLabel;
+        private System.Windows.Forms.Label FilterStringLabel;
         private System.Windows.Forms.TextBox complexFilter;
         private System.Windows.Forms.ToolStripMenuItem localAddressToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem localPortToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem remoteAddressToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem remotePortToolStripMenuItem;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator2;
+        private System.Windows.Forms.ToolStripMenuItem saveToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem saveAsToolStripMenuItem;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator3;
         private System.Windows.Forms.DataGridViewTextBoxColumn Number;
         private System.Windows.Forms.DataGridViewTextBoxColumn Type;
         private System.Windows.Forms.DataGridViewTextBoxColumn Source;
@@ -857,10 +860,7 @@ namespace Kebab
         private System.Windows.Forms.DataGridViewTextBoxColumn Destination;
         private System.Windows.Forms.DataGridViewTextBoxColumn DstPort;
         private System.Windows.Forms.DataGridViewTextBoxColumn PacketCount;
-        private System.Windows.Forms.DataGridViewTextBoxColumn DataSent;
-        private System.Windows.Forms.ToolStripMenuItem saveToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem saveAsToolStripMenuItem;
-        private System.Windows.Forms.ToolStripSeparator toolStripSeparator3;
+        private System.Windows.Forms.DataGridViewTextBoxColumn ByteCount;
     }
 }
 

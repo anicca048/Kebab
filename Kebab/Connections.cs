@@ -271,18 +271,18 @@ namespace Kebab
             }
         }
         // Data size (in bytes) of protocol payload segments (change forces list view update).
-        private uint _dataSent;
-        public uint DataSent
+        private uint _byteCount;
+        public uint ByteCount
         {
             get
             {
-                return _dataSent;
+                return _byteCount;
             }
             set
             {
-                if (value != _dataSent)
+                if (value != _byteCount)
                 {
-                    _dataSent = value;
+                    _byteCount = value;
                     NotifyPropertyChanged();
                 }
             }
@@ -301,7 +301,7 @@ namespace Kebab
             this.SrcPort = pkt.SrcPort;
             this.DstPort = pkt.DstPort;
             this.PacketCount = 1;
-            this.DataSent = pkt.PayloadSize;
+            this.ByteCount = pkt.PayloadSize;
             this.TimeStamp = DateTime.Now;
         }
 

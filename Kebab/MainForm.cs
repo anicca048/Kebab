@@ -27,7 +27,7 @@ namespace Kebab
                                           "PcapDotNet Github page URL: https://github.com/PcapDotNet/Pcap.Net";
 
         // Header to match connections for saving list.
-        private const string connListHdr = "#    Type LocalAddress:Port     State RemoteAddress:Port    Packets   DataSent\n";
+        private const string connListHdr = "#    Type LocalAddress:Port     State RemoteAddress:Port    PacketsSent   DataSent\n";
 
         // Interface drop down list data source.
         private BindingList<string> deviceList;
@@ -386,7 +386,7 @@ namespace Kebab
                     if (tmpConn.PacketMatch(pkt) != PMatch.NO_MATCH)
                     {
                         tmpConn.PacketCount++;
-                        tmpConn.DataSent += pkt.PayloadSize;
+                        tmpConn.ByteCount += pkt.PayloadSize;
                         tmpConn.TimeStamp = DateTime.Now;
 
                         // Check if direction needs to be updated to both ways.
@@ -513,7 +513,7 @@ namespace Kebab
                               + (row.Cells[2].Value.ToString() + ":" + row.Cells[3].Value.ToString()).PadRight(21) + " "
                               + row.Cells[4].Value.ToString().PadRight(5) + " "
                               + (row.Cells[5].Value.ToString() + ":" + row.Cells[6].Value.ToString()).PadRight(21) + " "
-                              + row.Cells[7].Value.ToString().PadRight(9) + " "
+                              + row.Cells[7].Value.ToString().PadRight(13) + " "
                               + row.Cells[8].Value.ToString().PadRight(9)
                               + "\n");
             }
