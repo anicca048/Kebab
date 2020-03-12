@@ -7,6 +7,7 @@ using System.ComponentModel;
 using System.Windows.Forms;
 using System.Collections.Generic;
 using System.IO;
+using System.Text.RegularExpressions;
 
 namespace Kebab
 {
@@ -49,6 +50,7 @@ namespace Kebab
         // Timers for updating the connection stats.
         System.Windows.Forms.Timer packetTimer = new System.Windows.Forms.Timer();
         System.Windows.Forms.Timer timeoutTimer = new System.Windows.Forms.Timer();
+        System.Windows.Forms.Timer displayFilterTimer = new System.Windows.Forms.Timer();
 
         // Minimal wait time between packet batch processing in milliseconds.
         private const int packetBatchInterval = 10;
@@ -57,12 +59,20 @@ namespace Kebab
         // Minimal wait time between inactive entry removal operations in milliseconds.
         private const int timeoutInterval = 500;
         // Inactive entry time limit in seconds.
-        private const int timeoutLimit = 10;
+        private int timeoutInactivityLimit = 10;
+        // How often to apply display filter checks in milliseconds.
+        private const int displayFilterInterval = 500;
 
         // File stream for using save option without reprompting dialog.
         private string saveFileName;
         // Filter string to use for file dialog window.
         private const string saveFileFilter = "text files (*.txt)|*.txt|All files (*.*)|*.*";
+
+        // Used to evaluate textfields that should only contian numeric values such as ports.
+        private const string nonNumericRegex = @"[^0-9]";
+        // Used to evaluate textfields that contain numeric vaules and periods such as ip addrs.
+        private const string nonNumericDotRegex = @"[^0-9\.]";
+
 
         // Indicates that the form closing event has been called and that the worker completion method needs to close the form.
         private bool formClosePending = false;
@@ -83,10 +93,12 @@ namespace Kebab
             // Add timer event handlers.
             packetTimer.Tick += new EventHandler(UpdateConnList);
             timeoutTimer.Tick += new EventHandler(TimeoutConnList);
+            displayFilterTimer.Tick += new EventHandler(FilterConnList);
 
             // Set timer intervals.
             packetTimer.Interval = packetBatchInterval;
             timeoutTimer.Interval = timeoutInterval;
+            displayFilterTimer.Interval = displayFilterInterval;
         }
 
         // User defined init (runs after MainForm constructor).
@@ -255,12 +267,8 @@ namespace Kebab
 
         // Make sure we don't paint rows that don't match the display filter.
         private bool _displayFilterSet = false;
-        private void EnforceDisplayFilter()
+        private void ApplyDisplayFilter()
         {
-            // Mark displayfilter flag true.
-            if (!_displayFilterSet)
-                _displayFilterSet = true;
-
             // Loop through connectionList and hide any connections that don't match filter (and unhide ones that do).
             foreach (DataGridViewRow row in ConnectionGridView.Rows)
             {
@@ -278,6 +286,10 @@ namespace Kebab
                 }
             }
 
+            // Mark displayfilter flag true.
+            if (!_displayFilterSet)
+                _displayFilterSet = true;
+
             // Show displayfilter changes.
             ConnectionGridView.Update();
         }
@@ -293,16 +305,16 @@ namespace Kebab
         // Removes filter from connection list.
         private void RemoveDisplayFilter()
         {
-            // Mark displayfilter flag false.
-            if (_displayFilterSet)
-                _displayFilterSet = false;
-
             // Remove displayfilter font changes.
             foreach (DataGridViewRow row in ConnectionGridView.Rows)
             {
                 row.DefaultCellStyle.ForeColor = ConnectionGridView.DefaultCellStyle.ForeColor;
                 row.DefaultCellStyle.Font = ConnectionGridView.DefaultCellStyle.Font;
             }
+
+            // Mark displayfilter flag false.
+            if (_displayFilterSet)
+                _displayFilterSet = false;
 
             // Show displayfilter changes.
             ConnectionGridView.Update();
@@ -316,32 +328,46 @@ namespace Kebab
                 if (_displayFilterSet)
                     RemoveDisplayFilter();
 
+                displayFilterTimer.Stop();
+
                 return;
             }
 
-            EnforceDisplayFilter();
+            ApplyDisplayFilter();
+            displayFilterTimer.Start();
         }
 
         // Force repaint for display filter adhearence.
         private void PortDisplayFilter_TextChanged(object sender, EventArgs e)
         {
-            if (!((IPDisplayFilter.Text.Trim().Length > 0) || (PortDisplayFilter.Text.Trim().Length > 0)))
+            if (!((PortDisplayFilter.Text.Trim().Length > 0) || (IPDisplayFilter.Text.Trim().Length > 0)))
             {
                 if (_displayFilterSet)
                     RemoveDisplayFilter();
 
+                displayFilterTimer.Stop();
+
                 return;
             }
 
-            EnforceDisplayFilter();
+            ApplyDisplayFilter();
+            displayFilterTimer.Start();
         }
 
-        // Force repaint for display filter adhearence.
+        // Force repaint for display filter adhearence when rows are added.
         private void ConnectionGridView_RowsAdded(object sender, DataGridViewRowsAddedEventArgs e)
         {
             if (_displayFilterSet)
             {
-                EnforceDisplayFilter();
+                ApplyDisplayFilter();
+            }
+        }
+        // Force repaint for display filter adhearence when the list is sorted by a property.
+        private void ConnectionGridView_Sorted(object sender, EventArgs e)
+        {
+            if (_displayFilterSet)
+            {
+                ApplyDisplayFilter();
             }
         }
 
@@ -451,7 +477,7 @@ namespace Kebab
                 foreach (Connection loopConn in connectionList)
                 {
                     // Find Inactive connetion based on timestamp.
-                    if ((DateTime.Now - loopConn.TimeStamp).TotalSeconds >= 10)
+                    if ((DateTime.Now - loopConn.TimeStamp).TotalSeconds >= timeoutInactivityLimit)
                     {
                         // Remove inactive entry and mark flag so that we will do another inactive connection check.
                         connectionList.Remove(loopConn);
@@ -465,6 +491,15 @@ namespace Kebab
                 // Stop checking for inactive connections if all have been checked.
                 if (!removedConnection)
                     break;
+            }
+        }
+
+        // Apply displayfilter if enabled.
+        private void FilterConnList(object sender, EventArgs e)
+        {
+            if (_displayFilterSet)
+            {
+                ApplyDisplayFilter();
             }
         }
 
@@ -1001,6 +1036,26 @@ namespace Kebab
                 this.timeoutTimer.Start();
             else
                 this.timeoutTimer.Stop();
+        }
+        // Set timeout limit var.
+        private void timeLimit_TextChanged(object sender, EventArgs e)
+        {
+            // Make sure we have a valid timeout value.
+            if (timeLimit.Text.Trim().Length > 0)
+            {
+                Match badChar = Regex.Match(timeLimit.Text.Trim(), nonNumericRegex);
+
+                if (badChar.Length > 0)
+                {
+                    MessageBox.Show("Error: invalid timeout limit!", programName);
+                    timeLimit.Text = timeoutInactivityLimit.ToString();
+
+                    return;
+                }
+
+                if (!Int32.TryParse(timeLimit.Text.Trim(), out timeoutInactivityLimit))
+                    MessageBox.Show("Error: invalid timeout limit!", programName);
+            }
         }
 
         // Show dropdown menu on mouse hover.
