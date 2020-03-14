@@ -9,6 +9,11 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
 
+using MaxMind.GeoIP2;
+using MaxMind.GeoIP2.Responses;
+using MaxMind.GeoIP2.Exceptions;
+using MaxMind.Db;
+
 namespace Kebab
 {
     public partial class MainForm : Form
@@ -16,19 +21,25 @@ namespace Kebab
         // Name of program for repeated use.
         private const string programName = "Kebab";
         // Breif description of the program.
-        private const string aboutPage = "Written in C#, " + programName + " is published for free under the terms of the MIT opensource license.\n" +
-                                          "\n" +
-                                          programName + " uses PcapDotNet, which is published for free under a custom opensource license.\n" +
-                                          "\n" +
-                                          "Program and legal documentation is included in the *Readme* and *License* files.\n" +
-                                          "\n" +
-                                          "Further documentation and source code can be found on the project's github page.\n" +
-                                          "\n" +
-                                          "Project Github page URL: https://github.com/anicca048/Kebab\n" +
-                                          "PcapDotNet Github page URL: https://github.com/PcapDotNet/Pcap.Net";
+        private const string aboutPage = "Copyright © 2018 anicca048\n" +
+                                         "\n" +
+                                         "Written in C#, " + programName + " is published for free under the terms of the MIT opensource license.\n" +
+                                         "\n" +
+                                         programName + " uses PcapDotNet, and the MaxMind GeoLite2 database and accompanying C# API.\n" +
+                                         "\n" +
+                                         "All third party API's / libraries / dll's used by " + programName + " are opensource.\n" +
+                                         "\n" +
+                                         "Program and legal documentation are included in the *Readme* and *License* / *Copyright* files respectively.\n" +
+                                         "\n" +
+                                         "Further documentation and source code can be found on the project's Github repo.\n" +
+                                         "\n" +
+                                         programName + " Github repo: https://github.com/anicca048/Kebab\n" +
+                                         "PcapDotNet Github repo: https://github.com/PcapDotNet/Pcap.Net\n" +
+                                         "MaxMind C# API Github repo: https://github.com/maxmind/MaxMind-DB-Reader-dotnet\n" +
+                                         "and https://github.com/maxmind/GeoIP2-dotnet";
 
         // Header to match connections for saving list.
-        private const string connListHdr = "#    Type LocalAddress:Port     State RemoteAddress:Port    PacketsSent   DataSent\n";
+        private const string connListHdr = "#    ISO    Type LocalAddress:Port     State RemoteAddress:Port    PacketsSent   DataSent\n";
 
         // Interface drop down list data source.
         private BindingList<string> deviceList;
@@ -73,6 +84,10 @@ namespace Kebab
         // Used to evaluate textfields that contain numeric vaules and periods such as ip addrs.
         private const string nonNumericDotRegex = @"[^0-9\.]";
 
+        // GeoLite2 dbase filenames.
+        private const string geoCityDB = "db/GeoLite2-City.mmdb";
+        // MM GeoLite2 dbase mapper / reader object.
+        private DatabaseReader CityReader;
 
         // Indicates that the form closing event has been called and that the worker completion method needs to close the form.
         private bool formClosePending = false;
@@ -134,6 +149,24 @@ namespace Kebab
             // BInd device list to drop down menu.
             InterfaceDropDownList.DataSource = deviceList;
 
+            // Create GeoIP reader (maps dbase to memory and allows quick lookups).
+            try
+            {
+                CityReader = new DatabaseReader(geoCityDB);
+            }
+            catch (FileNotFoundException ex)
+            {
+                // Warn user of missing database file and exit.
+                MessageBox.Show(("Error: could not find geoip database file: " + ex.Message), programName);
+                System.Environment.Exit(1);
+            }
+            catch (InvalidDatabaseException ex)
+            {
+                // Warn user of missing database file and exit.
+                MessageBox.Show(("Error: invalid or corrupt geoip database file: " + ex.Message), programName);
+                System.Environment.Exit(1);
+            }
+
             // Enable form after init is done.
             this.Enabled = true;
         }
@@ -153,6 +186,9 @@ namespace Kebab
                 return;
             }
 
+            // Cleanup.
+            CityReader.Dispose();
+
             // Otherwise let the form close naturally.
             base.OnFormClosing(e);
         }
@@ -166,7 +202,13 @@ namespace Kebab
         {
             // Check if user is waiting for form to close.
             if (formClosePending)
+            {
+                // Cleanup.
+                CityReader.Dispose();
+
+                // Close form.
                 this.Close();
+            }
 
             // Re enable start button now that a new capture can be started.
             ChangeOnStopCapture(sender, e);
@@ -453,6 +495,29 @@ namespace Kebab
                         conn.State.Direction = TransmissionDirection.REV_ONE_WAY;
                     }
 
+                    // Add geotag info.
+                    try
+                    {
+                        // Create response object.
+                        CityResponse resp = CityReader.City(conn.Destination.ToString());
+                        // Add info from response object, or "--" marker for empty components of the response.
+                        if ((conn.DstGeo.Country = resp.Country.Name) == default(string)) conn.DstGeo.Country = "--";
+                        if ((conn.DstGeo.CountryISO = resp.Country.IsoCode) == default(string)) conn.DstGeo.CountryISO = "--";
+                        if ((conn.DstGeo.State = resp.MostSpecificSubdivision.Name) == default(string)) conn.DstGeo.State = "--";
+                        if ((conn.DstGeo.StateISO = resp.MostSpecificSubdivision.IsoCode) == default(string)) conn.DstGeo.StateISO = "--";
+                        if ((conn.DstGeo.City = resp.City.Name) == default(string)) conn.DstGeo.City = "--";
+                    }
+                    // GeoLookup failed.
+                    catch (AddressNotFoundException)
+                    {
+                        // If city dbase lookup failed, set vals to empty marker.
+                        conn.DstGeo.Country = "--";
+                        conn.DstGeo.CountryISO = "--";
+                        conn.DstGeo.State = "--";
+                        conn.DstGeo.StateISO = "--";
+                        conn.DstGeo.City = "--";
+                    }
+
                     // Asing the connection a number.
                     conn.Number = ConnectionList.GetNewConnNumber(connectionList as IList<Connection>);
                     // And add it to the list.
@@ -544,12 +609,13 @@ namespace Kebab
             foreach (DataGridViewRow row in rows)
             {
                 outputStr += (row.Cells[0].Value.ToString().PadRight(4) + " "
-                              + row.Cells[1].Value.ToString().PadRight(4) + " "
-                              + (row.Cells[2].Value.ToString() + ":" + row.Cells[3].Value.ToString()).PadRight(21) + " "
-                              + row.Cells[4].Value.ToString().PadRight(5) + " "
-                              + (row.Cells[5].Value.ToString() + ":" + row.Cells[6].Value.ToString()).PadRight(21) + " "
-                              + row.Cells[7].Value.ToString().PadRight(13) + " "
-                              + row.Cells[8].Value.ToString().PadRight(9)
+                              + row.Cells[1].Value.ToString().PadRight(6) + " "
+                              + row.Cells[2].Value.ToString().PadRight(4) + " "
+                              + (row.Cells[3].Value.ToString() + ":" + row.Cells[4].Value.ToString()).PadRight(21) + " "
+                              + row.Cells[5].Value.ToString().PadRight(5) + " "
+                              + (row.Cells[6].Value.ToString() + ":" + row.Cells[7].Value.ToString()).PadRight(21) + " "
+                              + row.Cells[8].Value.ToString().PadRight(13) + " "
+                              + row.Cells[9].Value.ToString().PadRight(9)
                               + "\n");
             }
 
@@ -581,7 +647,7 @@ namespace Kebab
             string copyString = "";
 
             foreach (DataGridViewRow row in getSelectedRows())
-                copyString += (row.Cells[2].Value.ToString() + "\n");
+                copyString += (row.Cells[3].Value.ToString() + "\n");
 
             if (copyString != "")
                 Clipboard.SetText(copyString);
@@ -598,7 +664,7 @@ namespace Kebab
             string copyString = "";
 
             foreach (DataGridViewRow row in getSelectedRows())
-                copyString += (row.Cells[3].Value.ToString() + "\n");
+                copyString += (row.Cells[4].Value.ToString() + "\n");
 
             if (copyString != "")
                 Clipboard.SetText(copyString);
@@ -615,7 +681,7 @@ namespace Kebab
             string copyString = "";
 
             foreach (DataGridViewRow row in getSelectedRows())
-                copyString += (row.Cells[2].Value.ToString() + ":" + row.Cells[3].Value.ToString() + "\n");
+                copyString += (row.Cells[3].Value.ToString() + ":" + row.Cells[4].Value.ToString() + "\n");
 
             if (copyString != "")
                 Clipboard.SetText(copyString);
@@ -632,7 +698,7 @@ namespace Kebab
             string copyString = "";
 
             foreach (DataGridViewRow row in getSelectedRows())
-                copyString += (row.Cells[5].Value.ToString() + "\n");
+                copyString += (row.Cells[6].Value.ToString() + "\n");
 
             if (copyString != "")
                 Clipboard.SetText(copyString);
@@ -649,7 +715,7 @@ namespace Kebab
             string copyString = "";
 
             foreach (DataGridViewRow row in getSelectedRows())
-                copyString += (row.Cells[6].Value.ToString() + "\n");
+                copyString += (row.Cells[7].Value.ToString() + "\n");
 
             if (copyString != "")
                 Clipboard.SetText(copyString);
@@ -666,7 +732,7 @@ namespace Kebab
             string copyString = "";
 
             foreach (DataGridViewRow row in getSelectedRows())
-                copyString += (row.Cells[5].Value.ToString() + ":" + row.Cells[6].Value.ToString() + "\n");
+                copyString += (row.Cells[6].Value.ToString() + ":" + row.Cells[7].Value.ToString() + "\n");
 
             if (copyString != "")
                 Clipboard.SetText(copyString);

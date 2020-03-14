@@ -1,9 +1,13 @@
 # Kebab
 Kebab is a graphical "connection oriented" packet sniffer for MS Windows.
-It simplifies packets captured on an interface into connections for real time
-	traffic analysis and debugging.
+This project's goal is to provide a connection tracking utillity for system
+	administration and real time traffic analysis / debugging. While other tools
+	use the kernel's connection tracking system, Kebab reads packets straight
+	off the wire. This eliminates blindspots caused by the kernel's definition
+	of an "existing" connection, and the lack of tracking of packets being
+	routed to other destinations.
 Written in C#, Kebab is published for free under the terms of the MIT
-	opensource license.
+	OpenSource license.
 Kebab does not require any special permissions to run, so please do not run
 	Kebab in admin-mode. If a vulnerabillity is found in the way that Kebab or
 	PcapDotNet parses packet information and you are running Kebab in admin-mode
@@ -12,11 +16,31 @@ Kebab does not require any special permissions to run, so please do not run
 # PcapDotNet
 Kebab uses PcapDotNet, a wrapper for WinPcap (Outdated windows port of libpcap).
 PcapDotNet is opensource, and you can find both the source code and the releases
-	on github here: https://github.com/PcapDotNet/Pcap.Net
+	on their Github repo here: https://github.com/PcapDotNet/Pcap.Net
 PcapDotNet is published under a custom license which can be found
 	here: https://github.com/PcapDotNet/Pcap.Net/blob/master/license.txt
 The PcapDotNet license is distributed with both the source and release of
-	Kebab in the file PcapDotNet_license.txt.
+	Kebab in the file "docs/PcapDotNet_license.txt".
+
+# MaxMind GeoLite2 Database and API
+This product includes GeoLite2 data created by MaxMind, available from
+	https://www.maxmind.com
+Kebab uses the MaxMind GeoLite GeoIP database and accompanying C# API. The API
+	is published in two parts, the MaxMind-DB-Reader-dotnet project, which
+	parses MaxMind GeoLite2 databases, and GeoIP2-dotnet which handles both the
+	use of the web API, and the static lookups through the
+	MaxMind-DB-Reader-dotnet library.
+Both parts of the API are published for free under the OpenSource Apache
+	License, Version 2.0, while the database is published for free uder custom
+	licensing terms.
+You can read more about their products and projects on the MaxMind site here:
+	https://www.maxmind.com . You can also find the API source code and
+	documentation on the various project Github repos:
+	https://github.com/maxmind/MaxMind-DB-Reader-dotnet and 
+	https://github.com/maxmind/GeoIP2-dotnet .
+The API License is distributed with both the source and release of Kebab in the
+	file "docs/MaxMind_API_license.txt" and the GeoLite2 copyright and attribution
+	statement can be found in the file "docs/MaxMind_GeoLite2_copyright.txt".
 
 # Npcap
 As mentioned earlier, while PcapDotNet is intended for use with WinPcap, WinPcap
@@ -64,9 +88,9 @@ Connections Tab - Prety basic, simply groups captured packets into connections.
 		matches all filters used. If you need more precise filtering, set the 
 		pre-capture libpcap filter using the Capture Filter Group, on the
 		Capture Tab. The timeout checkbox will remove connections that have had
-		no activity in the last 10 seconds. The clear connections button, you
-		guessed it, clears all the connections from the list. Use these
-		destructive options with care.
+		no activity based on the user set timeout in seconds (defualt is 10).
+		The clear connections button, you guessed it, clears all the connections
+		from the list. Use these destructive options with care.
 	
 	Connections Data Grid View - This is used to display the simplified
 		components of the connection in a list like fashion. All connections
@@ -75,6 +99,10 @@ Connections Tab - Prety basic, simply groups captured packets into connections.
 			
 			Number (#), this is the number of the connection in order of first
 			observed packet.
+			
+			GeoIP info (Geo Info), this is the country ISO and State / Region
+			ISO codes for the RemoteAddress field. If the geo data is not found
+			for a given IP than there will be two dashes "--" instead.
 			
 			Protocol (Type), this is the L4 protcol (TCP or UDP in our case) of
 			the connection.
@@ -99,7 +127,7 @@ Connections Tab - Prety basic, simply groups captured packets into connections.
 			
 			Total Data Transmitted (Data Sent), the total size of observed
 			packet protocol payload data, in bytes.
-		
+
 # Known Issues / Bugs / Errata
 Connection numbering: Currently if you use the connection timeout option,
 deleted entries may cause gaps in the connection numbering. The current fix
@@ -115,3 +143,11 @@ can get bogged down by the constant resorting of the list. This may cause
 delayed responses to user input and manipulation of the window / controls. The
 sort algorithim has been optimized to combat this issue, but not much more can
 be done untill a new algorithim is implemnted. (should happen soon.)
+
+GeoIP data: sometimes geoip data will be out of date, or missing entirely for a
+given IP address. Currently the database provided is the last release of the
+GeoLite2 database without requring an MaxMind Account. Eventually an option to
+enter a personal MaxMind account web API key for more accurate and up-to-date
+results will be added (should happen fairly soon). However it's doubtful that
+the devs will be able to get a key for Kebab to be used in with the releases,
+given that the project is free software and recieves no external funding.

@@ -31,6 +31,25 @@ namespace Kebab
         REV_MATCH
     }
 
+    // Class for holding packets before they are converted to connections (lightweight).
+    public class L4Packet
+    {
+        // IP protcol (tcp / udp).
+        public L4Protocol Protocol { get; set; }
+        // Transmission direction.
+        public TransmissionDirection Direction { get; set; }
+        // Local IP address (sender).
+        public IpV4Address Source { get; set; }
+        // Protocol local port (sender port).
+        public ushort SrcPort { get; set; }
+        // Remote IP address (destination).
+        public IpV4Address Destination { get; set; }
+        // Protocol remote port (destination port).
+        public ushort DstPort { get; set; }
+        // Data size (in bytes) of protocol payload segments (change forces list view update).
+        public uint PayloadSize { get; set; }
+    }
+
     // Wrapperclass to implement IComparable for IPV4Address from pacapdotnet.
     public class ConnectionAddress : IComparable
     {
@@ -117,23 +136,48 @@ namespace Kebab
         }
     }
 
-    // Class for holding packets before they are converted to connections (lightweight).
-    public class L4Packet
+    // Class to contain connection address geo data.
+    public class GeoData : IComparable
     {
-        // IP protcol (tcp / udp).
-        public L4Protocol Protocol { get; set; }
-        // Transmission direction.
-        public TransmissionDirection Direction { get; set; }
-        // Local IP address (sender).
-        public IpV4Address Source { get; set; }
-        // Protocol local port (sender port).
-        public ushort SrcPort { get; set; }
-        // Remote IP address (destination).
-        public IpV4Address Destination { get; set; }
-        // Protocol remote port (destination port).
-        public ushort DstPort { get; set; }
-        // Data size (in bytes) of protocol payload segments (change forces list view update).
-        public uint PayloadSize { get; set; }
+        public string Country { get; set; }
+        public string CountryISO { get; set; }
+        public string State { get; set; }
+        public string StateISO { get; set; }
+        public string City { get; set; }
+
+        public int CompareTo(object obj)
+        {
+            // Make sure we are comparing to a valid object.
+            if ((obj == null) || !(obj is GeoData))
+                throw new NotSupportedException("Error: compared object is not a GeoData type!");
+
+            // Cast objest to usable current type.
+            GeoData geo = (obj as GeoData);
+
+            // Compare numerical value based on enum.
+            if (this.CountryISO.CompareTo(geo.CountryISO) > 0)
+                return 1;
+            else if (this.CountryISO.CompareTo(geo.CountryISO) < 0)
+                return -1;
+            else
+            {
+                if (this.StateISO.CompareTo(geo.StateISO) > 0)
+                    return 1;
+                else if (this.StateISO.CompareTo(geo.StateISO) < 0)
+                    return -1;
+                else
+                    return 0;
+            }
+        }
+
+        // Return the country code to the UI.
+        public override string ToString()
+        {
+            if (this.StateISO != "--")
+                return (this.CountryISO + ", " + this.StateISO);
+            else
+                return (this.CountryISO);
+        }
     }
 
     // Class to wrap protocol emum (for conversion to string / printing).
@@ -249,6 +293,8 @@ namespace Kebab
         public ConnectionAddress Source { get; set; }
         // Remote IP address (destination).
         public ConnectionAddress Destination { get; set; }
+        // GeoIP data object for the Remote / Destination ip addr.
+        public GeoData DstGeo { get; set; }
         // Protocol local port (sender port).
         public ushort SrcPort { get; set; }
         // Protocol remote port (destination port).
@@ -300,6 +346,7 @@ namespace Kebab
             this.Destination = new ConnectionAddress(pkt.Destination);
             this.SrcPort = pkt.SrcPort;
             this.DstPort = pkt.DstPort;
+            this.DstGeo = new GeoData();
             this.PacketCount = 1;
             this.ByteCount = pkt.PayloadSize;
             this.TimeStamp = DateTime.Now;
