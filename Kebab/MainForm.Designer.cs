@@ -64,6 +64,9 @@ namespace Kebab
             this.remoteAddressToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.remotePortToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.remoteAddressPortToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
+            this.iSOToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.aSNOrganizationToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.CapturePage = new System.Windows.Forms.TabPage();
             this.CaptureOptionsGroupBox = new System.Windows.Forms.GroupBox();
             this.RefreshInterfacesButton = new System.Windows.Forms.Button();
@@ -98,9 +101,6 @@ namespace Kebab
             this.ByteCount = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.DstGeo = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.DstASNOrg = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
-            this.iSOToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.aSNOrganizationToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.TopMenu.SuspendLayout();
             this.ConnectionPage.SuspendLayout();
             this.DisplayFilterGroupBox.SuspendLayout();
@@ -442,6 +442,25 @@ namespace Kebab
             this.remoteAddressPortToolStripMenuItem.Size = new System.Drawing.Size(235, 22);
             this.remoteAddressPortToolStripMenuItem.Text = "Remote Address : Remote Port";
             this.remoteAddressPortToolStripMenuItem.Click += new System.EventHandler(this.remoteAddressPortToolStripMenuItem_Click);
+            // 
+            // toolStripSeparator1
+            // 
+            this.toolStripSeparator1.Name = "toolStripSeparator1";
+            this.toolStripSeparator1.Size = new System.Drawing.Size(232, 6);
+            // 
+            // iSOToolStripMenuItem
+            // 
+            this.iSOToolStripMenuItem.Name = "iSOToolStripMenuItem";
+            this.iSOToolStripMenuItem.Size = new System.Drawing.Size(235, 22);
+            this.iSOToolStripMenuItem.Text = "ISO";
+            this.iSOToolStripMenuItem.Click += new System.EventHandler(this.iSOToolStripMenuItem_Click);
+            // 
+            // aSNOrganizationToolStripMenuItem
+            // 
+            this.aSNOrganizationToolStripMenuItem.Name = "aSNOrganizationToolStripMenuItem";
+            this.aSNOrganizationToolStripMenuItem.Size = new System.Drawing.Size(235, 22);
+            this.aSNOrganizationToolStripMenuItem.Text = "ASN Organization";
+            this.aSNOrganizationToolStripMenuItem.Click += new System.EventHandler(this.aSNOrganizationToolStripMenuItem_Click);
             // 
             // CapturePage
             // 
@@ -805,7 +824,7 @@ namespace Kebab
             this.ByteCount.MinimumWidth = 140;
             this.ByteCount.Name = "ByteCount";
             this.ByteCount.ReadOnly = true;
-            this.ByteCount.Width = 198;
+            this.ByteCount.Width = 140;
             // 
             // DstGeo
             // 
@@ -824,25 +843,6 @@ namespace Kebab
             this.DstASNOrg.MinimumWidth = 220;
             this.DstASNOrg.Name = "DstASNOrg";
             this.DstASNOrg.ReadOnly = true;
-            // 
-            // toolStripSeparator1
-            // 
-            this.toolStripSeparator1.Name = "toolStripSeparator1";
-            this.toolStripSeparator1.Size = new System.Drawing.Size(232, 6);
-            // 
-            // iSOToolStripMenuItem
-            // 
-            this.iSOToolStripMenuItem.Name = "iSOToolStripMenuItem";
-            this.iSOToolStripMenuItem.Size = new System.Drawing.Size(235, 22);
-            this.iSOToolStripMenuItem.Text = "ISO";
-            this.iSOToolStripMenuItem.Click += new System.EventHandler(this.iSOToolStripMenuItem_Click);
-            // 
-            // aSNOrganizationToolStripMenuItem
-            // 
-            this.aSNOrganizationToolStripMenuItem.Name = "aSNOrganizationToolStripMenuItem";
-            this.aSNOrganizationToolStripMenuItem.Size = new System.Drawing.Size(235, 22);
-            this.aSNOrganizationToolStripMenuItem.Text = "ASN Organization";
-            this.aSNOrganizationToolStripMenuItem.Click += new System.EventHandler(this.aSNOrganizationToolStripMenuItem_Click);
             // 
             // MainForm
             // 
@@ -930,6 +930,9 @@ namespace Kebab
         private System.Windows.Forms.ToolStripMenuItem saveAsToolStripMenuItem;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator3;
         private System.Windows.Forms.TextBox timeLimit;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
+        private System.Windows.Forms.ToolStripMenuItem iSOToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem aSNOrganizationToolStripMenuItem;
         private System.Windows.Forms.DataGridViewTextBoxColumn Number;
         private System.Windows.Forms.DataGridViewTextBoxColumn Type;
         private System.Windows.Forms.DataGridViewTextBoxColumn Source;
@@ -941,9 +944,6 @@ namespace Kebab
         private System.Windows.Forms.DataGridViewTextBoxColumn ByteCount;
         private System.Windows.Forms.DataGridViewTextBoxColumn DstGeo;
         private System.Windows.Forms.DataGridViewTextBoxColumn DstASNOrg;
-        private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
-        private System.Windows.Forms.ToolStripMenuItem iSOToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem aSNOrganizationToolStripMenuItem;
     }
 }
 
