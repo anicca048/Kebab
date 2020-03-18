@@ -139,6 +139,7 @@ namespace Kebab
     // Class to contain connection address geo data.
     public class GeoData : IComparable
     {
+        // Geographical info.
         public string Country { get; set; }
         public string CountryISO { get; set; }
         public string State { get; set; }
@@ -295,6 +296,10 @@ namespace Kebab
         public ConnectionAddress Destination { get; set; }
         // GeoIP data object for the Remote / Destination ip addr.
         public GeoData DstGeo { get; set; }
+        // Autonomous system number for remote address.
+        public long? DstASN { get; set; }
+        // ASN registered organization name for remote address.
+        public string DstASNOrg { get; set; }
         // Protocol local port (sender port).
         public ushort SrcPort { get; set; }
         // Protocol remote port (destination port).

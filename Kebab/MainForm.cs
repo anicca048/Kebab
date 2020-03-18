@@ -39,7 +39,7 @@ namespace Kebab
                                          "and https://github.com/maxmind/GeoIP2-dotnet";
 
         // Header to match connections for saving list.
-        private const string connListHdr = "#    ISO    Type LocalAddress:Port     State RemoteAddress:Port    PacketsSent   DataSent\n";
+        private const string connListHdr = "#    Type LocalAddress:Port     State RemoteAddress:Port    PacketsSent   DataSent      ISO    ASNOrg\n";
 
         // Interface drop down list data source.
         private BindingList<string> deviceList;
@@ -85,9 +85,11 @@ namespace Kebab
         private const string nonNumericDotRegex = @"[^0-9\.]";
 
         // GeoLite2 dbase filenames.
-        private const string geoCityDB = "db/GeoLite2-City.mmdb";
+        private const string IPCityLookupDB = "db/GeoLite2-City.mmdb";
+        private const string IPASNLookupDB = "db/GeoLite2-ASN.mmdb";
         // MM GeoLite2 dbase mapper / reader object.
         private DatabaseReader CityReader;
+        private DatabaseReader ASNReader;
 
         // Indicates that the form closing event has been called and that the worker completion method needs to close the form.
         private bool formClosePending = false;
@@ -152,23 +154,31 @@ namespace Kebab
             // Create GeoIP reader (maps dbase to memory and allows quick lookups).
             try
             {
-                CityReader = new DatabaseReader(geoCityDB);
+                CityReader = new DatabaseReader(IPCityLookupDB);
+                ASNReader = new DatabaseReader(IPASNLookupDB);
             }
             catch (FileNotFoundException ex)
             {
                 // Warn user of missing database file and exit.
-                MessageBox.Show(("Error: could not find geoip database file: " + ex.Message), programName);
+                MessageBox.Show(("Error: could not find database file: " + ex.Message), programName);
                 System.Environment.Exit(1);
             }
             catch (InvalidDatabaseException ex)
             {
                 // Warn user of missing database file and exit.
-                MessageBox.Show(("Error: invalid or corrupt geoip database file: " + ex.Message), programName);
+                MessageBox.Show(("Error: invalid or corrupt database file: " + ex.Message), programName);
                 System.Environment.Exit(1);
             }
 
             // Enable form after init is done.
             this.Enabled = true;
+        }
+
+        // Reusable grouping for cleanup tasks when form needs to close.
+        private void mainFormCleanup()
+        {
+            CityReader.Dispose();
+            ASNReader.Dispose();
         }
 
         // Overide form close to do background worker cleanup.
@@ -187,7 +197,7 @@ namespace Kebab
             }
 
             // Cleanup.
-            CityReader.Dispose();
+            mainFormCleanup();
 
             // Otherwise let the form close naturally.
             base.OnFormClosing(e);
@@ -204,7 +214,7 @@ namespace Kebab
             if (formClosePending)
             {
                 // Cleanup.
-                CityReader.Dispose();
+                mainFormCleanup();
 
                 // Close form.
                 this.Close();
@@ -495,20 +505,18 @@ namespace Kebab
                         conn.State.Direction = TransmissionDirection.REV_ONE_WAY;
                     }
 
-                    // Add geotag info.
-                    try
+                    // Add geographical info.
+                    if (CityReader.TryCity(conn.Destination.ToString(), out CityResponse cityResp))
                     {
-                        // Create response object.
-                        CityResponse resp = CityReader.City(conn.Destination.ToString());
                         // Add info from response object, or "--" marker for empty components of the response.
-                        if ((conn.DstGeo.Country = resp.Country.Name) == default(string)) conn.DstGeo.Country = "--";
-                        if ((conn.DstGeo.CountryISO = resp.Country.IsoCode) == default(string)) conn.DstGeo.CountryISO = "--";
-                        if ((conn.DstGeo.State = resp.MostSpecificSubdivision.Name) == default(string)) conn.DstGeo.State = "--";
-                        if ((conn.DstGeo.StateISO = resp.MostSpecificSubdivision.IsoCode) == default(string)) conn.DstGeo.StateISO = "--";
-                        if ((conn.DstGeo.City = resp.City.Name) == default(string)) conn.DstGeo.City = "--";
+                        if ((conn.DstGeo.Country = cityResp.Country.Name) == default(string)) conn.DstGeo.Country = "--";
+                        if ((conn.DstGeo.CountryISO = cityResp.Country.IsoCode) == default(string)) conn.DstGeo.CountryISO = "--";
+                        if ((conn.DstGeo.State = cityResp.MostSpecificSubdivision.Name) == default(string)) conn.DstGeo.State = "--";
+                        if ((conn.DstGeo.StateISO = cityResp.MostSpecificSubdivision.IsoCode) == default(string)) conn.DstGeo.StateISO = "--";
+                        if ((conn.DstGeo.City = cityResp.City.Name) == default(string)) conn.DstGeo.City = "--";
                     }
                     // GeoLookup failed.
-                    catch (AddressNotFoundException)
+                    else
                     {
                         // If city dbase lookup failed, set vals to empty marker.
                         conn.DstGeo.Country = "--";
@@ -516,6 +524,18 @@ namespace Kebab
                         conn.DstGeo.State = "--";
                         conn.DstGeo.StateISO = "--";
                         conn.DstGeo.City = "--";
+                    }
+
+                    // Add ASN info.
+                    if (ASNReader.TryAsn(conn.Destination.ToString(), out AsnResponse asnResp))
+                    {
+                        conn.DstASN = asnResp.AutonomousSystemNumber;
+                        if ((conn.DstASNOrg = asnResp.AutonomousSystemOrganization) == default(string)) conn.DstASNOrg = "--";
+                    }
+                    else
+                    {
+                        conn.DstASN = null;
+                        conn.DstASNOrg = "--";
                     }
 
                     // Asing the connection a number.
@@ -609,13 +629,14 @@ namespace Kebab
             foreach (DataGridViewRow row in rows)
             {
                 outputStr += (row.Cells[0].Value.ToString().PadRight(4) + " "
-                              + row.Cells[1].Value.ToString().PadRight(6) + " "
-                              + row.Cells[2].Value.ToString().PadRight(4) + " "
-                              + (row.Cells[3].Value.ToString() + ":" + row.Cells[4].Value.ToString()).PadRight(21) + " "
-                              + row.Cells[5].Value.ToString().PadRight(5) + " "
-                              + (row.Cells[6].Value.ToString() + ":" + row.Cells[7].Value.ToString()).PadRight(21) + " "
+                              + row.Cells[1].Value.ToString().PadRight(4) + " "
+                              + (row.Cells[2].Value.ToString() + ":" + row.Cells[3].Value.ToString()).PadRight(21) + " "
+                              + row.Cells[4].Value.ToString().PadRight(5) + " "
+                              + (row.Cells[5].Value.ToString() + ":" + row.Cells[6].Value.ToString()).PadRight(21) + " "
+                              + row.Cells[7].Value.ToString().PadRight(13) + " "
                               + row.Cells[8].Value.ToString().PadRight(13) + " "
-                              + row.Cells[9].Value.ToString().PadRight(9)
+                              + row.Cells[9].Value.ToString().PadRight(6) + " "
+                              + row.Cells[10].Value.ToString()
                               + "\n");
             }
 
@@ -647,7 +668,7 @@ namespace Kebab
             string copyString = "";
 
             foreach (DataGridViewRow row in getSelectedRows())
-                copyString += (row.Cells[3].Value.ToString() + "\n");
+                copyString += (row.Cells[2].Value.ToString() + "\n");
 
             if (copyString != "")
                 Clipboard.SetText(copyString);
@@ -664,7 +685,7 @@ namespace Kebab
             string copyString = "";
 
             foreach (DataGridViewRow row in getSelectedRows())
-                copyString += (row.Cells[4].Value.ToString() + "\n");
+                copyString += (row.Cells[3].Value.ToString() + "\n");
 
             if (copyString != "")
                 Clipboard.SetText(copyString);
@@ -681,7 +702,7 @@ namespace Kebab
             string copyString = "";
 
             foreach (DataGridViewRow row in getSelectedRows())
-                copyString += (row.Cells[3].Value.ToString() + ":" + row.Cells[4].Value.ToString() + "\n");
+                copyString += (row.Cells[2].Value.ToString() + ":" + row.Cells[3].Value.ToString() + "\n");
 
             if (copyString != "")
                 Clipboard.SetText(copyString);
@@ -698,7 +719,7 @@ namespace Kebab
             string copyString = "";
 
             foreach (DataGridViewRow row in getSelectedRows())
-                copyString += (row.Cells[6].Value.ToString() + "\n");
+                copyString += (row.Cells[5].Value.ToString() + "\n");
 
             if (copyString != "")
                 Clipboard.SetText(copyString);
@@ -715,7 +736,7 @@ namespace Kebab
             string copyString = "";
 
             foreach (DataGridViewRow row in getSelectedRows())
-                copyString += (row.Cells[7].Value.ToString() + "\n");
+                copyString += (row.Cells[6].Value.ToString() + "\n");
 
             if (copyString != "")
                 Clipboard.SetText(copyString);
@@ -732,7 +753,41 @@ namespace Kebab
             string copyString = "";
 
             foreach (DataGridViewRow row in getSelectedRows())
-                copyString += (row.Cells[6].Value.ToString() + ":" + row.Cells[7].Value.ToString() + "\n");
+                copyString += (row.Cells[5].Value.ToString() + ":" + row.Cells[6].Value.ToString() + "\n");
+
+            if (copyString != "")
+                Clipboard.SetText(copyString);
+        }
+
+        // Copy ISO Country and Subregion code string for all selected connections.
+        private void iSOToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            // Make sure there is something to copy.
+            if ((connectionList == null) || (connectionList.Count == 0)
+                || (ConnectionGridView == null) || (ConnectionGridView.SelectedRows.Count == 0))
+                return;
+
+            string copyString = "";
+
+            foreach (DataGridViewRow row in getSelectedRows())
+                copyString += (row.Cells[9].Value.ToString() + "\n");
+
+            if (copyString != "")
+                Clipboard.SetText(copyString);
+        }
+
+        // Copy ASN Organization name for all selected connections.
+        private void aSNOrganizationToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            // Make sure there is something to copy.
+            if ((connectionList == null) || (connectionList.Count == 0)
+                || (ConnectionGridView == null) || (ConnectionGridView.SelectedRows.Count == 0))
+                return;
+
+            string copyString = "";
+
+            foreach (DataGridViewRow row in getSelectedRows())
+                copyString += (row.Cells[10].Value.ToString() + "\n");
 
             if (copyString != "")
                 Clipboard.SetText(copyString);

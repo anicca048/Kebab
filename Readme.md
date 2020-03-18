@@ -25,10 +25,10 @@ The PcapDotNet license is distributed with both the source and release of
 # MaxMind GeoLite2 Database and API
 This product includes GeoLite2 data created by MaxMind, available from
 	https://www.maxmind.com
-Kebab uses the MaxMind GeoLite GeoIP database and accompanying C# API. The API
-	is published in two parts, the MaxMind-DB-Reader-dotnet project, which
-	parses MaxMind GeoLite2 databases, and GeoIP2-dotnet which handles both the
-	use of the web API, and the static lookups through the
+Kebab uses the MaxMind GeoLite2 City and ASN databases and accompanying C# API.
+	The API is published in two parts, the MaxMind-DB-Reader-dotnet project,
+	which parses MaxMind GeoLite2 databases, and GeoIP2-dotnet which handles
+	both the use of the web API, and the static lookups through the
 	MaxMind-DB-Reader-dotnet library.
 Both parts of the API are published for free under the OpenSource Apache
 	License, Version 2.0, while the database is published for free uder custom
@@ -100,10 +100,6 @@ Connections Tab - Prety basic, simply groups captured packets into connections.
 			Number (#), this is the number of the connection in order of first
 			observed packet.
 			
-			GeoIP info (Geo Info), this is the country ISO and State / Region
-			ISO codes for the RemoteAddress field. If the geo data is not found
-			for a given IP than there will be two dashes "--" instead.
-			
 			Protocol (Type), this is the L4 protcol (TCP or UDP in our case) of
 			the connection.
 			
@@ -127,6 +123,13 @@ Connections Tab - Prety basic, simply groups captured packets into connections.
 			
 			Total Data Transmitted (Data Sent), the total size of observed
 			packet protocol payload data, in bytes.
+			
+			GeoIP info (ISO), this is the country ISO and State / Region
+			ISO code for the RemoteAddress field. If the geo data is not found
+			for a given IP than there will be two dashes "--" instead.
+			
+			ASN Organization name, this is the organization that was registered
+			as owning a given IP block that the RemoteAddress is part of.
 
 # Known Issues / Bugs / Errata
 Connection numbering: Currently if you use the connection timeout option,
@@ -149,5 +152,5 @@ given IP address. Currently the database provided is the last release of the
 GeoLite2 database without requring an MaxMind Account. Eventually an option to
 enter a personal MaxMind account web API key for more accurate and up-to-date
 results will be added (should happen fairly soon). However it's doubtful that
-the devs will be able to get a key for Kebab to be used in with the releases,
-given that the project is free software and recieves no external funding.
+the devs will be able to get a key for Kebab to be used in the releases, given
+that the project is free software and recieves no external funding.
