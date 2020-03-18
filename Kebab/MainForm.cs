@@ -25,7 +25,7 @@ namespace Kebab
                                          "\n" +
                                          "Written in C#, " + programName + " is published for free under the terms of the MIT opensource license.\n" +
                                          "\n" +
-                                         programName + " uses PcapDotNet, and the MaxMind GeoLite2 database and accompanying C# API.\n" +
+                                         programName + " uses PcapDotNet, and the MaxMind GeoLite2 City and ASN databases and accompanying C# API.\n" +
                                          "\n" +
                                          "All third party API's / libraries / dll's used by " + programName + " are opensource.\n" +
                                          "\n" +
@@ -39,7 +39,7 @@ namespace Kebab
                                          "and https://github.com/maxmind/GeoIP2-dotnet";
 
         // Header to match connections for saving list.
-        private const string connListHdr = "#    Type LocalAddress:Port     State RemoteAddress:Port    PacketsSent   DataSent      ISO    ASNOrg\n";
+        private const string connListHdr = "#    Type LocalAddress:Port     State RemoteAddress:Port    PacketsSent  DataSent     ISO    ASNOrg\n";
 
         // Interface drop down list data source.
         private BindingList<string> deviceList;
@@ -633,8 +633,8 @@ namespace Kebab
                               + (row.Cells[2].Value.ToString() + ":" + row.Cells[3].Value.ToString()).PadRight(21) + " "
                               + row.Cells[4].Value.ToString().PadRight(5) + " "
                               + (row.Cells[5].Value.ToString() + ":" + row.Cells[6].Value.ToString()).PadRight(21) + " "
-                              + row.Cells[7].Value.ToString().PadRight(13) + " "
-                              + row.Cells[8].Value.ToString().PadRight(13) + " "
+                              + row.Cells[7].Value.ToString().PadRight(12) + " "
+                              + row.Cells[8].Value.ToString().PadRight(12) + " "
                               + row.Cells[9].Value.ToString().PadRight(6) + " "
                               + row.Cells[10].Value.ToString()
                               + "\n");
