@@ -70,7 +70,7 @@ namespace Kebab
         // Minimal wait time between inactive entry removal operations in milliseconds.
         private const int timeoutInterval = 500;
         // Inactive entry time limit in seconds.
-        private int timeoutInactivityLimit = 10;
+        private int timeoutInactivityLimit = 30;
         // How often to apply display filter checks in milliseconds.
         private const int displayFilterInterval = 500;
 
@@ -177,6 +177,12 @@ namespace Kebab
         // Reusable grouping for cleanup tasks when form needs to close.
         private void mainFormCleanup()
         {
+            // Stop timers.
+            packetTimer.Stop();
+            timeoutTimer.Stop();
+            displayFilterTimer.Stop();
+
+            // Dispose geolite constructs.
             CityReader.Dispose();
             ASNReader.Dispose();
         }
@@ -936,7 +942,6 @@ namespace Kebab
             CaptureFilterGroupBox.Enabled = false;
 
             // Enable Connection page elements.
-            ClearDisplayFilter();
             DisplayFilterGroupBox.Enabled = true;
         }
 
@@ -1034,14 +1039,23 @@ namespace Kebab
                     ConnectionGridView.DataSource = connectionSource;
                 }
 
-                // Clear connections list.
-                ClearConnList();
+                // Clear connections list if settings is set.
+                if (clearConnsOnStartCheckBox.Checked)
+                    ClearConnList();
 
                 // Sets up all background workers.
                 DoBWSetup();
 
                 // Start packet batching timer.
                 packetTimer.Start();
+
+                // Start displayfilterTimer if display filter is set by user.
+                if (_displayFilterSet)
+                    displayFilterTimer.Start();
+
+                // Start timeoutTimer if timout is set by user.
+                if (TimeoutCheckBox.Checked)
+                    timeoutTimer.Start();
 
                 // Allow user to stop background worker.
                 CaptureStopButton.Enabled = true;
@@ -1068,6 +1082,7 @@ namespace Kebab
             // Stop timers.
             packetTimer.Stop();
             timeoutTimer.Stop();
+            displayFilterTimer.Stop();
         }
 
         // Refreshes interface list / info.

@@ -493,7 +493,8 @@ namespace Kebab
 
         // Determine if two items in list need to be exchanged during sort.
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static bool ExchangeTest(IList<Connection> connList, int first, int second, PropertyDescriptor prop, ListSortDirection direction)
+        private static bool ExchangeTest(IList<Connection> connList, int first, int second,
+                                         PropertyDescriptor prop, ListSortDirection direction)
         {
             if (Equals(direction, ListSortDirection.Ascending))
             {
@@ -615,13 +616,16 @@ namespace Kebab
         // Ensure sorting occurs when elements of the list are updated.
         protected override void OnListChanged(ListChangedEventArgs args)
         {
+            // Don't allow any processing if flag is set.
+            if (_suppressNotification)
+                return;
+
             // Don't call sort from end of sort function, but allow sorting of list in general on item change.
             if (_isSortedValue == true && !_suppressSort)
                 ApplySortCore(_sortPropertyValue, _sortDirectionValue);
 
-            // Do base operations so long as a sort is not currently in effect.
-            if (!_suppressNotification)
-                base.OnListChanged(args);
+            // Do base operations.
+            base.OnListChanged(args);
         }
 
         // Using this for deriving the next connection number partially resolves issues with using connection timeouts. (Compiler inline suggestion).
