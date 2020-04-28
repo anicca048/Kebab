@@ -131,6 +131,9 @@ namespace Kebab
 
     public class CaptureSession
     {
+        private static int PCAP_PACKET_BUFFER_TIMEOUT = 1000;
+        private static int PCAP_PACKET_CAPTURE_LENGTH = 1518;
+
         // Device and communicator for opening pcap live interface.
         private PacketDevice _packetDevice;
         private PacketCommunicator _packetCommunicator;
@@ -197,7 +200,8 @@ namespace Kebab
             {
                 // Description looks like: "Network Adapter 'Loopback Adapter' on local host".
                 if (_deviceList[i].Description != null)
-                    _deviceDisplayList.Add((i + 1).ToString() + ".) " + _deviceList[i].Description.ToString().Split('\'')[1]
+                    _deviceDisplayList.Add((i + 1).ToString() + ".) "
+                                           + _deviceList[i].Description.ToString().Split('\'')[1]
                                            + " [ " + GetDeviceIPV4Address(_deviceList[i]) + " ]");
                 else
                     _deviceDisplayList.Add((i + 1).ToString() + ".) " + "No Device Description");
@@ -343,12 +347,15 @@ namespace Kebab
                 // Select a packet device from list based on index.
                 _packetDevice = _deviceList[deviceIndex];
                 // Crate packet comunicator (Pcap Live Session) for processing packets.
-                _packetCommunicator = _packetDevice.Open(65536, PacketDeviceOpenAttributes.Promiscuous, 1000);
+                _packetCommunicator = _packetDevice.Open(PCAP_PACKET_CAPTURE_LENGTH,
+                                                         PacketDeviceOpenAttributes.Promiscuous,
+                                                         PCAP_PACKET_BUFFER_TIMEOUT);
 
                 // Make sure it is a supported device type.
                 if (_packetCommunicator.DataLink.Kind != DataLinkKind.Ethernet &&
                     _packetCommunicator.DataLink.Kind != DataLinkKind.IpV4)
-                    throw new CaptureSessionException(("Error: device: " + _packetDevice.Description + " is not an Ethernet or raw IP device!"));
+                    throw new CaptureSessionException(("Error: device: " + _packetDevice.Description
+                                                       + " is not an Ethernet or raw IP device!"));
 
                 // Create string that will become the libpcap packet filter.
                 string packetFilterStr = String.Empty;
@@ -400,7 +407,8 @@ namespace Kebab
             // Trigers for things like BSD loopback device.
             catch (System.NotSupportedException)
             {
-                throw new CaptureSessionException(("Error: device: " + _deviceDisplayList[deviceIndex + 1] + " is not an Ethernet or raw IP device!"));
+                throw new CaptureSessionException(("Error: device: " + _deviceDisplayList[deviceIndex + 1]
+                                                   + " is not an Ethernet or raw IP device!"));
             }
             // Thrown on failed filter compilation.
             catch (System.ArgumentException ex)
