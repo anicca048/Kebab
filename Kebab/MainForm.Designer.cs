@@ -42,6 +42,8 @@ namespace Kebab
             this.toolStripSeparator3 = new System.Windows.Forms.ToolStripSeparator();
             this.ExitMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.helpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.libpcapVersionInfoToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripSeparator4 = new System.Windows.Forms.ToolStripSeparator();
             this.aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.ConnectionPage = new System.Windows.Forms.TabPage();
             this.DisplayFilterGroupBox = new System.Windows.Forms.GroupBox();
@@ -169,15 +171,29 @@ namespace Kebab
             // helpToolStripMenuItem
             // 
             this.helpToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.libpcapVersionInfoToolStripMenuItem,
+            this.toolStripSeparator4,
             this.aboutToolStripMenuItem});
             this.helpToolStripMenuItem.Name = "helpToolStripMenuItem";
             this.helpToolStripMenuItem.Size = new System.Drawing.Size(44, 20);
             this.helpToolStripMenuItem.Text = "Help";
             // 
+            // libpcapVersionInfoToolStripMenuItem
+            // 
+            this.libpcapVersionInfoToolStripMenuItem.Name = "libpcapVersionInfoToolStripMenuItem";
+            this.libpcapVersionInfoToolStripMenuItem.Size = new System.Drawing.Size(181, 22);
+            this.libpcapVersionInfoToolStripMenuItem.Text = "Libpcap Version Info";
+            this.libpcapVersionInfoToolStripMenuItem.Click += new System.EventHandler(this.libpcapVersionInfoToolStripMenuItem_Click);
+            // 
+            // toolStripSeparator4
+            // 
+            this.toolStripSeparator4.Name = "toolStripSeparator4";
+            this.toolStripSeparator4.Size = new System.Drawing.Size(178, 6);
+            // 
             // aboutToolStripMenuItem
             // 
             this.aboutToolStripMenuItem.Name = "aboutToolStripMenuItem";
-            this.aboutToolStripMenuItem.Size = new System.Drawing.Size(107, 22);
+            this.aboutToolStripMenuItem.Size = new System.Drawing.Size(181, 22);
             this.aboutToolStripMenuItem.Text = "About";
             this.aboutToolStripMenuItem.Click += new System.EventHandler(this.aboutToolStripMenuItem_Click);
             // 
@@ -962,6 +978,8 @@ namespace Kebab
         private System.Windows.Forms.DataGridViewTextBoxColumn DstGeo;
         private System.Windows.Forms.DataGridViewTextBoxColumn DstASNOrg;
         private System.Windows.Forms.CheckBox clearConnsOnStartCheckBox;
+        private System.Windows.Forms.ToolStripMenuItem libpcapVersionInfoToolStripMenuItem;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator4;
     }
 }
 

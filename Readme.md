@@ -10,17 +10,26 @@ Written in C#, Kebab is published for free under the terms of the MIT
 	OpenSource license.
 Kebab does not require any special permissions to run, so please do not run
 	Kebab in admin-mode. If a vulnerabillity is found in the way that Kebab or
-	PcapDotNet parses packet information and you are running Kebab in admin-mode
+	Npcap parses packet information, and you are running Kebab in admin-mode,
 	it could lead to privledge escalation.
 
-# PcapDotNet
-Kebab uses PcapDotNet, a wrapper for WinPcap (Outdated windows port of libpcap).
-PcapDotNet is opensource, and you can find both the source code and the releases
-	on their Github repo here: https://github.com/PcapDotNet/Pcap.Net
-PcapDotNet is published under a custom license which can be found
-	here: https://github.com/PcapDotNet/Pcap.Net/blob/master/license.txt
-The PcapDotNet license is distributed with both the source and release of
-	Kebab in the file "docs/PcapDotNet_license.txt".
+# Npcap
+WinPcap has been out of date for quite some time, and is lacking in
+	functionality and security features.
+Kebab uses Npcap (an alternative to WinPcap written by the awesome Nmap team).
+	Npcap is up to date, and has many additional features and security
+	benifits that WinPcap just doesn't.
+You can find Npcap on the Nmap team's site here: https://nmap.org/npcap/
+Npcap is published under several different licenses, including a free license
+	that you can use to install on a few non comercial systems. You can read it
+	here: https://github.com/nmap/npcap/blob/master/LICENSE
+You can find a download link to the most recent version under the "Downloading
+	and Installing Npcap Free Edition".
+It is recommended that when you install Npcap, you check the "Restrict Npcap
+    driver's access to Administrators only" option, so that access to the
+	system level driver is restricted to admin's only. Otherwise any tool can
+	use the system driver to have unrestricted (and largely untracked)
+	communictions through your firewall. :(
 
 # MaxMind GeoLite2 Database and API
 This product includes GeoLite2 data created by MaxMind, available from
@@ -39,26 +48,9 @@ You can read more about their products and projects on the MaxMind site here:
 	https://github.com/maxmind/MaxMind-DB-Reader-dotnet and 
 	https://github.com/maxmind/GeoIP2-dotnet .
 The API License is distributed with both the source and release of Kebab in the
-	file "docs/MaxMind_API_license.txt" and the GeoLite2 copyright and attribution
-	statement can be found in the file "docs/MaxMind_GeoLite2_copyright.txt".
-
-# Npcap
-As mentioned earlier, while PcapDotNet is intended for use with WinPcap, WinPcap
-	has been out of date for quite some time, and is lacking in functionality
-	and security features.
-It is recommended that you install Npcap instead (alternative to WinPcap written
-	by the awesome Nmap team) Npcap is up to date, and has many additional
-	features and security benifits that WinPcap just doesn't.
-You can find Npcap on the Nmap team's site here: https://nmap.org/npcap/
-Npcap is published under several different licenses, including a free license
-	that you can use to install on a few non comercial systems. You can read it
-	here: https://github.com/nmap/npcap/blob/master/LICENSE
-You can find a download link to the most recent version under the "Downloading
-	and Installing Npcap Free Edition".
-It is recommended that if you install Npcap, you check the "Install Npcap in
-	WinPcap API-compatible Mode" and "Restrict Npcap driver's access to
-	Administrators only" options. But you will need the WinPcap compatability
-	option if you want Kebab to work with Npcap.
+	file "docs/MaxMind_API_license.txt" and the GeoLite2 copyright and
+	attribution statement can be found in the file
+	"docs/MaxMind_GeoLite2_copyright.txt".
 
 # Instructions (RTFM edition)
 Capture Tab - The controls on this tab are used to setup the packet capture.
@@ -149,8 +141,9 @@ be done untill a new algorithim is implemnted. (should happen soon.)
 
 GeoIP data: sometimes geoip data will be out of date, or missing entirely for a
 given IP address. Currently the database provided is the last release of the
-GeoLite2 database without requring an MaxMind Account. Eventually an option to
-enter a personal MaxMind account web API key for more accurate and up-to-date
-results will be added (should happen fairly soon). However it's doubtful that
-the devs will be able to get a key for Kebab to be used in the releases, given
-that the project is free software and recieves no external funding.
+GeoLite2 database, that doesn't require a MaxMind Account. Eventually an option
+to enter a personal MaxMind account web API key, for more accurate and
+up-to-date results, will be added (should happen fairly soon). However it's
+doubtful that the devs will be able to get a key for Kebab to be used in the
+releases, given that the project is free software and recieves no external
+funding.

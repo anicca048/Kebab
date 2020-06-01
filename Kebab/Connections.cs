@@ -3,18 +3,12 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using System.Net;
 
-using PcapDotNet.Packets.IpV4;
+using ShimDotNet;
 
 namespace Kebab
 {
-    // Describe layer 4 protocol of connection.
-    public enum L4Protocol
-    {
-        TCP,
-        UDP
-    }
-
     // Describe direction of transmission.
     public enum TransmissionDirection
     {
@@ -24,38 +18,19 @@ namespace Kebab
     }
 
     // Describe type of connection packet match.
-    public enum PMatch
+    public enum MatchType
     {
-        NO_MATCH,
         MATCH,
-        REV_MATCH
-    }
-
-    // Class for holding packets before they are converted to connections (lightweight).
-    public class L4Packet
-    {
-        // IP protcol (tcp / udp).
-        public L4Protocol Protocol { get; set; }
-        // Transmission direction.
-        public TransmissionDirection Direction { get; set; }
-        // Local IP address (sender).
-        public IpV4Address Source { get; set; }
-        // Protocol local port (sender port).
-        public ushort SrcPort { get; set; }
-        // Remote IP address (destination).
-        public IpV4Address Destination { get; set; }
-        // Protocol remote port (destination port).
-        public ushort DstPort { get; set; }
-        // Data size (in bytes) of protocol payload segments (change forces list view update).
-        public uint PayloadSize { get; set; }
+        NO_MATCH,
+        REVERSE_MATCH
     }
 
     // Wrapperclass to implement IComparable for IPV4Address from pacapdotnet.
     public class ConnectionAddress : IComparable
     {
-        public IpV4Address Address { get; set; }
+        public IPAddress Address { get; set; }
 
-        public ConnectionAddress(IpV4Address addr) { this.Address = addr; }
+        public ConnectionAddress(IPAddress addr) { this.Address = addr; }
 
         public override string ToString()
         {
@@ -66,18 +41,19 @@ namespace Kebab
         {
             // Make sure we are comparing to a valid object.
             if ((obj == null) || !(obj is ConnectionAddress))
-                throw new NotSupportedException("Error: compared object is not a IP4Address type!");
+                throw new NotSupportedException("Error: compared object is not a ConnectionAddress type!");
 
             // Cast objest to usable current type.
             ConnectionAddress addr = (obj as ConnectionAddress);
 
-            // Compare numerical ip value.
-            if (this.Address.ToValue() > addr.Address.ToValue())
+            if (BitConverter.ToUInt32(this.Address.GetAddressBytes(), 0) >
+                BitConverter.ToUInt32(addr.Address.GetAddressBytes(), 0))
                 return 1;
-            else if (this.Address.ToValue() < addr.Address.ToValue())
+            else if (BitConverter.ToUInt32(this.Address.GetAddressBytes(), 0) <
+                     BitConverter.ToUInt32(addr.Address.GetAddressBytes(), 0))
                 return -1;
-            else
-                return 0;
+
+            return 0;
         }
 
         public override bool Equals(Object obj)
@@ -88,7 +64,7 @@ namespace Kebab
                 // Cast objest to usable current type.
                 ConnectionAddress addr = (obj as ConnectionAddress);
 
-                if (Equals(this.Address.ToValue(), addr.Address.ToValue()))
+                if (Equals(this.Address, addr.Address))
                     return true;
             }
 
@@ -99,7 +75,7 @@ namespace Kebab
         public override int GetHashCode()
         {
             // Just return the raw value of ip as int hash.
-            return ((int)(this.Address.ToValue()));
+            return ((int)(this.Address.GetHashCode()));
         }
 
         public bool AddressIsLocal()
@@ -118,21 +94,21 @@ namespace Kebab
             const UInt32 LOOPBAK_ADDRESS = 0x7F000000;
             const UInt32 LOOPBAK_NETMASK = 0xFF000000;
 
-            // Convert IP to 4byte segment.
-            UInt32 bytes = ((UInt32)(Address.ToValue()));
+            // Convert IP to 4 Byte segment (NetToHo doesn't like long for somereason).
+            UInt32 IPBytes = ((UInt32)(IPAddress.NetworkToHostOrder(((Int32)(this.Address.Address)))));
 
             // Compares bytes to local ip ranges using netmask anding.
-            if ((bytes & CLASS_A_NETMASK) == CLASS_A_ADDRESS)
+            if ((IPBytes & CLASS_A_NETMASK) == CLASS_A_ADDRESS)
                 return true;
-            else if (((bytes & CLASS_B_NETMASK) >= CLASS_B_MINADDR)
-                     && ((bytes & CLASS_B_NETMASK) <= CLASS_B_MAXADDR))
+            else if (((IPBytes & CLASS_B_NETMASK) >= CLASS_B_MINADDR)
+                     && ((IPBytes & CLASS_B_NETMASK) <= CLASS_B_MAXADDR))
                 return true;
-            else if ((bytes & CLASS_C_NETMASK) == CLASS_C_ADDRESS)
+            else if ((IPBytes & CLASS_C_NETMASK) == CLASS_C_ADDRESS)
                 return true;
-            else if ((bytes & LOOPBAK_NETMASK) == LOOPBAK_ADDRESS)
+            else if ((IPBytes & LOOPBAK_NETMASK) == LOOPBAK_ADDRESS)
                 return true;
-            else
-                return false;
+
+            return false;
         }
     }
 
@@ -184,13 +160,13 @@ namespace Kebab
     // Class to wrap protocol emum (for conversion to string / printing).
     public class ConnectionType : IComparable
     {
-        public L4Protocol Protocol { get; set; }
+        public L4_PROTOCOL Protocol { get; set; }
 
-        public ConnectionType(L4Protocol protocol) { this.Protocol = protocol; }
+        public ConnectionType(L4_PROTOCOL protocol) { this.Protocol = protocol; }
 
         public override string ToString()
         {
-            if (Equals(this.Protocol, L4Protocol.TCP))
+            if (Equals(this.Protocol, L4_PROTOCOL.TCP))
                 return "TCP";
             else
                 return "UDP";
@@ -301,12 +277,12 @@ namespace Kebab
         // ASN registered organization name for remote address.
         public string DstASNOrg { get; set; }
         // Protocol local port (sender port).
-        public ushort SrcPort { get; set; }
+        public UInt16 SrcPort { get; set; }
         // Protocol remote port (destination port).
-        public ushort DstPort { get; set; }
+        public UInt16 DstPort { get; set; }
         // Number of packets seen matching this connection (change forces list view update).
-        private uint _packetCount;
-        public uint PacketCount
+        private UInt64 _packetCount;
+        public UInt64 PacketCount
         {
             get
             {
@@ -322,8 +298,8 @@ namespace Kebab
             }
         }
         // Data size (in bytes) of protocol payload segments (change forces list view update).
-        private uint _byteCount;
-        public uint ByteCount
+        private UInt64 _byteCount;
+        public UInt64 ByteCount
         {
             get
             {
@@ -343,17 +319,17 @@ namespace Kebab
         public DateTime TimeStamp { get; set; }
 
         // Ctor allows conversion from L4Packet to Connection.
-        public Connection(L4Packet pkt)
+        public Connection(IPV4_PACKET pkt, TransmissionDirection direction)
         {
-            this.Type = new ConnectionType(pkt.Protocol);
-            this.State = new ConnectionState(pkt.Direction);
-            this.Source = new ConnectionAddress(pkt.Source);
-            this.Destination = new ConnectionAddress(pkt.Destination);
-            this.SrcPort = pkt.SrcPort;
-            this.DstPort = pkt.DstPort;
+            this.Type = new ConnectionType(pkt.protocol);
+            this.State = new ConnectionState(direction);
+            this.Source = new ConnectionAddress(pkt.source_address);
+            this.Destination = new ConnectionAddress(pkt.destination_address);
+            this.SrcPort = pkt.source_port;
+            this.DstPort = pkt.destination_port;
             this.DstGeo = new GeoData();
             this.PacketCount = 1;
-            this.ByteCount = pkt.PayloadSize;
+            this.ByteCount = pkt.payload_size;
             this.TimeStamp = DateTime.Now;
         }
 
@@ -366,21 +342,21 @@ namespace Kebab
         }
 
         // Match packet to connection (-1 = no match, 0 = match, 1 = reverse match.
-        public PMatch PacketMatch(L4Packet pkt)
+        public MatchType PacketMatch(IPV4_PACKET pkt)
         {
             // Check protocol first (biggest devider of connections).
-            if (!Equals(this.Type.Protocol, pkt.Protocol))
-                return PMatch.NO_MATCH;
+            if (!Equals(this.Type.Protocol, pkt.protocol))
+                return MatchType.NO_MATCH;
 
             // Check if IP's and ports (or inverse) match.
-            if ((Equals(this.Source.Address, pkt.Source) && Equals(this.SrcPort, pkt.SrcPort))
-                && (Equals(this.Destination.Address, pkt.Destination) && Equals(this.DstPort, pkt.DstPort)))
-                return PMatch.MATCH;
-            else if ((Equals(this.Source.Address, pkt.Destination) && Equals(this.SrcPort, pkt.DstPort))
-                     && (Equals(this.Destination.Address, pkt.Source) && Equals(this.DstPort, pkt.SrcPort)))
-                return PMatch.REV_MATCH;
+            if ((Equals(this.Source.Address, pkt.source_address) && Equals(this.SrcPort, pkt.source_port))
+                && (Equals(this.Destination.Address, pkt.destination_address) && Equals(this.DstPort, pkt.destination_port)))
+                return MatchType.MATCH;
+            else if ((Equals(this.Source.Address, pkt.destination_address) && Equals(this.SrcPort, pkt.destination_port))
+                     && (Equals(this.Destination.Address, pkt.source_address) && Equals(this.DstPort, pkt.source_port)))
+                return MatchType.REVERSE_MATCH;
 
-            return PMatch.NO_MATCH;
+            return MatchType.NO_MATCH;
         }
 
         // Match pre-existing connections (Equals() is check value, == is check reference).
@@ -410,10 +386,10 @@ namespace Kebab
         public override int GetHashCode()
         {
             // Just xor address port combos to get a fairly collision resistent hash.
-            uint result = (this.Source.Address.ToValue() + this.SrcPort);
-            result ^= (this.Destination.Address.ToValue() + this.DstPort);
+            int result = (this.Source.Address.GetHashCode() + this.SrcPort.GetHashCode());
+            result ^= (this.Destination.Address.GetHashCode() + this.DstPort.GetHashCode());
 
-            return ((int)(result));
+            return result;
         }
         // ToString override (cause I can).
         public override string ToString()
