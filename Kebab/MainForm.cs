@@ -8,11 +8,13 @@ using System.Windows.Forms;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
+using System.Net;
 
 using MaxMind.GeoIP2;
 using MaxMind.GeoIP2.Responses;
-using MaxMind.GeoIP2.Exceptions;
 using MaxMind.Db;
+
+using ShimDotNet;
 
 namespace Kebab
 {
@@ -25,7 +27,7 @@ namespace Kebab
                                          "\n" +
                                          "Written in C#, " + programName + " is published for free under the terms of the MIT opensource license.\n" +
                                          "\n" +
-                                         programName + " uses PcapDotNet, and the MaxMind GeoLite2 City and ASN databases and accompanying C# API.\n" +
+                                         programName + " uses Npcap, and the MaxMind GeoLite2 City and ASN databases and accompanying C# API.\n" +
                                          "\n" +
                                          "All third party API's / libraries / dll's used by " + programName + " are opensource.\n" +
                                          "\n" +
@@ -34,7 +36,7 @@ namespace Kebab
                                          "Further documentation and source code can be found on the project's Github repo.\n" +
                                          "\n" +
                                          programName + " Github repo: https://github.com/anicca048/Kebab\n" +
-                                         "PcapDotNet Github repo: https://github.com/PcapDotNet/Pcap.Net\n" +
+                                         "Npcap Github repo: https://github.com/nmap/npcap\n" +
                                          "MaxMind C# API Github repo: https://github.com/maxmind/MaxMind-DB-Reader-dotnet\n" +
                                          "and https://github.com/maxmind/GeoIP2-dotnet";
 
@@ -49,11 +51,11 @@ namespace Kebab
         private ConnectionList connectionList;
 
         // Connection packet queue and lock for background workers (so as not to overload the UI loop.)
-        private Queue<L4Packet> pendingPackets = new Queue<L4Packet>();
+        private Queue<IPV4_PACKET> pendingPackets = new Queue<IPV4_PACKET>();
         private readonly object pendingPacketsLock = new object();
 
-        // Packet capture session.
-        private CaptureSession captureSession;
+        // Packet capture engine (main class from ShimDotNet).
+        private CaptureEngine captureEngine;
 
         // Background worker for processing packets.
         private BackgroundWorker _captureWorker;
@@ -130,24 +132,32 @@ namespace Kebab
             this.TopMost = true;
             this.TopMost = false;
 
-            // Attempt pcap and background worker init.
+            // Init cengine.
             try
             {
-                // Create new capture session object (will do some basic pcap initialization).
-                captureSession = new CaptureSession();
-                captureSession.SetupDeviceList();
+                captureEngine = new CaptureEngine();
             }
-            catch (CaptureSessionException ex)
+            // Incase npcap is not installed (thrown if ShimDotNet can't load .../Npcap/wpcap.dll).
+            catch (FileNotFoundException ex)
             {
-                // Display CaptureSession initialization error and exit program.
-                MessageBox.Show(ex.Message, programName);
+                MessageBox.Show(("Error: failed to initilize capture engine: " + ex.Message
+                                 + "\n\nMake sure that Npcap is installed properly."), programName);
+                System.Environment.Exit(1);
+            }
+
+            // Get device list (serves as basic pcap init / test).
+            if (captureEngine.genDeviceList() == -1)
+            {
+                MessageBox.Show(("Error: failed to generate device list: " + captureEngine.getEngineError()), programName);
                 System.Environment.Exit(1);
             }
 
             // Create new device / interface list.
-            deviceList = new BindingList<string>(captureSession.DeviceDisplayList);
-            // Add an invalid entry ontop to force user to select an interface instead of just going with the first one.
-            deviceList.Insert(0, "Select Interface");
+            deviceList = new BindingList<string>();
+
+            // Generate displayed device list.
+            BuildDeviceList();
+
             // BInd device list to drop down menu.
             InterfaceDropDownList.DataSource = deviceList;
 
@@ -175,7 +185,7 @@ namespace Kebab
         }
 
         // Reusable grouping for cleanup tasks when form needs to close.
-        private void mainFormCleanup()
+        private void MainFormCleanup()
         {
             // Stop timers.
             packetTimer.Stop();
@@ -203,10 +213,38 @@ namespace Kebab
             }
 
             // Cleanup.
-            mainFormCleanup();
+            MainFormCleanup();
 
             // Otherwise let the form close naturally.
             base.OnFormClosing(e);
+        }
+
+        private void BuildDeviceList()
+        {
+            if (captureEngine.genDeviceList() == -1)
+            {
+                // Display CaptureSession initialization error and exit program.
+                MessageBox.Show(("Error generating device list: " + captureEngine.getEngineError()), programName);
+                System.Environment.Exit(1);
+            }
+
+            // Clear interface list.
+            deviceList.Clear();
+
+            // Add an invalid entry ontop to force user to select an interface instead of just going with the first one.
+            deviceList.Add("Select Interface");
+
+            // Get device count.
+            int listSize = captureEngine.getDeviceCount();
+
+            // Add device descriptions to list.
+            for (int i = 0; i < listSize; i++)
+            {
+                if (captureEngine.getDeviceDescription(i).Length > 0)
+                    deviceList.Add(captureEngine.getDeviceDescription(i));
+                else
+                    deviceList.Add(captureEngine.getDeviceName(i));
+            }
         }
 
         // 
@@ -216,11 +254,14 @@ namespace Kebab
         // Last background worker does form cleanup.
         private void DoBWCleanup(object sender, RunWorkerCompletedEventArgs e)
         {
+            // Do ShimDotNet cleanup.
+            captureEngine.stopCapture();
+
             // Check if user is waiting for form to close.
             if (formClosePending)
             {
                 // Cleanup.
-                mainFormCleanup();
+                MainFormCleanup();
 
                 // Close form.
                 this.Close();
@@ -253,27 +294,20 @@ namespace Kebab
             // Build a reference worker so we can check cancellationPending() from ProcessPackets().
             BackgroundWorker thisWorker = sender as BackgroundWorker;
 
-            try
+            // Start packet capture loop.
+            while (!thisWorker.CancellationPending)
             {
-                // Start packet capture loop.
-                while (!thisWorker.CancellationPending)
-                {
-                    L4Packet pkt;
+                IPV4_PACKET pkt = new IPV4_PACKET();
 
-                    // Process a packet / connection, and add it to queue.
-                    if (captureSession.CapturePacket(out pkt) != -1)
+                // Process a packet / connection, and add it to the queue.
+                if (captureEngine.getNextPacket(ref pkt) != -1)
+                {
+                    // Obtain lock on queue and then add connection / packet.
+                    lock (pendingPacketsLock)
                     {
-                        // Obtain lock on queue and then add connection / packet.
-                        lock (pendingPacketsLock)
-                        {
-                            pendingPackets.Enqueue(pkt);
-                        }
+                        pendingPackets.Enqueue(pkt);
                     }
                 }
-            }
-            catch (CaptureSessionException ex)
-            {
-                MessageBox.Show(ex.Message, programName);
             }
         }
 
@@ -452,13 +486,16 @@ namespace Kebab
             while (packetsToProcess > 0)
             {
                 // Create new connection object.
-                L4Packet pkt;
+                IPV4_PACKET pkt;
 
                 // Grab first connection in the queue for processing.
                 lock (pendingPacketsLock)
                 {
                     pkt = pendingPackets.Dequeue();
                 }
+
+                // Set direction for packet.
+                TransmissionDirection direction = TransmissionDirection.ONE_WAY;
 
                 // Make sure we don't add a new connection when a matching one already exists and was updated.
                 bool packetMatched = false;
@@ -467,18 +504,20 @@ namespace Kebab
                 foreach (Connection tmpConn in connectionList)
                 {
                     // Find matching connections(regardless of source and dest orientation).
-                    if (tmpConn.PacketMatch(pkt) != PMatch.NO_MATCH)
+                    if (tmpConn.PacketMatch(pkt) != MatchType.NO_MATCH)
                     {
                         tmpConn.PacketCount++;
-                        tmpConn.ByteCount += pkt.PayloadSize;
+                        tmpConn.ByteCount += pkt.payload_size;
                         tmpConn.TimeStamp = DateTime.Now;
 
                         // Check if direction needs to be updated to both ways.
                         if (tmpConn.State.Direction != TransmissionDirection.TWO_WAY)
                         {
-                            if (tmpConn.PacketMatch(pkt) == PMatch.REV_MATCH)
+                            if ((tmpConn.PacketMatch(pkt) == MatchType.REVERSE_MATCH)
+                                && (tmpConn.State.Direction == direction))
                                 tmpConn.State.Direction = TransmissionDirection.TWO_WAY;
-                            else if (tmpConn.State.Direction != pkt.Direction)
+                            // Deals with case where both endpoints are local so no setting of REV_ONE_WAY occurs.
+                            else if (tmpConn.State.Direction != direction)
                                 tmpConn.State.Direction = TransmissionDirection.TWO_WAY;
                         }
 
@@ -496,58 +535,71 @@ namespace Kebab
                 if (!packetMatched)
                 {
                     // Create new connection.
-                    Connection conn = new Connection(pkt);
+                    Connection newConn = new Connection(pkt, direction);
 
                     // Need to do a check to make sure that local and loobpack connections get priority for the Source address.
-                    if (conn.Destination.AddressIsLocal() && !conn.Source.AddressIsLocal())
+                    if (newConn.Destination.AddressIsLocal() && !newConn.Source.AddressIsLocal())
                     {
-                        // Swap source and destination ip addresses and ports.
-                        conn.Destination.Address = pkt.Source;
-                        conn.DstPort = pkt.SrcPort;
-                        conn.Source.Address = pkt.Destination;
-                        conn.SrcPort = pkt.DstPort;
+                        // Swap IP addrs.
+                        IPAddress tmpIP = newConn.Destination.Address;
+                        newConn.Destination.Address = newConn.Source.Address;
+                        newConn.Source.Address = tmpIP;
+
+                        // Swap ports.
+                        UInt16 tmpUint16 = newConn.DstPort;
+                        newConn.DstPort = newConn.SrcPort;
+                        newConn.SrcPort = tmpUint16;
 
                         // Flip direction.
-                        conn.State.Direction = TransmissionDirection.REV_ONE_WAY;
+                        newConn.State.Direction = TransmissionDirection.REV_ONE_WAY;
                     }
 
                     // Add geographical info.
-                    if (CityReader.TryCity(conn.Destination.ToString(), out CityResponse cityResp))
+                    if (CityReader.TryCity(newConn.Destination.ToString(), out CityResponse cityResp))
                     {
                         // Add info from response object, or "--" marker for empty components of the response.
-                        if ((conn.DstGeo.Country = cityResp.Country.Name) == default(string)) conn.DstGeo.Country = "--";
-                        if ((conn.DstGeo.CountryISO = cityResp.Country.IsoCode) == default(string)) conn.DstGeo.CountryISO = "--";
-                        if ((conn.DstGeo.State = cityResp.MostSpecificSubdivision.Name) == default(string)) conn.DstGeo.State = "--";
-                        if ((conn.DstGeo.StateISO = cityResp.MostSpecificSubdivision.IsoCode) == default(string)) conn.DstGeo.StateISO = "--";
-                        if ((conn.DstGeo.City = cityResp.City.Name) == default(string)) conn.DstGeo.City = "--";
+                        if ((newConn.DstGeo.Country = cityResp.Country.Name) == default(string))
+                            newConn.DstGeo.Country = "--";
+
+                        if ((newConn.DstGeo.CountryISO = cityResp.Country.IsoCode) == default(string))
+                            newConn.DstGeo.CountryISO = "--";
+
+                        if ((newConn.DstGeo.State = cityResp.MostSpecificSubdivision.Name) == default(string))
+                            newConn.DstGeo.State = "--";
+
+                        if ((newConn.DstGeo.StateISO = cityResp.MostSpecificSubdivision.IsoCode) == default(string))
+                            newConn.DstGeo.StateISO = "--";
+
+                        if ((newConn.DstGeo.City = cityResp.City.Name) == default(string))
+                            newConn.DstGeo.City = "--";
                     }
                     // GeoLookup failed.
                     else
                     {
                         // If city dbase lookup failed, set vals to empty marker.
-                        conn.DstGeo.Country = "--";
-                        conn.DstGeo.CountryISO = "--";
-                        conn.DstGeo.State = "--";
-                        conn.DstGeo.StateISO = "--";
-                        conn.DstGeo.City = "--";
+                        newConn.DstGeo.Country = "--";
+                        newConn.DstGeo.CountryISO = "--";
+                        newConn.DstGeo.State = "--";
+                        newConn.DstGeo.StateISO = "--";
+                        newConn.DstGeo.City = "--";
                     }
 
                     // Add ASN info.
-                    if (ASNReader.TryAsn(conn.Destination.ToString(), out AsnResponse asnResp))
+                    if (ASNReader.TryAsn(newConn.Destination.ToString(), out AsnResponse asnResp))
                     {
-                        conn.DstASN = asnResp.AutonomousSystemNumber;
-                        if ((conn.DstASNOrg = asnResp.AutonomousSystemOrganization) == default(string)) conn.DstASNOrg = "--";
+                        newConn.DstASN = asnResp.AutonomousSystemNumber;
+                        if ((newConn.DstASNOrg = asnResp.AutonomousSystemOrganization) == default(string)) newConn.DstASNOrg = "--";
                     }
                     else
                     {
-                        conn.DstASN = null;
-                        conn.DstASNOrg = "--";
+                        newConn.DstASN = null;
+                        newConn.DstASNOrg = "--";
                     }
 
                     // Asing the connection a number.
-                    conn.Number = ConnectionList.GetNewConnNumber(connectionList as IList<Connection>);
+                    newConn.Number = ConnectionList.GetNewConnNumber(connectionList as IList<Connection>);
                     // And add it to the list.
-                    connectionList.Add(conn);
+                    connectionList.Add(newConn);
 
                     // Finaly, we have one less to process.
                     packetsToProcess--;
@@ -943,6 +995,9 @@ namespace Kebab
 
             // Enable Connection page elements.
             DisplayFilterGroupBox.Enabled = true;
+
+            // Allow user to stop background worker.
+            CaptureStopButton.Enabled = true;
         }
 
         // Enables certian bulk UI elements on when a capture is stoped.
@@ -976,47 +1031,70 @@ namespace Kebab
             }
         }
 
+        // Build capture filter from user selected controls for use with shim.
+        private int getCaptureFilterStr(out string captureFilterStr)
+        {
+            // Init string.
+            captureFilterStr = String.Empty;
+
+            // Ensure at least one protocol (tcp or udp) is selected in Filter Options.
+            if (!TCPCheckBox.Checked && !UDPCheckBox.Checked)
+            {
+                MessageBox.Show("Error: you must select at least one protocol!", programName);
+                return -1;
+            }
+
+            // Add protocol to filter.
+            if (TCPCheckBox.Checked && UDPCheckBox.Checked)
+                captureFilterStr = "( tcp or udp ) and ";
+            else if (!TCPCheckBox.Checked && UDPCheckBox.Checked)
+                captureFilterStr = "udp and ";
+            else
+                captureFilterStr = "tcp and ";
+
+            // Add user IP and Port settings to fhilter.
+            if (SourceIPFilter.Text.Trim().Length > 0)
+                captureFilterStr += ("src host " + SourceIPFilter.Text.Trim() + " and ");
+
+            if (SourcePortFilter.Text.Trim().Length > 0)
+                captureFilterStr += ("src port " + SourcePortFilter.Text.Trim() + " and ");
+
+            if (DestinationIPFilter.Text.Trim().Length > 0)
+                captureFilterStr += ("dst host " + DestinationIPFilter.Text.Trim() + " and ");
+
+            if (DestinationPortFilter.Text.Trim().Length > 0)
+                captureFilterStr += ("dst port " + DestinationPortFilter.Text.Trim() + " and ");
+
+            // Remove trailing " and ".
+            captureFilterStr = captureFilterStr.Remove(captureFilterStr.Length - 5);
+
+            // Check and see if user opted to use complexFilter (directly using libpcap filter string).
+            if (complexFilter.Text.Trim().Length > 0)
+                captureFilterStr += " and ( " + complexFilter.Text.Trim() + " )";
+
+            return 0;
+        }
+
         // Starts the whole pcap process after user presses button.
         private void CaptureStartButton_Click(object sender, EventArgs e)
         {
             if (InterfaceDropDownList.SelectedIndex > 0)
             {
-                // Change UI elements to reflect new capture state.
-                ChangeOnStartCapture(sender, e);
+                // Get libpcap syntax filter string to pass to ShimDotNet.
+                string captureFilterStr;
 
-                try
+                if (getCaptureFilterStr(out captureFilterStr) == -1)
                 {
-                    // Ensure at least one protocol (tcp or udp) is selected in Filter Options.
-                    if (!TCPCheckBox.Checked && !UDPCheckBox.Checked)
-                        throw new CaptureSessionException("Error: you must select at least one protocol!");
-
-                    // Create new SessionFilter object based on user filter settings to pass to SetupCapture().
-                    SessionFilter simpleFilter = new SessionFilter { TCP = TCPCheckBox.Checked, UDP = UDPCheckBox.Checked };
-                    
-                    // Add user IP and Port filter settings to SessionFilter.
-                    if (SourceIPFilter.Text.Trim().Length > 0)
-                        simpleFilter.SourceIP = SourceIPFilter.Text.Trim();
-                    if (DestinationIPFilter.Text.Trim().Length > 0)
-                        simpleFilter.DestinationIP = DestinationIPFilter.Text.Trim();
-                    if (SourcePortFilter.Text.Trim().Length > 0)
-                        simpleFilter.SourcePort = SourcePortFilter.Text.Trim();
-                    if (DestinationPortFilter.Text.Trim().Length > 0)
-                        simpleFilter.DestinationPort = DestinationPortFilter.Text.Trim();
-
-                    // Check and see if user opted to use complexFilter (directly using libpcap filter string).
-                    string complexFilterStr = String.Empty;
-
-                    if (complexFilter.Text.Trim().Length > 0)
-                        complexFilterStr = complexFilter.Text.Trim();
-
-                    // Open pcap live session (offset index by -1 because of invalid first entry in drop down list).
-                    captureSession.SetupCapture((InterfaceDropDownList.SelectedIndex - 1), simpleFilter, complexFilterStr);
+                    return;
                 }
-                catch (CaptureSessionException ex)
+
+                // Open pcap live session (offset index by -1 because of invalid first entry in drop down list).
+                if (captureEngine.startCapture((InterfaceDropDownList.SelectedIndex - 1), captureFilterStr) == -1)
                 {
                     // If an error happens here we want the user to be able to try another interface.
-                    MessageBox.Show(ex.Message, programName);
-                    ChangeOnStopCapture(sender, e);
+                    MessageBox.Show(("Error: failed starting capture: " + captureEngine.getEngineError()), programName);
+                    // Cleanup.
+                    captureEngine.stopCapture();
                     return;
                 }
 
@@ -1057,8 +1135,8 @@ namespace Kebab
                 if (TimeoutCheckBox.Checked)
                     timeoutTimer.Start();
 
-                // Allow user to stop background worker.
-                CaptureStopButton.Enabled = true;
+                // Change UI elements to reflect new capture state.
+                ChangeOnStartCapture(sender, e);
 
                 // Switch over to connections veiw after capture start.
                 TabControl.SelectTab(ConnectionPage);
@@ -1088,28 +1166,7 @@ namespace Kebab
         // Refreshes interface list / info.
         private void RefreshInterfacesButton_Click(object sender, EventArgs e)
         {
-            // Attempt to regrab interfaces.
-            try
-            {
-                // Refresh interfaces.
-                captureSession.SetupDeviceList();
-            }
-            catch (CaptureSessionException ex)
-            {
-                // Display CaptureSession initialization error and exit program.
-                MessageBox.Show(ex.Message, programName);
-                System.Environment.Exit(1);
-            }
-
-            // Clear interface list.
-            deviceList.Clear();
-
-            // Add an invalid entry ontop to force user to select an interface instead of just going with the first one.
-            deviceList.Add("Select Interface");
-
-            // Add refreshed device list devices.
-            foreach (string device in captureSession.DeviceDisplayList)
-                deviceList.Add(device);
+            BuildDeviceList();
         }
 
         // Removes any user filter settings.
@@ -1198,6 +1255,11 @@ namespace Kebab
         private void copyComponentToolStripMenuItem_MouseHover(object sender, EventArgs e)
         {
             copyComponentToolStripMenuItem.ShowDropDown();
+        }
+
+        private void libpcapVersionInfoToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            MessageBox.Show(captureEngine.getLibVersion(), programName);
         }
     }
 }
