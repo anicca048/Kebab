@@ -352,3 +352,11 @@ MigrationBackup/
 # Ionide (cross platform F# VS Code tools) working folder
 .ionide/
 
+# Maxmind database files (only distributed in releases).
+db/
+
+# Dll's used in releases (Maxmind and ShimDotNet).
+libs/
+
+# Documentation and license info shipped in releases.
+docs/
