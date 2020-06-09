@@ -46,11 +46,11 @@ namespace Kebab
             // Cast objest to usable current type.
             ConnectionAddress addr = (obj as ConnectionAddress);
 
-            if (BitConverter.ToUInt32(this.Address.GetAddressBytes(), 0) >
-                BitConverter.ToUInt32(addr.Address.GetAddressBytes(), 0))
+            if (((UInt32)IPAddress.NetworkToHostOrder(((Int32)this.Address.Address))) >
+                ((UInt32)IPAddress.NetworkToHostOrder(((Int32)addr.Address.Address))))
                 return 1;
-            else if (BitConverter.ToUInt32(this.Address.GetAddressBytes(), 0) <
-                     BitConverter.ToUInt32(addr.Address.GetAddressBytes(), 0))
+            else if (((UInt32)IPAddress.NetworkToHostOrder(((Int32)this.Address.Address))) <
+                     ((UInt32)IPAddress.NetworkToHostOrder(((Int32)addr.Address.Address))))
                 return -1;
 
             return 0;
@@ -75,7 +75,7 @@ namespace Kebab
         public override int GetHashCode()
         {
             // Just return the raw value of ip as int hash.
-            return ((int)(this.Address.GetHashCode()));
+            return ((int)this.Address.GetHashCode());
         }
 
         public bool AddressIsLocal()
@@ -95,7 +95,7 @@ namespace Kebab
             const UInt32 LOOPBAK_NETMASK = 0xFF000000;
 
             // Convert IP to 4 Byte segment (NetToHo doesn't like long for somereason).
-            UInt32 IPBytes = ((UInt32)(IPAddress.NetworkToHostOrder(((Int32)(this.Address.Address)))));
+            UInt32 IPBytes = ((UInt32)IPAddress.NetworkToHostOrder(((Int32)this.Address.Address)));
 
             // Compares bytes to local ip ranges using netmask anding.
             if ((IPBytes & CLASS_A_NETMASK) == CLASS_A_ADDRESS)
@@ -474,12 +474,12 @@ namespace Kebab
         {
             if (Equals(direction, ListSortDirection.Ascending))
             {
-                if (((IComparable)(prop.GetValue(connList[first]))).CompareTo((IComparable)(prop.GetValue(connList[second]))) > 0)
+                if (((IComparable)prop.GetValue(connList[first])).CompareTo((IComparable)prop.GetValue(connList[second])) > 0)
                     return true;
             }
             else
             {
-                if (((IComparable)(prop.GetValue(connList[first]))).CompareTo((IComparable)(prop.GetValue(connList[second]))) < 0)
+                if (((IComparable)prop.GetValue(connList[first])).CompareTo((IComparable)prop.GetValue(connList[second])) < 0)
                     return true;
             }
 

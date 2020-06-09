@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
 using System.Net;
+using System.Text.Json;
 
 using MaxMind.GeoIP2;
 using MaxMind.GeoIP2.Responses;
@@ -21,27 +22,38 @@ namespace Kebab
     public partial class MainForm : Form
     {
         // Name of program for repeated use.
-        private const string programName = "Kebab";
+        private const string programName = @"Kebab";
+        // Version of the program (for releases).
+        private const string programVersion = @"1.1.1";
         // Breif description of the program.
-        private const string aboutPage = "Copyright © 2018 anicca048\n" +
-                                         "\n" +
-                                         "Written in C#, " + programName + " is published for free under the terms of the MIT opensource license.\n" +
-                                         "\n" +
-                                         programName + " uses Npcap, and the MaxMind GeoLite2 City and ASN databases and accompanying C# API.\n" +
-                                         "\n" +
-                                         "All third party API's / libraries / dll's used by " + programName + " are opensource.\n" +
-                                         "\n" +
-                                         "Program and legal documentation are included in the *Readme* and *License* / *Copyright* files respectively.\n" +
-                                         "\n" +
-                                         "Further documentation and source code can be found on the project's Github repo.\n" +
-                                         "\n" +
-                                         programName + " Github repo: https://github.com/anicca048/Kebab\n" +
-                                         "Npcap Github repo: https://github.com/nmap/npcap\n" +
-                                         "MaxMind C# API Github repo: https://github.com/maxmind/MaxMind-DB-Reader-dotnet\n" +
-                                         "and https://github.com/maxmind/GeoIP2-dotnet";
+        private const string aboutPage = programName + " version " + programVersion
+                                         + "\n"
+                                         + "Copyright © 2018 anicca048\n"
+                                         + "\n"
+                                         + "Written in C#, " + programName + " is published for free under the terms of the MIT opensource license.\n"
+                                         + "\n"
+                                         + programName + " uses Npcap, and the MaxMind GeoLite2 City and ASN databases and accompanying C# API.\n"
+                                         + "\n"
+                                         + "All third party API's / libraries / dll's used by " + programName + " are opensource.\n"
+                                         + "\n"
+                                         + "Program and legal documentation are included in the *Readme* and *License* / *Copyright* files respectively.\n"
+                                         + "\n"
+                                         + "Further documentation and source code can be found on the project's Github repo.\n"
+                                         + "\n"
+                                         + programName + " Github repo: https://github.com/anicca048/Kebab\n"
+                                         + "Npcap Github repo: https://github.com/nmap/npcap\n"
+                                         + "MaxMind C# API Github repo: https://github.com/maxmind/MaxMind-DB-Reader-dotnet\n"
+                                         + "and https://github.com/maxmind/GeoIP2-dotnet";
+
+        private const string githubLatestReleaseURL = @"https://github.com/anicca048/Kebab/releases/latest";
+        private const string githubAPI_LatestReleaseURL = @"https://api.github.com/repos/anicca048/Kebab/releases/latest";
+        private const string githubAPI_ReleaseTagElementName = @"tag_name";
+        private const string githubAPI_ReleaseTagElementValue = @"v1.1.1_Windows_x86_64";
+        // Github API requires a http user agent to be set.
+        private const string githubAPI_HTTPUserAgent = (programName + "/" + programVersion);
 
         // Header to match connections for saving list.
-        private const string connListHdr = "#    Type LocalAddress:Port     State RemoteAddress:Port    PacketsSent  DataSent     ISO    ASNOrg\n";
+        private const string connListHdr = "#    Type    LocalAddress:Port  State   RemoteAddress:Port  PacketsSent  DataSent     ISO    ASNOrg\n";
 
         // Interface drop down list data source.
         private BindingList<string> deviceList;
@@ -319,7 +331,7 @@ namespace Kebab
         private bool CheckDisplayFilter(object DataSource)
         {
             // Convert dataGridViewRow data source to actual type.
-            Connection connection = ((Connection)(DataSource));
+            Connection connection = ((Connection)DataSource);
 
             // Ceck if we have a display filter to use.
             bool IPFilter = (IPDisplayFilter.Text.Trim().Length > 0);
@@ -688,9 +700,9 @@ namespace Kebab
             {
                 outputStr += (row.Cells[0].Value.ToString().PadRight(4) + " "
                               + row.Cells[1].Value.ToString().PadRight(4) + " "
-                              + (row.Cells[2].Value.ToString() + ":" + row.Cells[3].Value.ToString()).PadRight(21) + " "
+                              + row.Cells[2].Value.ToString().PadLeft(15) + ":" + row.Cells[3].Value.ToString().PadRight(5) + " "
                               + row.Cells[4].Value.ToString().PadRight(5) + " "
-                              + (row.Cells[5].Value.ToString() + ":" + row.Cells[6].Value.ToString()).PadRight(21) + " "
+                              + row.Cells[5].Value.ToString().PadLeft(15) + ":" + row.Cells[6].Value.ToString().PadRight(5) + " "
                               + row.Cells[7].Value.ToString().PadRight(12) + " "
                               + row.Cells[8].Value.ToString().PadRight(12) + " "
                               + row.Cells[9].Value.ToString().PadRight(6) + " "
@@ -1257,9 +1269,92 @@ namespace Kebab
             copyComponentToolStripMenuItem.ShowDropDown();
         }
 
+        // Show libpcap and npcap version info.
         private void libpcapVersionInfoToolStripMenuItem_Click(object sender, EventArgs e)
         {
             MessageBox.Show(captureEngine.getLibVersion(), programName);
+        }
+
+        // Check if there is a newer release by comparing embeded release tag to latest release tag.
+        private void checkForUpdatesToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            // Create HTTP WEB request using API URL string.
+            HttpWebRequest APIRequest = ((HttpWebRequest)WebRequest.Create(githubAPI_LatestReleaseURL));
+            // Github API requires a user agent to be set.
+            APIRequest.UserAgent = githubAPI_HTTPUserAgent;
+            // Create storage location for response data.
+            HttpWebResponse APIresponse;
+
+            // Send GET and attempt to store response.
+            try
+            {
+                APIresponse = ((HttpWebResponse)APIRequest.GetResponse());
+            }
+            // Catch any failures such as 400 series web responses.
+            catch (System.Net.WebException ex)
+            {
+                MessageBox.Show(("Error: failed to check for update:\n" + ex.Message
+                                 + "\n\nMake sure that you have a valid internet connection."), programName);
+
+                return;
+            }
+
+            // Get payload data from response.
+            Stream responseDataStream = APIresponse.GetResponseStream();
+            StreamReader responseReader = new StreamReader(responseDataStream);
+            // Save data as string.
+            string JSONString = responseReader.ReadToEnd();
+
+            // Cleanup response data parsing opjects.
+            responseReader.Close();
+            responseDataStream.Close();
+            APIresponse.Close();
+
+            // Create JSON doc for parsing data.
+            JsonDocument JSONDocument;
+
+            // Attempt to Parse data as JSON.
+            try
+            {
+                JSONDocument = JsonDocument.Parse(JSONString);
+            }
+            // Catch failure to parse.
+            catch (JsonException)
+            {
+                MessageBox.Show("Error: failed to check for update: API data is invalid or corrupt.", programName);
+                return;
+            }
+
+            // Get the root element.
+            JsonElement root = JSONDocument.RootElement;
+
+            // Get tag_name element for comparison.
+            if (root.TryGetProperty(githubAPI_ReleaseTagElementName, out JsonElement tagName))
+            {
+                // Application is latest version.
+                if (githubAPI_ReleaseTagElementValue.Equals(tagName.GetString()))
+                {
+                    // Inform user that there are no available updates.
+                    MessageBox.Show("No updates are available.", programName);
+                }
+                // Application is not latest version (not going to do numeric comparision, this should be gud nuf).
+                else
+                {
+                    // Inform user of available update, and ask if they would like to visit web page.
+                    if (MessageBox.Show("An update is available!\n\nCurrent version: \t" + githubAPI_ReleaseTagElementValue + "\nLatest version: \t"
+                                        + tagName.GetString() + "\n\nWould you like to vist the latest release web page?",
+                                        programName, MessageBoxButtons.YesNo) == DialogResult.Yes)
+                    {
+                        // Load URL in default web browser.
+                        System.Diagnostics.Process.Start(githubLatestReleaseURL);
+                    }
+                }
+            }
+            // Inform user of error parsing json element.
+            else
+            {
+                MessageBox.Show("Error: failed to check for update: API data is invalid.", programName);
+            }
         }
     }
 }
