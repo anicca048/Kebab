@@ -9,13 +9,15 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
 using System.Net;
-using System.Text.Json;
+
+using ShimDotNet;
 
 using MaxMind.GeoIP2;
 using MaxMind.GeoIP2.Responses;
 using MaxMind.Db;
 
-using ShimDotNet;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace Kebab
 {
@@ -1310,50 +1312,51 @@ namespace Kebab
             responseDataStream.Close();
             APIresponse.Close();
 
-            // Create JSON doc for parsing data.
-            JsonDocument JSONDocument;
+            // Create json object to parse json data.
+            JObject JSONObj;
 
-            // Attempt to Parse data as JSON.
+            // Attempt to parse json data.
             try
             {
-                JSONDocument = JsonDocument.Parse(JSONString);
+                JSONObj = JObject.Parse(JSONString);
             }
-            // Catch failure to parse.
-            catch (JsonException)
+            catch (JsonReaderException)
             {
                 MessageBox.Show("Error: failed to check for update: API data is invalid or corrupt.", programName);
                 return;
             }
 
-            // Get the root element.
-            JsonElement root = JSONDocument.RootElement;
+            // tag_name value string.
+            string tagName;
 
-            // Get tag_name element for comparison.
-            if (root.TryGetProperty(githubAPI_ReleaseTagElementName, out JsonElement tagName))
+            // Attempt to get tag_name element for comparison.
+            try
             {
-                // Application is latest version.
-                if (githubAPI_ReleaseTagElementValue.Equals(tagName.GetString()))
-                {
-                    // Inform user that there are no available updates.
-                    MessageBox.Show("No updates are available.", programName);
-                }
-                // Application is not latest version (not going to do numeric comparision, this should be gud nuf).
-                else
-                {
-                    // Inform user of available update, and ask if they would like to visit web page.
-                    if (MessageBox.Show("An update is available!\n\nCurrent version: \t" + githubAPI_ReleaseTagElementValue + "\nLatest version: \t"
-                                        + tagName.GetString() + "\n\nWould you like to vist the latest release web page?",
-                                        programName, MessageBoxButtons.YesNo) == DialogResult.Yes)
-                    {
-                        // Load URL in default web browser.
-                        System.Diagnostics.Process.Start(githubLatestReleaseURL);
-                    }
-                }
+                tagName = JSONObj[githubAPI_ReleaseTagElementName].Value<string>();
             }
-            // Inform user of error parsing json element.
-            else
+            catch (System.ArgumentNullException)
             {
                 MessageBox.Show("Error: failed to check for update: API data is invalid.", programName);
+                return;
+            }
+
+            // Application is latest version.
+            if (githubAPI_ReleaseTagElementValue.Equals(tagName))
+            {
+                // Inform user that there are no available updates.
+                MessageBox.Show("No updates are available.", programName);
+            }
+            // Application is not latest version (not going to do numeric comparision, this should be gud nuf).
+            else
+            {
+                // Inform user of available update, and ask if they would like to visit web page.
+                if (MessageBox.Show("An update is available!\n\nCurrent version: \t" + githubAPI_ReleaseTagElementValue + "\nLatest version: \t"
+                                    + tagName + "\n\nWould you like to vist the latest release web page?",
+                                    programName, MessageBoxButtons.YesNo) == DialogResult.Yes)
+                {
+                    // Load URL in default web browser.
+                    System.Diagnostics.Process.Start(githubLatestReleaseURL);
+                }
             }
         }
     }
