@@ -10,8 +10,9 @@ Written in C#, Kebab is published for free under the terms of the MIT
 	OpenSource license.
 Kebab does not require any special permissions to run, so please do not run
 	Kebab in admin-mode. If a vulnerabillity is found in the way that Kebab or
-	Npcap parses packet information, and you are running Kebab in admin-mode,
-	it could lead to privledge escalation.
+	Npcap parses packet information, or in the parsing of external data, such as
+	checking for updates and or loading configuration file data, and you are
+	running Kebab in admin-mode, it could lead to privledge escalation.
 
 # Npcap
 WinPcap has been out of date for quite some time, and is lacking in

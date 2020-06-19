@@ -54,8 +54,16 @@ namespace Kebab
         // Github API requires a http user agent to be set.
         private const string githubAPI_HTTPUserAgent = (programName + "/" + programVersion);
 
+        // Name of file to store config variables (in json format).
+        private const string programConfigFileName = @"kebab_config.json";
+
         // Header to match connections for saving list.
         private const string connListHdr = "#    Type    LocalAddress:Port  State   RemoteAddress:Port  PacketsSent  DataSent     ISO    ASNOrg\n";
+
+        // Configuration object.
+        private Config programConfig;
+        // Marks a non savable config state (such as the program not having permissions to write in it's directory).
+        private bool nonPersistentConfig = false;
 
         // Interface drop down list data source.
         private BindingList<string> deviceList;
@@ -154,7 +162,7 @@ namespace Kebab
             // Incase npcap is not installed (thrown if ShimDotNet can't load .../Npcap/wpcap.dll).
             catch (FileNotFoundException ex)
             {
-                MessageBox.Show(("Error: failed to initilize capture engine: " + ex.Message
+                MessageBox.Show(("Error: failed to initilize capture engine:\n" + ex.Message
                                  + "\n\nMake sure that Npcap is installed properly."), programName);
                 System.Environment.Exit(1);
             }
@@ -162,7 +170,7 @@ namespace Kebab
             // Get device list (serves as basic pcap init / test).
             if (captureEngine.genDeviceList() == -1)
             {
-                MessageBox.Show(("Error: failed to generate device list: " + captureEngine.getEngineError()), programName);
+                MessageBox.Show(("Error: failed to generate device list:\n" + captureEngine.getEngineError()), programName);
                 System.Environment.Exit(1);
             }
 
@@ -184,18 +192,51 @@ namespace Kebab
             catch (FileNotFoundException ex)
             {
                 // Warn user of missing database file and exit.
-                MessageBox.Show(("Error: could not find database file: " + ex.Message), programName);
+                MessageBox.Show(("Error: could not find a database file: " + ex.Message + "\n\nDownload a fresh copy of "
+                                 + programName + " to ensure that you have all the required files."), programName);
                 System.Environment.Exit(1);
             }
             catch (InvalidDatabaseException ex)
             {
                 // Warn user of missing database file and exit.
-                MessageBox.Show(("Error: invalid or corrupt database file: " + ex.Message), programName);
+                MessageBox.Show(("Error: invalid or corrupt database file: " + ex.Message + "\n\nDownload a fresh copy of "
+                                 + programName + " to ensure that you have all the required files."), programName);
                 System.Environment.Exit(1);
+            }
+
+            // Create new program configuration state variable.
+            programConfig = new Config(programConfigFileName);
+
+            // Attempt to load configuration from file, or use default config.
+            if (!programConfig.LoadConfig())
+            {
+                MessageBox.Show(("Error: failed to load configuration file!\nThe file may be invalid or corrupt!"
+                                 + "\n\n" + programName + " will now generate a new config file."
+                                 + "\nAny preexisting config file will be overwritten."), programName);
+            }
+
+            // Set default and or loaded config.
+            ApplyConfig();
+
+            // Attempt to overwrite config file with default and or loaded values.
+            if (!programConfig.SaveConfig())
+            {
+                MessageBox.Show(("Error: failed to save configuration file!" + "\n\n" + programName +
+                                 " will run in non-persistent config mode, user preferences will not be saved!"),
+                                programName);
+
+                nonPersistentConfig = true;
             }
 
             // Enable form after init is done.
             this.Enabled = true;
+        }
+
+        // Updates state of application with the user set configuration values on program startup.
+        private void ApplyConfig()
+        {
+            // Apply banner message string to mainform title.
+            this.Text += (" - " + programConfig.Vars.banner_message);
         }
 
         // Reusable grouping for cleanup tasks when form needs to close.
@@ -238,7 +279,7 @@ namespace Kebab
             if (captureEngine.genDeviceList() == -1)
             {
                 // Display CaptureSession initialization error and exit program.
-                MessageBox.Show(("Error generating device list: " + captureEngine.getEngineError()), programName);
+                MessageBox.Show(("Error generating device list:\n" + captureEngine.getEngineError()), programName);
                 System.Environment.Exit(1);
             }
 
@@ -927,7 +968,7 @@ namespace Kebab
                 }
                 catch (UnauthorizedAccessException)
                 {
-                    MessageBox.Show("Error: failed to open save file for writing!\nReason: Permision denied!", programName);
+                    MessageBox.Show("Error: failed to open save file for writing:\nPermision denied!", programName);
 
                     return;
                 }
@@ -1116,7 +1157,7 @@ namespace Kebab
                 if (captureEngine.startCapture((InterfaceDropDownList.SelectedIndex - 1), captureFilterStr) == -1)
                 {
                     // If an error happens here we want the user to be able to try another interface.
-                    MessageBox.Show(("Error: failed starting capture: " + captureEngine.getEngineError()), programName);
+                    MessageBox.Show(("Error: failed starting capture:\n" + captureEngine.getEngineError()), programName);
                     // Cleanup.
                     captureEngine.stopCapture();
                     return;
@@ -1333,7 +1374,7 @@ namespace Kebab
             }
             catch (JsonReaderException)
             {
-                MessageBox.Show("Error: failed to check for update: API data is invalid or corrupt.", programName);
+                MessageBox.Show("Error: failed to check for update:\nAPI data is invalid or corrupt.", programName);
                 return;
             }
 
@@ -1347,7 +1388,7 @@ namespace Kebab
             }
             catch (System.ArgumentNullException)
             {
-                MessageBox.Show("Error: failed to check for update: API data is invalid.", programName);
+                MessageBox.Show("Error: failed to check for update:\nAPI data is invalid.", programName);
                 return;
             }
 
