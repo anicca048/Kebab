@@ -551,8 +551,16 @@ namespace Kebab
                     // Create new connection.
                     Connection newConn = new Connection(pkt, direction);
 
+                    // Don't create local connections if not wanted by user.
+                    if (newConn.Source.AddressIsLocal() && newConn.Destination.AddressIsLocal() && RemoveLocalConnectionsCheckBox.Checked)
+                    {
+                        // Mark packet as processed.
+                        packetsToProcess--;
+                        // Move on to next packet.
+                        continue;
+                    }
                     // Need to do a check to make sure that local and loobpack connections get priority for the Source address.
-                    if (newConn.Destination.AddressIsLocal() && !newConn.Source.AddressIsLocal())
+                    else if (newConn.Destination.AddressIsLocal() && !newConn.Source.AddressIsLocal())
                     {
                         // Swap IP addrs.
                         IPAddress tmpIP = newConn.Destination.Address;
@@ -1005,6 +1013,7 @@ namespace Kebab
             CaptureStartButton.Enabled = false;
             InterfaceLabel.Enabled = false;
             InterfaceDropDownList.Enabled = false;
+            clearConnsOnStartCheckBox.Enabled = false;
             CaptureFilterGroupBox.Enabled = false;
 
             // Enable Connection page elements.
@@ -1025,6 +1034,7 @@ namespace Kebab
             CaptureStartButton.Enabled = true;
             InterfaceLabel.Enabled = true;
             InterfaceDropDownList.Enabled = true;
+            clearConnsOnStartCheckBox.Enabled = true;
             CaptureFilterGroupBox.Enabled = true;
         }
 
@@ -1189,6 +1199,8 @@ namespace Kebab
             // Reset protocol check boxes to default.
             TCPCheckBox.Checked = true;
             UDPCheckBox.Checked = true;
+            // Reset remove local connections checkbox.
+            RemoveLocalConnectionsCheckBox.Checked = true;
 
             // Remove any text in filter text boxes.
             SourceIPFilter.Clear();
@@ -1297,7 +1309,6 @@ namespace Kebab
             {
                 MessageBox.Show(("Error: failed to check for update:\n" + ex.Message
                                  + "\n\nMake sure that you have a valid internet connection."), programName);
-
                 return;
             }
 

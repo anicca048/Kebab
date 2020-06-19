@@ -42,6 +42,8 @@ namespace Kebab
             this.toolStripSeparator3 = new System.Windows.Forms.ToolStripSeparator();
             this.ExitMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.helpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.checkForUpdatesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripSeparator5 = new System.Windows.Forms.ToolStripSeparator();
             this.libpcapVersionInfoToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator4 = new System.Windows.Forms.ToolStripSeparator();
             this.aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -104,8 +106,7 @@ namespace Kebab
             this.SourcePortFilter = new System.Windows.Forms.TextBox();
             this.DestinationPortFilter = new System.Windows.Forms.TextBox();
             this.TabControl = new System.Windows.Forms.TabControl();
-            this.toolStripSeparator5 = new System.Windows.Forms.ToolStripSeparator();
-            this.checkForUpdatesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.RemoveLocalConnectionsCheckBox = new System.Windows.Forms.CheckBox();
             this.TopMenu.SuspendLayout();
             this.ConnectionPage.SuspendLayout();
             this.DisplayFilterGroupBox.SuspendLayout();
@@ -181,6 +182,18 @@ namespace Kebab
             this.helpToolStripMenuItem.Name = "helpToolStripMenuItem";
             this.helpToolStripMenuItem.Size = new System.Drawing.Size(44, 20);
             this.helpToolStripMenuItem.Text = "Help";
+            // 
+            // checkForUpdatesToolStripMenuItem
+            // 
+            this.checkForUpdatesToolStripMenuItem.Name = "checkForUpdatesToolStripMenuItem";
+            this.checkForUpdatesToolStripMenuItem.Size = new System.Drawing.Size(181, 22);
+            this.checkForUpdatesToolStripMenuItem.Text = "Check for Updates";
+            this.checkForUpdatesToolStripMenuItem.Click += new System.EventHandler(this.checkForUpdatesToolStripMenuItem_Click);
+            // 
+            // toolStripSeparator5
+            // 
+            this.toolStripSeparator5.Name = "toolStripSeparator5";
+            this.toolStripSeparator5.Size = new System.Drawing.Size(178, 6);
             // 
             // libpcapVersionInfoToolStripMenuItem
             // 
@@ -692,6 +705,7 @@ namespace Kebab
             // 
             this.CaptureFilterGroupBox.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
+            this.CaptureFilterGroupBox.Controls.Add(this.RemoveLocalConnectionsCheckBox);
             this.CaptureFilterGroupBox.Controls.Add(this.FilterStringLabel);
             this.CaptureFilterGroupBox.Controls.Add(this.complexFilter);
             this.CaptureFilterGroupBox.Controls.Add(this.ClearFiltersButton);
@@ -736,7 +750,7 @@ namespace Kebab
             // ClearFiltersButton
             // 
             this.ClearFiltersButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.ClearFiltersButton.Location = new System.Drawing.Point(139, 154);
+            this.ClearFiltersButton.Location = new System.Drawing.Point(139, 184);
             this.ClearFiltersButton.Name = "ClearFiltersButton";
             this.ClearFiltersButton.Size = new System.Drawing.Size(110, 40);
             this.ClearFiltersButton.TabIndex = 13;
@@ -879,17 +893,17 @@ namespace Kebab
             this.TabControl.Size = new System.Drawing.Size(1324, 607);
             this.TabControl.TabIndex = 0;
             // 
-            // toolStripSeparator5
+            // RemoveLocalConnectionsCheckBox
             // 
-            this.toolStripSeparator5.Name = "toolStripSeparator5";
-            this.toolStripSeparator5.Size = new System.Drawing.Size(178, 6);
-            // 
-            // checkForUpdatesToolStripMenuItem
-            // 
-            this.checkForUpdatesToolStripMenuItem.Name = "checkForUpdatesToolStripMenuItem";
-            this.checkForUpdatesToolStripMenuItem.Size = new System.Drawing.Size(181, 22);
-            this.checkForUpdatesToolStripMenuItem.Text = "Check for Updates";
-            this.checkForUpdatesToolStripMenuItem.Click += new System.EventHandler(this.checkForUpdatesToolStripMenuItem_Click);
+            this.RemoveLocalConnectionsCheckBox.AutoSize = true;
+            this.RemoveLocalConnectionsCheckBox.Checked = true;
+            this.RemoveLocalConnectionsCheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.RemoveLocalConnectionsCheckBox.Location = new System.Drawing.Point(139, 154);
+            this.RemoveLocalConnectionsCheckBox.Name = "RemoveLocalConnectionsCheckBox";
+            this.RemoveLocalConnectionsCheckBox.Size = new System.Drawing.Size(222, 24);
+            this.RemoveLocalConnectionsCheckBox.TabIndex = 19;
+            this.RemoveLocalConnectionsCheckBox.Text = "Remove Local Connections";
+            this.RemoveLocalConnectionsCheckBox.UseVisualStyleBackColor = true;
             // 
             // MainForm
             // 
@@ -998,6 +1012,7 @@ namespace Kebab
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator4;
         private System.Windows.Forms.ToolStripMenuItem checkForUpdatesToolStripMenuItem;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator5;
+        private System.Windows.Forms.CheckBox RemoveLocalConnectionsCheckBox;
     }
 }
 

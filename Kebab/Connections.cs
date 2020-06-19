@@ -84,8 +84,7 @@ namespace Kebab
             const UInt32 CLASS_A_ADDRESS = 0x0A000000;
             const UInt32 CLASS_A_NETMASK = 0xFF000000;
             // Class B (172.16.0.0/12).
-            const UInt32 CLASS_B_MINADDR = 0xAC100000;
-            const UInt32 CLASS_B_MAXADDR = 0xAC1F0000;
+            const UInt32 CLASS_B_ADDRESS = 0xAC100000;
             const UInt32 CLASS_B_NETMASK = 0xFFF00000;
             // Class C (192.168.0.0/16).
             const UInt32 CLASS_C_ADDRESS = 0xC0A80000;
@@ -93,6 +92,14 @@ namespace Kebab
             //Local / Loopback (127.0.0.0/8)
             const UInt32 LOOPBAK_ADDRESS = 0x7F000000;
             const UInt32 LOOPBAK_NETMASK = 0xFF000000;
+            // Link Local (169.254.0.0/16)
+            const UInt32 LINKLOC_ADDRESS = 0xA9FE0000;
+            const UInt32 LINKLOC_NETMASK = 0xFFFF0000;
+            // Multicast (224.0.0.0/4)
+            const UInt32 MULTCST_ADDRESS = 0xE0000000;
+            const UInt32 MULTCST_NETMASK = 0xF0000000;
+            // Local Broadcast (255.255.255.255/32)
+            const UInt32 BRODCST_ADDRESS = 0xFFFFFFFF;
 
             // Convert IP to 4 Byte segment (NetToHo doesn't like long for somereason).
             UInt32 IPBytes = ((UInt32)IPAddress.NetworkToHostOrder(((Int32)this.Address.Address)));
@@ -100,12 +107,17 @@ namespace Kebab
             // Compares bytes to local ip ranges using netmask anding.
             if ((IPBytes & CLASS_A_NETMASK) == CLASS_A_ADDRESS)
                 return true;
-            else if (((IPBytes & CLASS_B_NETMASK) >= CLASS_B_MINADDR)
-                     && ((IPBytes & CLASS_B_NETMASK) <= CLASS_B_MAXADDR))
+            else if ((IPBytes & CLASS_B_NETMASK) == CLASS_B_ADDRESS)
                 return true;
             else if ((IPBytes & CLASS_C_NETMASK) == CLASS_C_ADDRESS)
                 return true;
             else if ((IPBytes & LOOPBAK_NETMASK) == LOOPBAK_ADDRESS)
+                return true;
+            else if ((IPBytes & LINKLOC_NETMASK) == LINKLOC_ADDRESS)
+                return true;
+            else if ((IPBytes & MULTCST_NETMASK) == MULTCST_ADDRESS)
+                return true;
+            else if (IPBytes == BRODCST_ADDRESS)
                 return true;
 
             return false;
