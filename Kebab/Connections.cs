@@ -347,7 +347,7 @@ namespace Kebab
 
         // Implement INotifyPropertyChanged (for auto bind list updating).
         public event PropertyChangedEventHandler PropertyChanged;
-        private void NotifyPropertyChanged([CallerMemberName] String propertyName = "")
+        private void NotifyPropertyChanged([CallerMemberName] string propertyName = "")
         {
             if (PropertyChanged != null)
                 PropertyChanged(this, new PropertyChangedEventArgs(propertyName));

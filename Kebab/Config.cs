@@ -7,18 +7,25 @@ using Newtonsoft.Json;
 
 namespace Kebab
 {
-    // Class for config variables to be written to conf file (should all be strings for input verification).
+    // Class for config variables to be written to conf file (all value types should be easy to validate).
     public class ConfVars
     {
         public string banner_message = @"Connection Oriented Packet Sniffer";
         public string theme = @"light";
     }
-    
+
+    // Definitions of excepted values for config variables (all value types should be easy to validate).
+    public class ConfVarDefinitions
+    {
+        public readonly List<string> theme = new List<string>() {@"light", @"dark"};
+    }
+
     public class Config
     {
         // List of config variables to be (de)serialized to and from json elements.
         public ConfVars Vars = new ConfVars();
-        
+        private ConfVarDefinitions VarDefs = new ConfVarDefinitions();
+
         // Filename of config file save location.
         private string ConfigFileName;
 
@@ -60,12 +67,10 @@ namespace Kebab
                 Vars.banner_message = savedConfig.banner_message;
 
             // Apply theme if valid.
-            if (!savedConfig.theme.Equals(Vars.banner_message))
+            if (!savedConfig.theme.Equals(Vars.theme))
             {
-                if (savedConfig.theme.Equals("light"))
-                    Vars.theme = "light";
-                else if (savedConfig.theme.Equals("dark"))
-                    Vars.theme = "dark";
+                if (ValidateConfigVariable(savedConfig.theme, VarDefs.theme))
+                    Vars.theme = savedConfig.theme;
             }
         }
 
@@ -87,6 +92,21 @@ namespace Kebab
             }
 
             return true;
+        }
+
+        // Check if saved value matches a supprted value.
+        private bool ValidateConfigVariable<T>(T value, List<T> valueDefinitions)
+        where T : IEquatable<T>
+        {
+            // Loop through all valid options and return true if one matches.
+            foreach (T definition in valueDefinitions)
+            {
+                if (definition.Equals(value))
+                    return true;
+            }
+
+            // Return false if no match is found.
+            return false;
         }
     }
 }
