@@ -41,7 +41,7 @@ namespace Kebab
             this.saveAsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator3 = new System.Windows.Forms.ToolStripSeparator();
             this.ExitMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.helpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.HelpMenu = new System.Windows.Forms.ToolStripMenuItem();
             this.checkForUpdatesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator5 = new System.Windows.Forms.ToolStripSeparator();
             this.libpcapVersionInfoToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -91,6 +91,7 @@ namespace Kebab
             this.CaptureStopButton = new System.Windows.Forms.Button();
             this.CaptureStartButton = new System.Windows.Forms.Button();
             this.CaptureFilterGroupBox = new System.Windows.Forms.GroupBox();
+            this.RemoveLocalConnectionsCheckBox = new System.Windows.Forms.CheckBox();
             this.FilterStringLabel = new System.Windows.Forms.Label();
             this.complexFilter = new System.Windows.Forms.TextBox();
             this.ClearFiltersButton = new System.Windows.Forms.Button();
@@ -106,7 +107,6 @@ namespace Kebab
             this.SourcePortFilter = new System.Windows.Forms.TextBox();
             this.DestinationPortFilter = new System.Windows.Forms.TextBox();
             this.TabControl = new System.Windows.Forms.TabControl();
-            this.RemoveLocalConnectionsCheckBox = new System.Windows.Forms.CheckBox();
             this.TopMenu.SuspendLayout();
             this.ConnectionPage.SuspendLayout();
             this.DisplayFilterGroupBox.SuspendLayout();
@@ -123,7 +123,7 @@ namespace Kebab
             this.TopMenu.BackColor = System.Drawing.SystemColors.Window;
             this.TopMenu.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.FileMenu,
-            this.helpToolStripMenuItem});
+            this.HelpMenu});
             this.TopMenu.Location = new System.Drawing.Point(0, 0);
             this.TopMenu.Name = "TopMenu";
             this.TopMenu.Size = new System.Drawing.Size(1324, 24);
@@ -171,17 +171,17 @@ namespace Kebab
             this.ExitMenuItem.Text = "Exit";
             this.ExitMenuItem.Click += new System.EventHandler(this.ExitMenuItem_Click);
             // 
-            // helpToolStripMenuItem
+            // HelpMenu
             // 
-            this.helpToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.HelpMenu.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.checkForUpdatesToolStripMenuItem,
             this.toolStripSeparator5,
             this.libpcapVersionInfoToolStripMenuItem,
             this.toolStripSeparator4,
             this.aboutToolStripMenuItem});
-            this.helpToolStripMenuItem.Name = "helpToolStripMenuItem";
-            this.helpToolStripMenuItem.Size = new System.Drawing.Size(44, 20);
-            this.helpToolStripMenuItem.Text = "Help";
+            this.HelpMenu.Name = "HelpMenu";
+            this.HelpMenu.Size = new System.Drawing.Size(44, 20);
+            this.HelpMenu.Text = "Help";
             // 
             // checkForUpdatesToolStripMenuItem
             // 
@@ -728,6 +728,18 @@ namespace Kebab
             this.CaptureFilterGroupBox.TabStop = false;
             this.CaptureFilterGroupBox.Text = "Capture Filter";
             // 
+            // RemoveLocalConnectionsCheckBox
+            // 
+            this.RemoveLocalConnectionsCheckBox.AutoSize = true;
+            this.RemoveLocalConnectionsCheckBox.Checked = true;
+            this.RemoveLocalConnectionsCheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.RemoveLocalConnectionsCheckBox.Location = new System.Drawing.Point(139, 154);
+            this.RemoveLocalConnectionsCheckBox.Name = "RemoveLocalConnectionsCheckBox";
+            this.RemoveLocalConnectionsCheckBox.Size = new System.Drawing.Size(222, 24);
+            this.RemoveLocalConnectionsCheckBox.TabIndex = 19;
+            this.RemoveLocalConnectionsCheckBox.Text = "Remove Local Connections";
+            this.RemoveLocalConnectionsCheckBox.UseVisualStyleBackColor = true;
+            // 
             // FilterStringLabel
             // 
             this.FilterStringLabel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
@@ -893,18 +905,6 @@ namespace Kebab
             this.TabControl.Size = new System.Drawing.Size(1324, 607);
             this.TabControl.TabIndex = 0;
             // 
-            // RemoveLocalConnectionsCheckBox
-            // 
-            this.RemoveLocalConnectionsCheckBox.AutoSize = true;
-            this.RemoveLocalConnectionsCheckBox.Checked = true;
-            this.RemoveLocalConnectionsCheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.RemoveLocalConnectionsCheckBox.Location = new System.Drawing.Point(139, 154);
-            this.RemoveLocalConnectionsCheckBox.Name = "RemoveLocalConnectionsCheckBox";
-            this.RemoveLocalConnectionsCheckBox.Size = new System.Drawing.Size(222, 24);
-            this.RemoveLocalConnectionsCheckBox.TabIndex = 19;
-            this.RemoveLocalConnectionsCheckBox.Text = "Remove Local Connections";
-            this.RemoveLocalConnectionsCheckBox.UseVisualStyleBackColor = true;
-            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -980,7 +980,7 @@ namespace Kebab
         private System.Windows.Forms.ToolStripMenuItem localAddressPortToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem remoteAddressPortToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem copyToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem helpToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem HelpMenu;
         private System.Windows.Forms.ToolStripMenuItem aboutToolStripMenuItem;
         private System.Windows.Forms.Label FilterStringLabel;
         private System.Windows.Forms.TextBox complexFilter;

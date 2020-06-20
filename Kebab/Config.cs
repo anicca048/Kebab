@@ -50,8 +50,18 @@ namespace Kebab
                 return false;
             }
 
-            // Parse file data as JSON data (any invalid variable names are discarded).
-            ConfVars savedConfig = JsonConvert.DeserializeObject<ConfVars>(jsonData);
+            // Storage area for config if load.
+            ConfVars savedConfig;
+
+            // Attempt to parse file data as JSON data (any invalid variable names are discarded).
+            try
+            {
+                savedConfig = JsonConvert.DeserializeObject<ConfVars>(jsonData);
+            }
+            catch (Newtonsoft.Json.JsonReaderException)
+            {
+                return false;
+            }
 
             // Apply any valid variable values found in conf file.
             UpdateConfig(savedConfig);
