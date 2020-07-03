@@ -125,14 +125,6 @@ Connections Tab - Prety basic, simply groups captured packets into connections.
 			as owning a given IP block that the RemoteAddress is part of.
 
 # Known Issues / Bugs / Errata
-Connection numbering: Currently if you use the connection timeout option,
-deleted entries may cause gaps in the connection numbering. The current fix
-prevents this, but can still lead to large numbering of a small list in the
-right conditions. Once the list is cleared, however, the numbering will be
-restored to normalcy. Users will just have to deal with this until a proper
-non-destructive connection number reodering algorithim is implemented.
-(it's gonna be a while.)
-
 Connection Sorting: Currently if you sort the connection list in any way
 (except by property "Number" in ascending order), under heavy load the UI loop
 can get bogged down by the constant resorting of the list. This may cause

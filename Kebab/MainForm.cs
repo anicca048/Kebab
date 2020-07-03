@@ -723,7 +723,7 @@ namespace Kebab
                     }
 
                     // Asing the connection a number.
-                    newConn.Number = ConnectionList.GetNewConnNumber(connectionList as IList<Connection>);
+                    newConn.Number = (((uint)connectionList.Count) + 1);
                     // And add it to the list.
                     connectionList.Add(newConn);
 
@@ -733,9 +733,41 @@ namespace Kebab
             }
         }
 
+        // Reorders connection numbers to remove gaps in the order and avoid large number to small conn count ratios.
+        private void ReorderOnRemoval()
+        {
+            // Create list of connection numbers.
+            List<uint> connNums = new List<uint>();
+
+            // Add all existing connection numbers to list.
+            foreach (Connection conn in connectionList)
+                connNums.Add(conn.Number);
+
+            // Sort list of connection numbers in ascending order.
+            connNums.Sort();
+
+            // Apply reordering.
+            for (int i = 0; i < connNums.Count; i++)
+            {
+                // Match current number to connection.
+                foreach (Connection conn in connectionList)
+                {
+                    // Change number of matching connection to new value.
+                    if (conn.Number.Equals(connNums[i]))
+                    {
+                        conn.Number = ((uint)(i + 1));
+                        break;
+                    }
+                }
+            }
+        }
+
         // Runs connection timeout removal operations on Connection List.
         private void TimeoutConnList(object sender, EventArgs e)
         {
+            // Flag to check if reordering needs to occur.
+            bool removalOccured = false;
+
             // Loop through connections list and see if we have any inactive connections to remove.
             while (true)
             {
@@ -752,6 +784,9 @@ namespace Kebab
                         connectionList.Remove(loopConn);
                         removedConnection = true;
 
+                        if (!removalOccured)
+                            removalOccured = true;
+
                         // Must break beause loop limit was changed.
                         break;
                     }
@@ -759,7 +794,13 @@ namespace Kebab
 
                 // Stop checking for inactive connections if all have been checked.
                 if (!removedConnection)
+                {
+                    // Cleanup connection numbers in the wake of created gaps.
+                    if (removalOccured)
+                        ReorderOnRemoval();
+
                     break;
+                }
             }
         }
 

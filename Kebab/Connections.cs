@@ -615,20 +615,5 @@ namespace Kebab
             // Do base operations.
             base.OnListChanged(args);
         }
-
-        // Using this for deriving the next connection number partially resolves issues with using connection timeouts. (Compiler inline suggestion).
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static uint GetNewConnNumber(IList<Connection> connList)
-        {
-            uint LargestConnNumber = 0;
-
-            foreach (Connection conn in connList)
-            {
-                if (conn.Number > LargestConnNumber)
-                    LargestConnNumber = conn.Number;
-            }
-
-            return (LargestConnNumber + 1);
-        }
     }
 }
