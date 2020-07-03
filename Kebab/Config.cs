@@ -10,7 +10,7 @@ namespace Kebab
     // Class for config variables to be written to conf file (all value types should be easy to validate).
     public class ConfVars
     {
-        public string banner_message = @"Connection Oriented Packet Sniffer";
+        public string banner_message = (@"v" + Program.Version);
         public string theme = @"light";
     }
 
@@ -63,9 +63,14 @@ namespace Kebab
                 return false;
             }
 
+            // Check if deserialization failed (such as in the case of an empty file).
+            if (savedConfig == null)
+                return false;
+
             // Apply any valid variable values found in conf file.
             UpdateConfig(savedConfig);
 
+            // Inform caller the json config parsing succeeded.
             return true;
         }
 

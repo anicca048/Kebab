@@ -25,40 +25,25 @@ namespace Kebab
 {
     public partial class MainForm : Form
     {
-        // Name of program for repeated use.
-        private const string programName = @"Kebab";
-        // Version of the program (for releases).
-        private const string programVersion = @"1.1.1";
         // Breif description of the program.
-        private const string aboutPage = programName + " version " + programVersion
+        private const string aboutPage = Program.Name + " version " + Program.Version
                                          + "\n"
                                          + "Copyright © 2018 anicca048\n"
                                          + "\n"
-                                         + "Written in C#, " + programName + " is published for free under the terms of the MIT opensource license.\n"
+                                         + "Written in C#, " + Program.Name + " is published for free under the terms of the MIT opensource license.\n"
                                          + "\n"
-                                         + programName + " uses Npcap, and the MaxMind GeoLite2 City and ASN databases and accompanying C# API.\n"
+                                         + Program.Name + " uses Npcap, and the MaxMind GeoLite2 City and ASN databases and accompanying C# API.\n"
                                          + "\n"
-                                         + "All third party API's / libraries / dll's used by " + programName + " are opensource.\n"
+                                         + "All third party API's / libraries / dll's used by " + Program.Name + " are opensource.\n"
                                          + "\n"
                                          + "Program and legal documentation are included in the *Readme* and *License* / *Copyright* files respectively.\n"
                                          + "\n"
                                          + "Further documentation and source code can be found on the project's Github repo.\n"
                                          + "\n"
-                                         + programName + " Github repo: https://github.com/anicca048/Kebab\n"
+                                         + Program.Name + " Github repo: https://github.com/anicca048/Kebab\n"
                                          + "Npcap Github repo: https://github.com/nmap/npcap\n"
                                          + "MaxMind C# API Github repo: https://github.com/maxmind/MaxMind-DB-Reader-dotnet\n"
                                          + "and https://github.com/maxmind/GeoIP2-dotnet";
-
-        // Links and strings for update checking mechanism.
-        private const string githubLatestReleaseURL = @"https://github.com/anicca048/Kebab/releases/latest";
-        private const string githubAPI_LatestReleaseURL = @"https://api.github.com/repos/anicca048/Kebab/releases/latest";
-        private const string githubAPI_ReleaseTagElementName = @"tag_name";
-        private const string githubAPI_ReleaseTagElementValue = @"v1.1.1_Windows_x86_64";
-        // Github API requires a http user agent to be set.
-        private const string githubAPI_HTTPUserAgent = (programName + "/" + programVersion);
-
-        // Name of file to store config variables (in json format).
-        private const string programConfigFileName = @"kebab_config.json";
 
         // Header to match connections for saving list.
         private const string connListHdr = "#    Type    LocalAddress:Port  State   RemoteAddress:Port  PacketsSent  DataSent     ISO    ASNOrg\n";
@@ -160,8 +145,8 @@ namespace Kebab
             // Check if program is running as admin, and inform user of danger if so.
             if ((new WindowsPrincipal(WindowsIdentity.GetCurrent())).IsInRole(WindowsBuiltInRole.Administrator))
             {
-                MessageBox.Show("Warning: it is not recommended to run " + programName + " as Administrator!"
-                                + "\nRunning this program with Administrator privileges could put your computer at risk!", programName);
+                MessageBox.Show("Warning: it is not recommended to run " + Program.Name + " as Administrator!"
+                                + "\nRunning this program with Administrator privileges could put your computer at risk!", Program.Name);
             }
 
             // Init cengine.
@@ -173,14 +158,14 @@ namespace Kebab
             catch (FileNotFoundException ex)
             {
                 MessageBox.Show(("Error: failed to initilize capture engine:\n" + ex.Message
-                                 + "\n\nMake sure that Npcap is installed properly."), programName);
+                                 + "\n\nMake sure that Npcap is installed properly."), Program.Name);
                 System.Environment.Exit(1);
             }
 
             // Get device list (serves as basic pcap init / test).
             if (captureEngine.genDeviceList() == -1)
             {
-                MessageBox.Show(("Error: failed to generate device list:\n" + captureEngine.getEngineError()), programName);
+                MessageBox.Show(("Error: failed to generate device list:\n" + captureEngine.getEngineError()), Program.Name);
                 System.Environment.Exit(1);
             }
 
@@ -203,26 +188,26 @@ namespace Kebab
             {
                 // Warn user of missing database file and exit.
                 MessageBox.Show(("Error: could not find a database file: " + ex.Message + "\n\nDownload a fresh copy of "
-                                 + programName + " to ensure that you have all the required files."), programName);
+                                 + Program.Name + " to ensure that you have all the required files."), Program.Name);
                 System.Environment.Exit(1);
             }
             catch (InvalidDatabaseException ex)
             {
                 // Warn user of missing database file and exit.
                 MessageBox.Show(("Error: invalid or corrupt database file: " + ex.Message + "\n\nDownload a fresh copy of "
-                                 + programName + " to ensure that you have all the required files."), programName);
+                                 + Program.Name + " to ensure that you have all the required files."), Program.Name);
                 System.Environment.Exit(1);
             }
 
             // Create new program configuration state variable.
-            programConfig = new Config(programConfigFileName);
+            programConfig = new Config(Program.ConfigFileName);
 
             // Attempt to load configuration from file, or use default config.
             if (!programConfig.LoadConfig())
             {
                 MessageBox.Show(("Error: failed to load configuration file!\nThe file may be invalid or corrupt!"
-                                 + "\n\n" + programName + " will now generate a new config file."
-                                 + "\nAny preexisting config file will be overwritten."), programName);
+                                 + "\n\n" + Program.Name + " will now generate a new config file."
+                                 + "\nAny preexisting config file will be overwritten."), Program.Name);
             }
 
             // Set default and or loaded config.
@@ -231,9 +216,9 @@ namespace Kebab
             // Attempt to overwrite config file with default and or loaded values.
             if (!programConfig.SaveConfig())
             {
-                MessageBox.Show(("Error: failed to save configuration file!" + "\n\n" + programName +
+                MessageBox.Show(("Error: failed to save configuration file!" + "\n\n" + Program.Name +
                                  " will run in non-persistent config mode, user preferences will not be saved!"),
-                                programName);
+                                Program.Name);
 
                 nonPersistentConfig = true;
             }
@@ -307,7 +292,7 @@ namespace Kebab
             if (captureEngine.genDeviceList() == -1)
             {
                 // Inform user of critical error.
-                MessageBox.Show(("Error generating device list:\n" + captureEngine.getEngineError()), programName);
+                MessageBox.Show(("Error generating device list:\n" + captureEngine.getEngineError()), Program.Name);
                 System.Environment.Exit(1);
             }
 
@@ -335,10 +320,10 @@ namespace Kebab
                     // Storage var for interface uuid.
                     string iface_uuid;
 
-                    // Pull uuid by string splitting (/Device/NPF_{XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX}).
+                    // Pull uuid by string splitting (\Device\NPF_{XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX}).
                     try
-                    { 
-                        iface_uuid = Regex.Split(captureEngine.getDeviceName(i), @"NPF_")[1];
+                    {
+                        iface_uuid = Regex.Split(captureEngine.getDeviceName(i), @"\\Device\\NPF_")[1];
                     }
                     catch (System.IndexOutOfRangeException)
                     {
@@ -348,8 +333,23 @@ namespace Kebab
                     // Compare uuid to iface in list.
                     if (iface_uuid.Equals(iface.Id))
                     {
+                        // Get interface name.
+                        string ifaceName = iface.Name;
+
+                        // Check if interface has ipv4 address, and if so add it to name string.
+                        foreach (UnicastIPAddressInformation ip in iface.GetIPProperties().UnicastAddresses)
+                        {
+                            // If we have a valid IPv4 address, add it.
+                            if ((ip.Address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
+                                && (ip.Address.ToString() != "0.0.0.0"))
+                            {
+                                ifaceName += (" [ " + ip.Address.ToString() + " ]");
+                                break;
+                            }
+                        }
+
                         // If found add friendly name to list and trip flag.
-                        deviceList.Add(iface.Name);
+                        deviceList.Add(ifaceName);
                         friendlyNameFound = true;
                         break;
                     }
@@ -1004,7 +1004,7 @@ namespace Kebab
                 // Check if file opened correctly (shouldn't happen as dialog checks for potential failures).
                 if ((saveFileStream = saveFileDialog.OpenFile()) == null)
                 {
-                    MessageBox.Show("Error: failed to open save file for writing!", programName);
+                    MessageBox.Show("Error: failed to open save file for writing!", Program.Name);
 
                     return;
                 }
@@ -1031,7 +1031,7 @@ namespace Kebab
                 }
                 catch (UnauthorizedAccessException)
                 {
-                    MessageBox.Show("Error: failed to open save file for writing:\nPermision denied!", programName);
+                    MessageBox.Show("Error: failed to open save file for writing:\nPermision denied!", Program.Name);
 
                     return;
                 }
@@ -1039,7 +1039,7 @@ namespace Kebab
                 // Shouldn't happen, checked for file path existence and permissions.
                 if (saveFileStream == null)
                 {
-                    MessageBox.Show("Error: failed to open save file for writing!", programName);
+                    MessageBox.Show("Error: failed to open save file for writing!", Program.Name);
 
                     return;
                 }
@@ -1078,7 +1078,7 @@ namespace Kebab
                 || (ConnectionGridView == null) || (ConnectionGridView.RowCount == 0))
             {
                 // Inform user of failure to save and exit.
-                MessageBox.Show("Error: cannot save an empty list!", programName);
+                MessageBox.Show("Error: cannot save an empty list!", Program.Name);
 
                 return;
             }
@@ -1097,7 +1097,7 @@ namespace Kebab
                 || (ConnectionGridView == null) || (ConnectionGridView.RowCount == 0))
             {
                 // Inform user of failure to save and exit.
-                MessageBox.Show("Error: list is empty, nothing to save!", programName);
+                MessageBox.Show("Error: list is empty, nothing to save!", Program.Name);
 
                 return;
             }
@@ -1168,7 +1168,7 @@ namespace Kebab
             // Ensure at least one protocol (tcp or udp) is selected in Filter Options.
             if (!TCPCheckBox.Checked && !UDPCheckBox.Checked)
             {
-                MessageBox.Show("Error: you must select at least one protocol!", programName);
+                MessageBox.Show("Error: you must select at least one protocol!", Program.Name);
                 return -1;
             }
 
@@ -1220,7 +1220,7 @@ namespace Kebab
                 if (captureEngine.startCapture((InterfaceDropDownList.SelectedIndex - 1), captureFilterStr) == -1)
                 {
                     // If an error happens here we want the user to be able to try another interface.
-                    MessageBox.Show(("Error: failed starting capture:\n" + captureEngine.getEngineError()), programName);
+                    MessageBox.Show(("Error: failed starting capture:\n" + captureEngine.getEngineError()), Program.Name);
                     // Cleanup.
                     captureEngine.stopCapture();
                     return;
@@ -1271,7 +1271,7 @@ namespace Kebab
             }
             else
             {
-                MessageBox.Show("Error: you must select an interface!", programName);
+                MessageBox.Show("Error: you must select an interface!", Program.Name);
             }
         }
 
@@ -1349,7 +1349,7 @@ namespace Kebab
         // Show about page (well really a msgbox becuase I don't want to waste a form on an about page).
         private void aboutToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            MessageBox.Show(aboutPage, programName);
+            MessageBox.Show(aboutPage, Program.Name);
         }
 
         // Decide if filter timer needs to be started or stoped.
@@ -1370,14 +1370,14 @@ namespace Kebab
 
                 if (badChar.Length > 0)
                 {
-                    MessageBox.Show("Error: invalid timeout limit!", programName);
+                    MessageBox.Show("Error: invalid timeout limit!", Program.Name);
                     timeLimit.Text = timeoutInactivityLimit.ToString();
 
                     return;
                 }
 
                 if (!Int32.TryParse(timeLimit.Text.Trim(), out timeoutInactivityLimit))
-                    MessageBox.Show("Error: invalid timeout limit!", programName);
+                    MessageBox.Show("Error: invalid timeout limit!", Program.Name);
             }
         }
 
@@ -1390,16 +1390,16 @@ namespace Kebab
         // Show libpcap and npcap version info.
         private void libpcapVersionInfoToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            MessageBox.Show(captureEngine.getLibVersion(), programName);
+            MessageBox.Show(captureEngine.getLibVersion(), Program.Name);
         }
 
         // Check if there is a newer release by comparing embeded release tag to latest release tag.
         private void checkForUpdatesToolStripMenuItem_Click(object sender, EventArgs e)
         {
             // Create HTTP WEB request using API URL string.
-            HttpWebRequest APIRequest = ((HttpWebRequest)WebRequest.Create(githubAPI_LatestReleaseURL));
+            HttpWebRequest APIRequest = ((HttpWebRequest)WebRequest.Create(Program.GithubAPI_LatestReleaseURL));
             // Github API requires a user agent to be set.
-            APIRequest.UserAgent = githubAPI_HTTPUserAgent;
+            APIRequest.UserAgent = Program.GithubAPI_HTTPUserAgent;
             // Create storage location for response data.
             HttpWebResponse APIresponse;
 
@@ -1412,7 +1412,7 @@ namespace Kebab
             catch (System.Net.WebException ex)
             {
                 MessageBox.Show(("Error: failed to check for update:\n" + ex.Message
-                                 + "\n\nMake sure that you have a valid internet connection."), programName);
+                                 + "\n\nMake sure that you have a valid internet connection."), Program.Name);
                 return;
             }
 
@@ -1437,7 +1437,7 @@ namespace Kebab
             }
             catch (JsonReaderException)
             {
-                MessageBox.Show("Error: failed to check for update:\nAPI data is invalid or corrupt.", programName);
+                MessageBox.Show("Error: failed to check for update:\nAPI data is invalid or corrupt.", Program.Name);
                 return;
             }
 
@@ -1447,30 +1447,30 @@ namespace Kebab
             // Attempt to get tag_name element for comparison.
             try
             {
-                tagName = JSONObj[githubAPI_ReleaseTagElementName].Value<string>();
+                tagName = JSONObj[Program.GithubAPI_ReleaseTagElementName].Value<string>();
             }
             catch (System.ArgumentNullException)
             {
-                MessageBox.Show("Error: failed to check for update:\nAPI data is invalid.", programName);
+                MessageBox.Show("Error: failed to check for update:\nAPI data is invalid.", Program.Name);
                 return;
             }
 
             // Application is latest version.
-            if (githubAPI_ReleaseTagElementValue.Equals(tagName))
+            if (Program.GithubAPI_ReleaseTagElementValue.Equals(tagName))
             {
                 // Inform user that there are no available updates.
-                MessageBox.Show("No updates are available.", programName);
+                MessageBox.Show("No updates are available.", Program.Name);
             }
             // Application is not latest version (not going to do numeric comparision, this should be gud nuf).
             else
             {
                 // Inform user of available update, and ask if they would like to visit web page.
-                if (MessageBox.Show("An update is available!\n\nCurrent version: \t" + githubAPI_ReleaseTagElementValue + "\nLatest version: \t"
+                if (MessageBox.Show("An update is available!\n\nCurrent version: \t" + Program.GithubAPI_ReleaseTagElementValue + "\nLatest version: \t"
                                     + tagName + "\n\nWould you like to vist the latest release web page?",
-                                    programName, MessageBoxButtons.YesNo) == DialogResult.Yes)
+                                    Program.Name, MessageBoxButtons.YesNo) == DialogResult.Yes)
                 {
                     // Load URL in default web browser.
-                    System.Diagnostics.Process.Start(githubLatestReleaseURL);
+                    System.Diagnostics.Process.Start(Program.GithubWEB_LatestReleaseURL);
                 }
             }
         }
