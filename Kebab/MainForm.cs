@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
 using System.Net;
+using System.Net.NetworkInformation;
 
 using ShimDotNet;
 
@@ -18,6 +19,7 @@ using MaxMind.Db;
 
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System.Security.Principal;
 
 namespace Kebab
 {
@@ -47,6 +49,7 @@ namespace Kebab
                                          + "MaxMind C# API Github repo: https://github.com/maxmind/MaxMind-DB-Reader-dotnet\n"
                                          + "and https://github.com/maxmind/GeoIP2-dotnet";
 
+        // Links and strings for update checking mechanism.
         private const string githubLatestReleaseURL = @"https://github.com/anicca048/Kebab/releases/latest";
         private const string githubAPI_LatestReleaseURL = @"https://api.github.com/repos/anicca048/Kebab/releases/latest";
         private const string githubAPI_ReleaseTagElementName = @"tag_name";
@@ -154,6 +157,13 @@ namespace Kebab
             this.TopMost = true;
             this.TopMost = false;
 
+            // Check if program is running as admin, and inform user of danger if so.
+            if ((new WindowsPrincipal(WindowsIdentity.GetCurrent())).IsInRole(WindowsBuiltInRole.Administrator))
+            {
+                MessageBox.Show("Warning: it is not recommended to run " + programName + " as Administrator!"
+                                + "\nRunning this program with Administrator privileges could put your computer at risk!", programName);
+            }
+
             // Init cengine.
             try
             {
@@ -233,10 +243,27 @@ namespace Kebab
         }
 
         // Updates state of application with the user set configuration values on program startup.
+        private readonly Color white = ColorTranslator.FromHtml("#FFFFFF");
+        private readonly Color midGray = ColorTranslator.FromHtml("#3f3f46");
+        private readonly Color darkGray = ColorTranslator.FromHtml("#171717");
+        private readonly Color CharGray = ColorTranslator.FromHtml("#1B1B1C");
+        private readonly Color ChillBlue = ColorTranslator.FromHtml("#007ACC");
+        private readonly Color ChillTeal = ColorTranslator.FromHtml("#4EC9B0");
+
+        // Apply loaded configuration settings.
         private void ApplyConfig()
         {
             // Apply banner message string to mainform title.
             this.Text += (" - " + programConfig.Vars.banner_message);
+
+            if (programConfig.Vars.theme.Equals("dark"))
+                ApplyTheme(white, midGray, darkGray, CharGray, ChillBlue, ChillTeal);
+        }
+
+        // Applies theme to MainForm.
+        private void ApplyTheme(Color fore, Color foreAlt, Color back, Color backAlt, Color accent, Color accentAlt)
+        {
+            // Manually set colors to each element.
         }
 
         // Reusable grouping for cleanup tasks when form needs to close.
@@ -276,12 +303,16 @@ namespace Kebab
 
         private void BuildDeviceList()
         {
+            // Generate inteface list with capture engine and check for issues.
             if (captureEngine.genDeviceList() == -1)
             {
-                // Display CaptureSession initialization error and exit program.
+                // Inform user of critical error.
                 MessageBox.Show(("Error generating device list:\n" + captureEngine.getEngineError()), programName);
                 System.Environment.Exit(1);
             }
+
+            // Generate .Net interface list for fetching MS "friendly names" for interfaces.
+            List<NetworkInterface> interfaces = new List<NetworkInterface>(NetworkInterface.GetAllNetworkInterfaces());
 
             // Clear interface list.
             deviceList.Clear();
@@ -295,7 +326,39 @@ namespace Kebab
             // Add device descriptions to list.
             for (int i = 0; i < listSize; i++)
             {
-                if (captureEngine.getDeviceDescription(i).Length > 0)
+                // Name lookup flag.
+                bool friendlyNameFound = false;
+
+                // Try to match pcap interface uuid to .net interface uuid.
+                foreach (NetworkInterface iface in interfaces)
+                {
+                    // Storage var for interface uuid.
+                    string iface_uuid;
+
+                    // Pull uuid by string splitting (/Device/NPF_{XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX}).
+                    try
+                    { 
+                        iface_uuid = Regex.Split(captureEngine.getDeviceName(i), @"NPF_")[1];
+                    }
+                    catch (System.IndexOutOfRangeException)
+                    {
+                        continue;
+                    }
+
+                    // Compare uuid to iface in list.
+                    if (iface_uuid.Equals(iface.Id))
+                    {
+                        // If found add friendly name to list and trip flag.
+                        deviceList.Add(iface.Name);
+                        friendlyNameFound = true;
+                        break;
+                    }
+                }
+
+                // Add best name for interface.
+                if (friendlyNameFound)
+                    continue;
+                else if (captureEngine.getDeviceDescription(i).Length > 0)
                     deviceList.Add(captureEngine.getDeviceDescription(i));
                 else
                     deviceList.Add(captureEngine.getDeviceName(i));
