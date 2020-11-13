@@ -250,6 +250,7 @@ namespace Kebab
             // timeLimit
             // 
             this.timeLimit.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.timeLimit.Font = new System.Drawing.Font("Consolas", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.timeLimit.Location = new System.Drawing.Point(1087, 30);
             this.timeLimit.MaxLength = 3;
             this.timeLimit.Name = "timeLimit";
@@ -670,12 +671,12 @@ namespace Kebab
             // 
             // InterfaceDropDownList
             // 
-            this.InterfaceDropDownList.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.InterfaceDropDownList.Font = new System.Drawing.Font("Microsoft Sans Serif", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.InterfaceDropDownList.FlatStyle = System.Windows.Forms.FlatStyle.System;
+            this.InterfaceDropDownList.Font = new System.Drawing.Font("Consolas", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.InterfaceDropDownList.FormattingEnabled = true;
             this.InterfaceDropDownList.Location = new System.Drawing.Point(139, 44);
             this.InterfaceDropDownList.Name = "InterfaceDropDownList";
-            this.InterfaceDropDownList.Size = new System.Drawing.Size(507, 26);
+            this.InterfaceDropDownList.Size = new System.Drawing.Size(507, 27);
             this.InterfaceDropDownList.TabIndex = 0;
             this.InterfaceDropDownList.SelectedIndexChanged += new System.EventHandler(this.InterfaceDropDownList_SelectedIndexChanged);
             // 
@@ -753,6 +754,7 @@ namespace Kebab
             // complexFilter
             // 
             this.complexFilter.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.complexFilter.Font = new System.Drawing.Font("Consolas", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.complexFilter.Location = new System.Drawing.Point(139, 122);
             this.complexFilter.MaxLength = 1000;
             this.complexFilter.Name = "complexFilter";

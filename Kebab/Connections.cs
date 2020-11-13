@@ -40,17 +40,17 @@ namespace Kebab
         public int CompareTo(object obj)
         {
             // Make sure we are comparing to a valid object.
-            if ((obj == null) || !(obj is ConnectionAddress))
+            if (obj == null || !(obj is ConnectionAddress))
                 throw new NotSupportedException("Error: compared object is not a ConnectionAddress type!");
 
             // Cast objest to usable current type.
             ConnectionAddress addr = (obj as ConnectionAddress);
 
-            if (((UInt32)IPAddress.NetworkToHostOrder(((Int32)this.Address.Address))) >
-                ((UInt32)IPAddress.NetworkToHostOrder(((Int32)addr.Address.Address))))
+            if ((UInt32)IPAddress.NetworkToHostOrder((Int32)this.Address.Address) >
+                (UInt32)IPAddress.NetworkToHostOrder((Int32)addr.Address.Address))
                 return 1;
-            else if (((UInt32)IPAddress.NetworkToHostOrder(((Int32)this.Address.Address))) <
-                     ((UInt32)IPAddress.NetworkToHostOrder(((Int32)addr.Address.Address))))
+            else if ((UInt32)IPAddress.NetworkToHostOrder((Int32)this.Address.Address) <
+                     (UInt32)IPAddress.NetworkToHostOrder((Int32)addr.Address.Address))
                 return -1;
 
             return 0;
@@ -59,10 +59,10 @@ namespace Kebab
         public override bool Equals(Object obj)
         {
             // Check for null and compare run-time types.
-            if ((obj != null) && (obj is ConnectionAddress))
+            if (obj != null && obj is ConnectionAddress)
             {
                 // Cast objest to usable current type.
-                ConnectionAddress addr = (obj as ConnectionAddress);
+                ConnectionAddress addr = obj as ConnectionAddress;
 
                 if (Equals(this.Address, addr.Address))
                     return true;
@@ -75,7 +75,7 @@ namespace Kebab
         public override int GetHashCode()
         {
             // Just return the raw value of ip as int hash.
-            return ((int)this.Address.GetHashCode());
+            return (int)this.Address.GetHashCode();
         }
 
         public bool AddressIsLocal()
@@ -102,7 +102,7 @@ namespace Kebab
             const UInt32 BRODCST_ADDRESS = 0xFFFFFFFF;
 
             // Convert IP to 4 Byte segment (NetToHo doesn't like long for somereason).
-            UInt32 IPBytes = ((UInt32)IPAddress.NetworkToHostOrder(((Int32)this.Address.Address)));
+            UInt32 IPBytes = (UInt32)IPAddress.NetworkToHostOrder((Int32)this.Address.Address);
 
             // Compares bytes to local ip ranges using netmask anding.
             if ((IPBytes & CLASS_A_NETMASK) == CLASS_A_ADDRESS)
@@ -137,7 +137,7 @@ namespace Kebab
         public int CompareTo(object obj)
         {
             // Make sure we are comparing to a valid object.
-            if ((obj == null) || !(obj is GeoData))
+            if (obj == null || !(obj is GeoData))
                 throw new NotSupportedException("Error: compared object is not a GeoData type!");
 
             // Cast objest to usable current type.
@@ -187,7 +187,7 @@ namespace Kebab
         public int CompareTo(object obj)
         {
             // Make sure we are comparing to a valid object.
-            if ((obj == null) || !(obj is ConnectionType))
+            if (obj == null || !(obj is ConnectionType))
                 throw new NotSupportedException("Error: compared object is not a ConnectionType type!");
 
             // Cast objest to usable current type.
@@ -223,7 +223,7 @@ namespace Kebab
         public int CompareTo(object obj)
         {
             // Make sure we are comparing against a valid object.
-            if ((obj == null) || !(obj is ConnectionState))
+            if (obj == null || !(obj is ConnectionState))
                 throw new NotSupportedException("Error: compared object is not a ConnectionState type!");
 
             // Cast objest to usable current type.
@@ -375,7 +375,7 @@ namespace Kebab
         public override bool Equals(Object obj)
         {
             // Check for null and compare run-time types.
-            if ((obj != null) && (obj is Connection))
+            if (obj != null && (obj is Connection))
             {
                 // Cast objest to usable current type.
                 Connection conn = (obj as Connection);
@@ -517,7 +517,7 @@ namespace Kebab
             _suppressNotification = true;
 
             // Only do an ascending sort by "Number" once.
-            if ((prop.DisplayName == "Number") && (direction == ListSortDirection.Ascending) && _alreadyInOrder)
+            if (prop.DisplayName == "Number" && direction == ListSortDirection.Ascending && _alreadyInOrder)
             {
                 // Indicate that a sort has occured.
                 if (!_isSortedValue)
@@ -560,7 +560,7 @@ namespace Kebab
             }
 
             // If an ascending sort by "Number" was performed, than we don't need to keep sorting on list changes.
-            if ((prop.DisplayName == "Number") && (direction == ListSortDirection.Ascending))
+            if (prop.DisplayName == "Number" && direction == ListSortDirection.Ascending)
                 _alreadyInOrder = true;
             else
                 _alreadyInOrder = false;

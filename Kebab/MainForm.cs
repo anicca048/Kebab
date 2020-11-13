@@ -228,12 +228,15 @@ namespace Kebab
         }
 
         // Updates state of application with the user set configuration values on program startup.
-        private readonly Color white = ColorTranslator.FromHtml("#FFFFFF");
-        private readonly Color midGray = ColorTranslator.FromHtml("#3f3f46");
-        private readonly Color darkGray = ColorTranslator.FromHtml("#171717");
+        private readonly Color MidGray = ColorTranslator.FromHtml("#3f3f46");
+        private readonly Color DarkGray = ColorTranslator.FromHtml("#171717");
         private readonly Color CharGray = ColorTranslator.FromHtml("#1B1B1C");
         private readonly Color ChillBlue = ColorTranslator.FromHtml("#007ACC");
         private readonly Color ChillTeal = ColorTranslator.FromHtml("#4EC9B0");
+        private readonly Color MatrixGreen = ColorTranslator.FromHtml("#59db56");
+
+        private Color MatchingConn = Color.Red;
+        private Color NonMatchingConn = Color.Gray;
 
         // Apply loaded configuration settings.
         private void ApplyConfig()
@@ -241,14 +244,85 @@ namespace Kebab
             // Apply banner message string to mainform title.
             this.Text += (" - " + programConfig.Vars.banner_message);
 
+            // Apply theme to form.
             if (programConfig.Vars.theme.Equals("dark"))
-                ApplyTheme(white, midGray, darkGray, CharGray, ChillBlue, ChillTeal);
+            {
+                MatchingConn = MatrixGreen;
+                ApplyThemeToControls(this, Color.White, MatrixGreen, ChillTeal, CharGray, DarkGray, Color.Black);
+                ApplyThemeToToolStripItems(copyComponentToolStripMenuItem.DropDownItems, Color.White, CharGray);
+                ApplyThemeToToolStripItems(FileMenu.DropDownItems, Color.White, CharGray);
+                ApplyThemeToToolStripItems(HelpMenu.DropDownItems, Color.White, CharGray);
+            }
         }
 
-        // Applies theme to MainForm.
-        private void ApplyTheme(Color fore, Color foreAlt, Color back, Color backAlt, Color accent, Color accentAlt)
+        private void ApplyThemeToToolStripItems(ToolStripItemCollection items, Color F1, Color B1)
         {
-            // Manually set colors to each element.
+            foreach (ToolStripItem item in items)
+            {
+                item.ForeColor = Color.White;
+                item.BackColor = CharGray;
+            }
+        }
+
+        private void ApplyThemeToControls(Control control, Color F1, Color F2, Color F3, Color B1, Color B2, Color B3)
+        {
+            // Make data grid view cells and headers pop.
+            if (control is DataGridView)
+            {
+                DataGridView dgv = (DataGridView)control;
+
+                dgv.EnableHeadersVisualStyles = false;
+
+                dgv.BackgroundColor = B2;
+
+                dgv.DefaultCellStyle.ForeColor = F2;
+                dgv.DefaultCellStyle.SelectionForeColor = B2;
+                dgv.DefaultCellStyle.BackColor = B2;
+                dgv.DefaultCellStyle.SelectionBackColor = F2;
+
+                dgv.ColumnHeadersDefaultCellStyle.ForeColor = F1;
+                dgv.ColumnHeadersDefaultCellStyle.SelectionForeColor = F1;
+                dgv.ColumnHeadersDefaultCellStyle.BackColor = B1;
+                dgv.ColumnHeadersDefaultCellStyle.SelectionBackColor = B1;
+
+                dgv.ContextMenuStrip.ForeColor = F1;
+                dgv.ContextMenuStrip.BackColor = B1;
+            }
+            // Make combo box text pop.
+            else if (control is ComboBox)
+            {
+                control.ForeColor = F2;
+                control.BackColor = B1;
+            }
+            // Make text box text pop.
+            else if (control is TextBox)
+            {
+                control.ForeColor = F2;
+                control.BackColor = B1;
+            }
+            // Make button text pop.
+            else if (control is Button)
+            {
+                control.ForeColor = F2;
+                control.BackColor = B1;
+            }
+
+            // Apply default fore and back colors to everything not specified.
+            else
+            {
+                control.ForeColor = F1;
+                control.BackColor = B1;
+
+                if (control.ContextMenuStrip != default(ContextMenuStrip))
+                {
+                    control.ContextMenuStrip.ForeColor = F1;
+                    control.ContextMenuStrip.BackColor = B1;
+                }
+            }
+
+            // Recursivley apply to sub controls.
+            foreach (Control sub_control in control.Controls)
+                ApplyThemeToControls(sub_control, F1, F2, F3, B1, B2, B3);
         }
 
         // Reusable grouping for cleanup tasks when form needs to close.
@@ -292,7 +366,7 @@ namespace Kebab
             if (captureEngine.genDeviceList() == -1)
             {
                 // Inform user of critical error.
-                MessageBox.Show(("Error generating device list:\n" + captureEngine.getEngineError()), Program.Name);
+                MessageBox.Show(("Error: failed to generate device list:\n" + captureEngine.getEngineError()), Program.Name);
                 System.Environment.Exit(1);
             }
 
@@ -340,8 +414,8 @@ namespace Kebab
                         foreach (UnicastIPAddressInformation ip in iface.GetIPProperties().UnicastAddresses)
                         {
                             // If we have a valid IPv4 address, add it.
-                            if ((ip.Address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
-                                && (ip.Address.ToString() != "0.0.0.0"))
+                            if (ip.Address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork
+                                && ip.Address.ToString() != "0.0.0.0")
                             {
                                 ifaceName += (" [ " + ip.Address.ToString() + " ]");
                                 break;
@@ -437,7 +511,7 @@ namespace Kebab
         private bool CheckDisplayFilter(object DataSource)
         {
             // Convert dataGridViewRow data source to actual type.
-            Connection connection = ((Connection)DataSource);
+            Connection connection = (Connection)DataSource;
 
             // Ceck if we have a display filter to use.
             bool IPFilter = (IPDisplayFilter.Text.Trim().Length > 0);
@@ -445,26 +519,26 @@ namespace Kebab
 
             if (IPFilter && PortFilter)
             {
-                if (((connection.Source.ToString() == IPDisplayFilter.Text.Trim())
-                     || (connection.Destination.ToString() == IPDisplayFilter.Text.Trim()))
-                    && ((connection.SrcPort.ToString() == PortDisplayFilter.Text.Trim())
-                     || (connection.DstPort.ToString() == PortDisplayFilter.Text.Trim())))
+                if ((connection.Source.ToString() == IPDisplayFilter.Text.Trim()
+                     || connection.Destination.ToString() == IPDisplayFilter.Text.Trim())
+                    && (connection.SrcPort.ToString() == PortDisplayFilter.Text.Trim()
+                     || connection.DstPort.ToString() == PortDisplayFilter.Text.Trim()))
                     return true;
                 else
                     return false;
             }
             else if (IPFilter)
             {
-                if ((connection.Source.ToString() == IPDisplayFilter.Text.Trim())
-                    || (connection.Destination.ToString() == IPDisplayFilter.Text.Trim()))
+                if (connection.Source.ToString() == IPDisplayFilter.Text.Trim()
+                    || connection.Destination.ToString() == IPDisplayFilter.Text.Trim())
                     return true;
                 else
                     return false;
             }
             else if (PortFilter)
             {
-                if ((connection.SrcPort.ToString() == PortDisplayFilter.Text.Trim())
-                    || (connection.DstPort.ToString() == PortDisplayFilter.Text.Trim()))
+                if (connection.SrcPort.ToString() == PortDisplayFilter.Text.Trim()
+                    || connection.DstPort.ToString() == PortDisplayFilter.Text.Trim())
                     return true;
                 else
                     return false;
@@ -484,12 +558,12 @@ namespace Kebab
             {
                 if (!CheckDisplayFilter(row.DataBoundItem))
                 {
-                    row.DefaultCellStyle.ForeColor = System.Drawing.Color.Gray;
+                    row.DefaultCellStyle.ForeColor = NonMatchingConn;
                     row.DefaultCellStyle.Font = ConnectionGridView.DefaultCellStyle.Font;
                 }
                 else
                 {
-                    row.DefaultCellStyle.ForeColor = Color.Red;
+                    row.DefaultCellStyle.ForeColor = MatchingConn;
                     row.DefaultCellStyle.Font = new Font(ConnectionGridView.DefaultCellStyle.Font.Name,
                                                          ConnectionGridView.DefaultCellStyle.Font.Size,
                                                          FontStyle.Bold);
@@ -533,7 +607,7 @@ namespace Kebab
         // Force repaint for display filter adhearence.
         private void IPDisplayFilter_TextChanged(object sender, EventArgs e)
         {
-            if (!((IPDisplayFilter.Text.Trim().Length > 0) || (PortDisplayFilter.Text.Trim().Length > 0)))
+            if (!(IPDisplayFilter.Text.Trim().Length > 0 || PortDisplayFilter.Text.Trim().Length > 0))
             {
                 if (_displayFilterSet)
                     RemoveDisplayFilter();
@@ -550,7 +624,7 @@ namespace Kebab
         // Force repaint for display filter adhearence.
         private void PortDisplayFilter_TextChanged(object sender, EventArgs e)
         {
-            if (!((PortDisplayFilter.Text.Trim().Length > 0) || (IPDisplayFilter.Text.Trim().Length > 0)))
+            if (!(PortDisplayFilter.Text.Trim().Length > 0 || IPDisplayFilter.Text.Trim().Length > 0))
             {
                 if (_displayFilterSet)
                     RemoveDisplayFilter();
@@ -631,8 +705,8 @@ namespace Kebab
                         // Check if direction needs to be updated to both ways.
                         if (tmpConn.State.Direction != TransmissionDirection.TWO_WAY)
                         {
-                            if ((tmpConn.PacketMatch(pkt) == MatchType.REVERSE_MATCH)
-                                && (tmpConn.State.Direction == direction))
+                            if (tmpConn.PacketMatch(pkt) == MatchType.REVERSE_MATCH
+                                && tmpConn.State.Direction == direction)
                                 tmpConn.State.Direction = TransmissionDirection.TWO_WAY;
                             // Deals with case where both endpoints are local so no setting of REV_ONE_WAY occurs.
                             else if (tmpConn.State.Direction != direction)
@@ -714,7 +788,9 @@ namespace Kebab
                     if (ASNReader.TryAsn(newConn.Destination.ToString(), out AsnResponse asnResp))
                     {
                         newConn.DstASN = asnResp.AutonomousSystemNumber;
-                        if ((newConn.DstASNOrg = asnResp.AutonomousSystemOrganization) == default(string)) newConn.DstASNOrg = "--";
+
+                        if ((newConn.DstASNOrg = asnResp.AutonomousSystemOrganization) == default(string))
+                            newConn.DstASNOrg = "--";
                     }
                     else
                     {
@@ -723,7 +799,7 @@ namespace Kebab
                     }
 
                     // Asing the connection a number.
-                    newConn.Number = (((uint)connectionList.Count) + 1);
+                    newConn.Number = ((uint)connectionList.Count + 1);
                     // And add it to the list.
                     connectionList.Add(newConn);
 
@@ -755,7 +831,7 @@ namespace Kebab
                     // Change number of matching connection to new value.
                     if (conn.Number.Equals(connNums[i]))
                     {
-                        conn.Number = ((uint)(i + 1));
+                        conn.Number = (uint)(i + 1);
                         break;
                     }
                 }
@@ -872,8 +948,8 @@ namespace Kebab
         private void copyToolStripMenuItem_Click(object sender, EventArgs e)
         {
             // Make sure there is something to copy.
-            if ((connectionList == null) || (connectionList.Count == 0)
-                || (ConnectionGridView == null) || (ConnectionGridView.SelectedRows.Count == 0))
+            if (connectionList == null || connectionList.Count == 0
+                || ConnectionGridView == null || ConnectionGridView.SelectedRows.Count == 0)
                 return;
 
             string copyStr = getConnsFromRows(getSelectedRows());
@@ -886,8 +962,8 @@ namespace Kebab
         private void localAddressToolStripMenuItem_Click(object sender, EventArgs e)
         {
             // Make sure there is something to copy.
-            if ((connectionList == null) || (connectionList.Count == 0)
-                || (ConnectionGridView == null) || (ConnectionGridView.SelectedRows.Count == 0))
+            if (connectionList == null || connectionList.Count == 0
+                || ConnectionGridView == null || ConnectionGridView.SelectedRows.Count == 0)
                 return;
 
             string copyString = "";
@@ -903,8 +979,8 @@ namespace Kebab
         private void localPortToolStripMenuItem_Click(object sender, EventArgs e)
         {
             // Make sure there is something to copy.
-            if ((connectionList == null) || (connectionList.Count == 0)
-                || (ConnectionGridView == null) || (ConnectionGridView.SelectedRows.Count == 0))
+            if (connectionList == null || connectionList.Count == 0
+                || ConnectionGridView == null || ConnectionGridView.SelectedRows.Count == 0)
                 return;
 
             string copyString = "";
@@ -920,8 +996,8 @@ namespace Kebab
         private void localAddressPortToolStripMenuItem_Click(object sender, EventArgs e)
         {
             // Make sure there is something to copy.
-            if ((connectionList == null) || (connectionList.Count == 0)
-                || (ConnectionGridView == null) || (ConnectionGridView.SelectedRows.Count == 0))
+            if (connectionList == null || connectionList.Count == 0
+                || ConnectionGridView == null || ConnectionGridView.SelectedRows.Count == 0)
                 return;
 
             string copyString = "";
@@ -937,8 +1013,8 @@ namespace Kebab
         private void remoteAddressToolStripMenuItem_Click(object sender, EventArgs e)
         {
             // Make sure there is something to copy.
-            if ((connectionList == null) || (connectionList.Count == 0)
-                || (ConnectionGridView == null) || (ConnectionGridView.SelectedRows.Count == 0))
+            if (connectionList == null || connectionList.Count == 0
+                || ConnectionGridView == null || ConnectionGridView.SelectedRows.Count == 0)
                 return;
 
             string copyString = "";
@@ -954,9 +1030,9 @@ namespace Kebab
         private void remotePortToolStripMenuItem_Click(object sender, EventArgs e)
         {
             // Make sure there is something to copy.
-            if ((connectionList == null) || (connectionList.Count == 0)
-                || (ConnectionGridView == null) || (ConnectionGridView.SelectedRows.Count == 0))
-                return;
+            if (connectionList == null || connectionList.Count == 0
+                || ConnectionGridView == null || ConnectionGridView.SelectedRows.Count == 0)
+                    return;
 
             string copyString = "";
 
@@ -971,8 +1047,8 @@ namespace Kebab
         private void remoteAddressPortToolStripMenuItem_Click(object sender, EventArgs e)
         {
             // Make sure there is something to copy.
-            if ((connectionList == null) || (connectionList.Count == 0)
-                || (ConnectionGridView == null) || (ConnectionGridView.SelectedRows.Count == 0))
+            if (connectionList == null || connectionList.Count == 0
+                || ConnectionGridView == null || ConnectionGridView.SelectedRows.Count == 0)
                 return;
 
             string copyString = "";
@@ -988,8 +1064,8 @@ namespace Kebab
         private void iSOToolStripMenuItem_Click(object sender, EventArgs e)
         {
             // Make sure there is something to copy.
-            if ((connectionList == null) || (connectionList.Count == 0)
-                || (ConnectionGridView == null) || (ConnectionGridView.SelectedRows.Count == 0))
+            if (connectionList == null || connectionList.Count == 0
+                || ConnectionGridView == null || ConnectionGridView.SelectedRows.Count == 0)
                 return;
 
             string copyString = "";
@@ -1005,8 +1081,8 @@ namespace Kebab
         private void aSNOrganizationToolStripMenuItem_Click(object sender, EventArgs e)
         {
             // Make sure there is something to copy.
-            if ((connectionList == null) || (connectionList.Count == 0)
-                || (ConnectionGridView == null) || (ConnectionGridView.SelectedRows.Count == 0))
+            if (connectionList == null || connectionList.Count == 0
+                || ConnectionGridView == null || ConnectionGridView.SelectedRows.Count == 0)
                 return;
 
             string copyString = "";
@@ -1115,8 +1191,8 @@ namespace Kebab
         private void saveToolStripMenuItem_Click(object sender, EventArgs e)
         {
             // Make sure there is something to save.
-            if ((connectionList == null) || (connectionList.Count == 0)
-                || (ConnectionGridView == null) || (ConnectionGridView.RowCount == 0))
+            if (connectionList == null || connectionList.Count == 0
+                || ConnectionGridView == null || ConnectionGridView.SelectedRows.Count == 0)
             {
                 // Inform user of failure to save and exit.
                 MessageBox.Show("Error: cannot save an empty list!", Program.Name);
@@ -1134,8 +1210,8 @@ namespace Kebab
         private void saveAsToolStripMenuItem_Click(object sender, EventArgs e)
         {
             // Make sure there is something to save.
-            if ((connectionList == null) || (connectionList.Count == 0)
-                || (ConnectionGridView == null) || (ConnectionGridView.RowCount == 0))
+            if (connectionList == null || connectionList.Count == 0
+                || ConnectionGridView == null || ConnectionGridView.SelectedRows.Count == 0)
             {
                 // Inform user of failure to save and exit.
                 MessageBox.Show("Error: list is empty, nothing to save!", Program.Name);
@@ -1253,9 +1329,7 @@ namespace Kebab
                 string captureFilterStr;
 
                 if (getCaptureFilterStr(out captureFilterStr) == -1)
-                {
                     return;
-                }
 
                 // Open pcap live session (offset index by -1 because of invalid first entry in drop down list).
                 if (captureEngine.startCapture((InterfaceDropDownList.SelectedIndex - 1), captureFilterStr) == -1)
@@ -1438,7 +1512,7 @@ namespace Kebab
         private void checkForUpdatesToolStripMenuItem_Click(object sender, EventArgs e)
         {
             // Create HTTP WEB request using API URL string.
-            HttpWebRequest APIRequest = ((HttpWebRequest)WebRequest.Create(Program.GithubAPI_LatestReleaseURL));
+            HttpWebRequest APIRequest = (HttpWebRequest)WebRequest.Create(Program.GithubAPI_LatestReleaseURL);
             // Github API requires a user agent to be set.
             APIRequest.UserAgent = Program.GithubAPI_HTTPUserAgent;
             // Create storage location for response data.
@@ -1447,7 +1521,7 @@ namespace Kebab
             // Send GET and attempt to store response.
             try
             {
-                APIresponse = ((HttpWebResponse)APIRequest.GetResponse());
+                APIresponse = (HttpWebResponse)APIRequest.GetResponse();
             }
             // Catch any failures such as 400 series web responses.
             catch (System.Net.WebException ex)

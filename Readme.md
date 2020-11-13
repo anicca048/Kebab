@@ -1,18 +1,22 @@
 # Kebab
 Kebab is a graphical "connection oriented" packet sniffer for MS Windows.
-This project's goal is to provide a connection tracking utillity for system
+This project's goal is to provide a connection tracking utility for system
 	administration and real time traffic analysis / debugging. While other tools
 	use the kernel's connection tracking system, Kebab reads packets straight
-	off the wire. This eliminates blindspots caused by the kernel's definition
+	off the wire. This eliminates blind spots caused by the kernel's definition
 	of an "existing" connection, and the lack of tracking of packets being
 	routed to other destinations.
 Written in C#, Kebab is published for free under the terms of the MIT
 	OpenSource license.
 Kebab does not require any special permissions to run, so please do not run
-	Kebab in admin-mode. If a vulnerabillity is found in the way that Kebab or
+	Kebab in admin-mode. If a vulnerability is found in the way that Kebab or
 	Npcap parses packet information, or in the parsing of external data, such as
-	checking for updates and or loading configuration file data, and you are
-	running Kebab in admin-mode, it could lead to privledge escalation.
+	update checking and or loading configuration file data, and you are
+	running Kebab in admin-mode, it could lead to privilege escalation. There is
+    currently no signature checking mechanism in place either, so a malicious
+    program or user could also easily gain privilege escalation through
+    modifying or replacing the main executable, or the DLL files used. In short,
+    **DO NOT** run Kebab as admin, thanks.
 
 # Npcap
 WinPcap has been out of date for quite some time, and is lacking in
@@ -22,15 +26,15 @@ Kebab uses Npcap (an alternative to WinPcap written by the awesome Nmap team).
 	benifits that WinPcap just doesn't.
 You can find Npcap on the Nmap team's site here: https://nmap.org/npcap/
 Npcap is published under several different licenses, including a free license
-	that you can use to install on a few non comercial systems. You can read it
+	that you can use to install on a few non commercial systems. You can read it
 	here: https://github.com/nmap/npcap/blob/master/LICENSE
 You can find a download link to the most recent version under the "Downloading
 	and Installing Npcap Free Edition".
 It is recommended that when you install Npcap, you check the "Restrict Npcap
     driver's access to Administrators only" option, so that access to the
-	system level driver is restricted to admin's only. Otherwise any tool can
-	use the system driver to have unrestricted (and largely untracked)
-	communictions through your firewall. :(
+	system level driver is restricted to privileged users only. Otherwise any
+    tool can use the system driver to have unrestricted (and largely untracked)
+	communications through your firewall. :(
 
 # MaxMind GeoLite2 Database and API
 This product includes GeoLite2 data created by MaxMind, available from
@@ -41,7 +45,7 @@ Kebab uses the MaxMind GeoLite2 City and ASN databases and accompanying C# API.
 	both the use of the web API, and the static lookups through the
 	MaxMind-DB-Reader-dotnet library.
 Both parts of the API are published for free under the OpenSource Apache
-	License, Version 2.0, while the database is published for free uder custom
+	License, Version 2.0, while the database is published for free under custom
 	licensing terms.
 You can read more about their products and projects on the MaxMind site here:
 	https://www.maxmind.com . You can also find the API source code and
@@ -59,7 +63,7 @@ Capture Tab - The controls on this tab are used to setup the packet capture.
 	Capture Options Group - This group allows the user to select the libpcap
 		interface to perform a packet capture on. It also provides controls to
 		start and stop a capture, and a method to rescan the libpcap interface
-		list, which could be usefull in the event of a network card
+		list, which could be useful in the event of a network card
 		change / insertion.
 	
 	Capture Filter Group - This group allows the user to set the libpcap
@@ -67,21 +71,21 @@ Capture Tab - The controls on this tab are used to setup the packet capture.
 		capture session. There are several displayed filtering options, such as
 		Destination and Source IP. And a "ComplexFilter" box, where a libpcap
 		filter string can be entered, for the more advanced users. Options from
-		this filter group are much more efficeint than any display filter,
+		this filter group are much more efficient than any display filter,
 		however, packets not matching the libpcap filter exactly will not show
 		up in the Connections tab, skewing the results. Use these pre-capture
-		filtering options conservativley.
+		filtering options conservatively.
 
-Connections Tab - Prety basic, simply groups captured packets into connections.
+Connections Tab - Pretty basic, simply groups captured packets into connections.
 	
-	Display Filter Group - This group is used to filter and clear connetions in
+	Display Filter Group - This group is used to filter and clear connections in
 		the Connections Tab. Use the IP and Port filters to make matching
 		connections easier to spot, without removing non matching connections.
 		The display filter will match any connection with at least one host who
 		matches all filters used. If you need more precise filtering, set the 
 		pre-capture libpcap filter using the Capture Filter Group, on the
 		Capture Tab. The timeout checkbox will remove connections that have had
-		no activity based on the user set timeout in seconds (defualt is 10).
+		no activity based on the user set timeout in seconds (default is 10).
 		The clear connections button, you guessed it, clears all the connections
 		from the list. Use these destructive options with care.
 	
@@ -93,7 +97,7 @@ Connections Tab - Prety basic, simply groups captured packets into connections.
 			Number (#), this is the number of the connection in order of first
 			observed packet.
 			
-			Protocol (Type), this is the L4 protcol (TCP or UDP in our case) of
+			Protocol (Type), this is the L4 protocol (TCP or UDP in our case) of
 			the connection.
 			
 			Local Address, this is the assumed local address (if there is one)
@@ -129,8 +133,8 @@ Connection Sorting: Currently if you sort the connection list in any way
 (except by property "Number" in ascending order), under heavy load the UI loop
 can get bogged down by the constant resorting of the list. This may cause
 delayed responses to user input and manipulation of the window / controls. The
-sort algorithim has been optimized to combat this issue, but not much more can
-be done untill a new algorithim is implemnted. (should happen soon.)
+sort algorithm has been optimized to combat this issue, but not much more can
+be done until a new algorithm is implemented. (should happen soon.)
 
 GeoIP data: sometimes geoip data will be out of date, or missing entirely for a
 given IP address. Currently the database provided is the last release of the
@@ -138,5 +142,5 @@ GeoLite2 database, that doesn't require a MaxMind Account. Eventually an option
 to enter a personal MaxMind account web API key, for more accurate and
 up-to-date results, will be added (should happen fairly soon). However it's
 doubtful that the devs will be able to get a key for Kebab to be used in the
-releases, given that the project is free software and recieves no external
+releases, given that the project is free software and receives no external
 funding.
