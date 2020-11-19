@@ -10,6 +10,8 @@ using System.IO;
 using System.Text.RegularExpressions;
 using System.Net;
 using System.Net.NetworkInformation;
+using System.Runtime.InteropServices;
+using System.Security.Principal;
 
 using ShimDotNet;
 
@@ -19,7 +21,7 @@ using MaxMind.Db;
 
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using System.Security.Principal;
+
 
 namespace Kebab
 {
@@ -51,7 +53,7 @@ namespace Kebab
         // Configuration object.
         private Config programConfig;
         // Marks a non savable config state (such as the program not having permissions to write in it's directory).
-        private bool nonPersistentConfig = false;
+        //private bool nonPersistentConfig = false;
 
         // Interface drop down list data source.
         private BindingList<string> deviceList;
@@ -220,7 +222,7 @@ namespace Kebab
                                  " will run in non-persistent config mode, user preferences will not be saved!"),
                                 Program.Name);
 
-                nonPersistentConfig = true;
+                //nonPersistentConfig = true;
             }
 
             // Enable form after init is done.
@@ -228,15 +230,17 @@ namespace Kebab
         }
 
         // Updates state of application with the user set configuration values on program startup.
-        private readonly Color MidGray = ColorTranslator.FromHtml("#3f3f46");
-        private readonly Color DarkGray = ColorTranslator.FromHtml("#171717");
-        private readonly Color CharGray = ColorTranslator.FromHtml("#1B1B1C");
-        private readonly Color ChillBlue = ColorTranslator.FromHtml("#007ACC");
-        private readonly Color ChillTeal = ColorTranslator.FromHtml("#4EC9B0");
-        private readonly Color MatrixGreen = ColorTranslator.FromHtml("#59db56");
+        private static readonly Color MidGray = ColorTranslator.FromHtml("#333333");
+        private static readonly Color DarkGray = ColorTranslator.FromHtml("#202020");
+        private static readonly Color CharGray = ColorTranslator.FromHtml("#191919");
+        private static readonly Color ChillBlue = ColorTranslator.FromHtml("#007ACC");
+        private static readonly Color ChillTeal = ColorTranslator.FromHtml("#4EC9B0");
+        private static readonly Color MatrixGreen = ColorTranslator.FromHtml("#59db56");
 
         private Color MatchingConn = Color.Red;
+        //private Color MatchingConnSelected = ChillBlue;
         private Color NonMatchingConn = Color.Gray;
+        //private Color NonMatchingConnSelected = ChillBlue;
 
         // Apply loaded configuration settings.
         private void ApplyConfig()
@@ -247,43 +251,92 @@ namespace Kebab
             // Apply theme to form.
             if (programConfig.Vars.theme.Equals("dark"))
             {
+                // Apply windows 10 dark theme defaults.
+                if (!SetDarkMode(this.Handle, true)) MessageBox.Show("FAIL");
+
+                // Apply manual theme changes.
                 MatchingConn = MatrixGreen;
-                ApplyThemeToControls(this, Color.White, MatrixGreen, ChillTeal, CharGray, DarkGray, Color.Black);
-                ApplyThemeToToolStripItems(copyComponentToolStripMenuItem.DropDownItems, Color.White, CharGray);
-                ApplyThemeToToolStripItems(FileMenu.DropDownItems, Color.White, CharGray);
-                ApplyThemeToToolStripItems(HelpMenu.DropDownItems, Color.White, CharGray);
+                ApplyThemeToControls(this, Color.White, MatrixGreen, ChillBlue, ChillTeal, DarkGray, MidGray, CharGray, Color.Black);
+                ApplyThemeToToolStripItems(this.copyComponentToolStripMenuItem.DropDownItems, Color.White, DarkGray);
+                ApplyThemeToToolStripItems(this.FileMenu.DropDownItems, Color.White, DarkGray);
+                ApplyThemeToToolStripItems(this.HelpMenu.DropDownItems, Color.White, DarkGray);
             }
+        }
+
+        [DllImport("dwmapi.dll")]
+        private static extern int DwmSetWindowAttribute(IntPtr hwnd,
+                                                        int dwAttribute,
+                                                        ref int pvAttribute,
+                                                        int cbAttribute);
+
+        private const int DWMWA_USE_IMMERSIVE_DARK_MODE_BEFORE_20H1 = 19;
+        private const int DWMWA_USE_IMMERSIVE_DARK_MODE = 20;
+
+        private static bool SetDarkMode(IntPtr hwnd, bool enabled)
+        {
+            if (OSIsVersionOrHIgher(10, 17763))
+            {
+                int dwAttribute = DWMWA_USE_IMMERSIVE_DARK_MODE_BEFORE_20H1;
+
+                if (OSIsVersionOrHIgher(10, 18985))
+                    dwAttribute = DWMWA_USE_IMMERSIVE_DARK_MODE;
+
+                int pvAttribute = enabled ? 1 : 0;
+
+                return (DwmSetWindowAttribute(hwnd, dwAttribute,
+                                              ref pvAttribute,
+                                              sizeof(int)) == 0);
+            }
+
+            return false;
+        }
+
+        private static bool OSIsVersionOrHIgher(int major_ver, int build_ver)
+        {
+            return (Environment.OSVersion.Version.Major >= major_ver
+                    && Environment.OSVersion.Version.Build >= build_ver);
         }
 
         private void ApplyThemeToToolStripItems(ToolStripItemCollection items, Color F1, Color B1)
         {
             foreach (ToolStripItem item in items)
             {
-                item.ForeColor = Color.White;
-                item.BackColor = CharGray;
+                item.ForeColor = F1;
+                item.BackColor = B1;
             }
         }
 
-        private void ApplyThemeToControls(Control control, Color F1, Color F2, Color F3, Color B1, Color B2, Color B3)
+        private void ApplyThemeToControls(Control control, Color F1, Color F2, Color F3, Color F4, Color B1, Color B2, Color B3, Color B4)
         {
+            // Form background should be different color from all other controls.
+            if (control is Form)
+            {
+                control.ForeColor = F1;
+                control.BackColor = B3;
+            }
+            else if (control is MenuStrip)
+            {
+                control.ForeColor = F1;
+                control.BackColor = B4;
+            }
             // Make data grid view cells and headers pop.
-            if (control is DataGridView)
+            else if (control is DataGridView)
             {
                 DataGridView dgv = (DataGridView)control;
 
                 dgv.EnableHeadersVisualStyles = false;
 
-                dgv.BackgroundColor = B2;
+                dgv.BackgroundColor = B3;
 
                 dgv.DefaultCellStyle.ForeColor = F2;
-                dgv.DefaultCellStyle.SelectionForeColor = B2;
-                dgv.DefaultCellStyle.BackColor = B2;
+                dgv.DefaultCellStyle.SelectionForeColor = B3;
+                dgv.DefaultCellStyle.BackColor = B3;
                 dgv.DefaultCellStyle.SelectionBackColor = F2;
 
                 dgv.ColumnHeadersDefaultCellStyle.ForeColor = F1;
                 dgv.ColumnHeadersDefaultCellStyle.SelectionForeColor = F1;
-                dgv.ColumnHeadersDefaultCellStyle.BackColor = B1;
-                dgv.ColumnHeadersDefaultCellStyle.SelectionBackColor = B1;
+                dgv.ColumnHeadersDefaultCellStyle.BackColor = B2;
+                dgv.ColumnHeadersDefaultCellStyle.SelectionBackColor = B2;
 
                 dgv.ContextMenuStrip.ForeColor = F1;
                 dgv.ContextMenuStrip.BackColor = B1;
@@ -292,21 +345,20 @@ namespace Kebab
             else if (control is ComboBox)
             {
                 control.ForeColor = F2;
-                control.BackColor = B1;
+                control.BackColor = B2;
             }
             // Make text box text pop.
             else if (control is TextBox)
             {
                 control.ForeColor = F2;
-                control.BackColor = B1;
+                control.BackColor = B2;
             }
             // Make button text pop.
             else if (control is Button)
             {
-                control.ForeColor = F2;
-                control.BackColor = B1;
+                control.ForeColor = F1;
+                control.BackColor = B2;
             }
-
             // Apply default fore and back colors to everything not specified.
             else
             {
@@ -322,7 +374,7 @@ namespace Kebab
 
             // Recursivley apply to sub controls.
             foreach (Control sub_control in control.Controls)
-                ApplyThemeToControls(sub_control, F1, F2, F3, B1, B2, B3);
+                ApplyThemeToControls(sub_control, F1, F2, F3, F4, B1, B2, B3, B4);
         }
 
         // Reusable grouping for cleanup tasks when form needs to close.
@@ -559,11 +611,13 @@ namespace Kebab
                 if (!CheckDisplayFilter(row.DataBoundItem))
                 {
                     row.DefaultCellStyle.ForeColor = NonMatchingConn;
+                    //row.DefaultCellStyle.SelectionForeColor = NonMatchingConnSelected;
                     row.DefaultCellStyle.Font = ConnectionGridView.DefaultCellStyle.Font;
                 }
                 else
                 {
                     row.DefaultCellStyle.ForeColor = MatchingConn;
+                    //row.DefaultCellStyle.SelectionForeColor = MatchingConnSelected;
                     row.DefaultCellStyle.Font = new Font(ConnectionGridView.DefaultCellStyle.Font.Name,
                                                          ConnectionGridView.DefaultCellStyle.Font.Size,
                                                          FontStyle.Bold);
@@ -842,7 +896,7 @@ namespace Kebab
         private void TimeoutConnList(object sender, EventArgs e)
         {
             // Flag to check if reordering needs to occur.
-            bool removalOccured = false;
+            bool reorderConnections = false;
 
             // Loop through connections list and see if we have any inactive connections to remove.
             while (true)
@@ -860,8 +914,8 @@ namespace Kebab
                         connectionList.Remove(loopConn);
                         removedConnection = true;
 
-                        if (!removalOccured)
-                            removalOccured = true;
+                        if (!reorderConnections)
+                            reorderConnections = true;
 
                         // Must break beause loop limit was changed.
                         break;
@@ -871,9 +925,15 @@ namespace Kebab
                 // Stop checking for inactive connections if all have been checked.
                 if (!removedConnection)
                 {
-                    // Cleanup connection numbers in the wake of created gaps.
-                    if (removalOccured)
+                    // Handle connection list modifiction necesities.
+                    if (reorderConnections)
+                    {
+                        // Cleanup connection numbers in the wake of created gaps.
                         ReorderOnRemoval();
+
+                        // Refresh DataGridView values to avoid errors with pending UI events on removed connections.
+                        ConnectionGridView.Update();
+                    }
 
                     break;
                 }
@@ -1094,6 +1154,25 @@ namespace Kebab
                 Clipboard.SetText(copyString);
         }
 
+        // Copy remote address, port, and related meta info (such as ASN org and GEO info).
+        private void allRemoteHostInformationToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            // Make sure there is something to copy.
+            if (connectionList == null || connectionList.Count == 0
+                || ConnectionGridView == null || ConnectionGridView.SelectedRows.Count == 0)
+                return;
+
+            string copyString = "";
+
+            foreach (DataGridViewRow row in getSelectedRows())
+                copyString += ((row.Cells[5].Value.ToString() + ":" + row.Cells[6].Value.ToString()).PadRight(21)
+                               + " " + row.Cells[9].Value.ToString().PadRight(6) + " " + row.Cells[10].Value.ToString()
+                               + "\n");
+
+            if (copyString != "")
+                Clipboard.SetText(copyString);
+        }
+
         // Saves connectionlist to file either with dialog or manually if a dialog was already used.
         private void saveConnListToFile(bool useSaveDialog)
         {
@@ -1297,18 +1376,61 @@ namespace Kebab
             else
                 captureFilterStr = "tcp and ";
 
-            // Add user IP and Port settings to fhilter.
+            // Check for user entered ip.
             if (SourceIPFilter.Text.Trim().Length > 0)
+            {
+                // Ensure ip is valid.
+                if (!IPAddress.TryParse(SourceIPFilter.Text.Trim(), out IPAddress _))
+                {
+                    MessageBox.Show("Error: invalid source ip address!", Program.Name);
+                    return -1;
+                }
+
+                // Add ip to filter string.
                 captureFilterStr += ("src host " + SourceIPFilter.Text.Trim() + " and ");
+            }
 
+            // Check for user entered port.
             if (SourcePortFilter.Text.Trim().Length > 0)
+            {
+                // Ensure port number is valid.
+                if (!UInt16.TryParse(SourcePortFilter.Text.Trim(), out _))
+                {
+                    MessageBox.Show("Error: invalid source port number!", Program.Name);
+                    return -1;
+                }
+
+                // Add port to filter string.
                 captureFilterStr += ("src port " + SourcePortFilter.Text.Trim() + " and ");
+            }
 
+            // Check for user entered ip.
             if (DestinationIPFilter.Text.Trim().Length > 0)
-                captureFilterStr += ("dst host " + DestinationIPFilter.Text.Trim() + " and ");
+            {
+                // Ensure ip is valid.
+                if (!IPAddress.TryParse(DestinationIPFilter.Text.Trim(), out IPAddress _))
+                {
+                    MessageBox.Show("Error: invalid destination ip address!", Program.Name);
+                    return -1;
+                }
 
+                // Add ip to filter string.
+                captureFilterStr += ("dst host " + DestinationIPFilter.Text.Trim() + " and ");
+            }
+
+            // Check for user entered port.
             if (DestinationPortFilter.Text.Trim().Length > 0)
+            {
+                // Ensure port number is valid.
+                if (!UInt16.TryParse(DestinationPortFilter.Text.Trim(), out _))
+                {
+                    MessageBox.Show("Error: invalid destination port number!", Program.Name);
+                    return -1;
+                }
+
+                // Add port to filter string.
                 captureFilterStr += ("dst port " + DestinationPortFilter.Text.Trim() + " and ");
+            }
 
             // Remove trailing " and ".
             captureFilterStr = captureFilterStr.Remove(captureFilterStr.Length - 5);

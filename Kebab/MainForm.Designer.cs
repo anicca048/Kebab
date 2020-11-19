@@ -33,6 +33,7 @@ namespace Kebab
             System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
             System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
             System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle4 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle5 = new System.Windows.Forms.DataGridViewCellStyle();
             System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle3 = new System.Windows.Forms.DataGridViewCellStyle();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             this.TopMenu = new System.Windows.Forms.MenuStrip();
@@ -56,7 +57,6 @@ namespace Kebab
             this.IPDisplayFilter = new System.Windows.Forms.TextBox();
             this.IPDisplayFilterLabel = new System.Windows.Forms.Label();
             this.TimeoutCheckBox = new System.Windows.Forms.CheckBox();
-            this.ClearConnectionsButton = new System.Windows.Forms.Button();
             this.ConnectionGridView = new System.Windows.Forms.DataGridView();
             this.Number = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.Type = new System.Windows.Forms.DataGridViewTextBoxColumn();
@@ -82,6 +82,8 @@ namespace Kebab
             this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
             this.iSOToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.aSNOrganizationToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripSeparator6 = new System.Windows.Forms.ToolStripSeparator();
+            this.allRemoteHostInformationToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.CapturePage = new System.Windows.Forms.TabPage();
             this.CaptureOptionsGroupBox = new System.Windows.Forms.GroupBox();
             this.clearConnsOnStartCheckBox = new System.Windows.Forms.CheckBox();
@@ -107,6 +109,7 @@ namespace Kebab
             this.SourcePortFilter = new System.Windows.Forms.TextBox();
             this.DestinationPortFilter = new System.Windows.Forms.TextBox();
             this.TabControl = new System.Windows.Forms.TabControl();
+            this.ClearConnectionsButton = new System.Windows.Forms.Button();
             this.TopMenu.SuspendLayout();
             this.ConnectionPage.SuspendLayout();
             this.DisplayFilterGroupBox.SuspendLayout();
@@ -251,7 +254,7 @@ namespace Kebab
             // 
             this.timeLimit.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.timeLimit.Font = new System.Drawing.Font("Consolas", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.timeLimit.Location = new System.Drawing.Point(1087, 30);
+            this.timeLimit.Location = new System.Drawing.Point(1087, 31);
             this.timeLimit.MaxLength = 3;
             this.timeLimit.Name = "timeLimit";
             this.timeLimit.Size = new System.Drawing.Size(53, 26);
@@ -265,7 +268,7 @@ namespace Kebab
             this.ClearDisplayFiltersButton.Location = new System.Drawing.Point(593, 30);
             this.ClearDisplayFiltersButton.MinimumSize = new System.Drawing.Size(98, 27);
             this.ClearDisplayFiltersButton.Name = "ClearDisplayFiltersButton";
-            this.ClearDisplayFiltersButton.Size = new System.Drawing.Size(111, 27);
+            this.ClearDisplayFiltersButton.Size = new System.Drawing.Size(111, 28);
             this.ClearDisplayFiltersButton.TabIndex = 6;
             this.ClearDisplayFiltersButton.Text = "Clear Filters";
             this.ClearDisplayFiltersButton.UseVisualStyleBackColor = true;
@@ -327,18 +330,6 @@ namespace Kebab
             this.TimeoutCheckBox.UseVisualStyleBackColor = true;
             this.TimeoutCheckBox.CheckedChanged += new System.EventHandler(this.TimeoutCheckBox_CheckedChanged);
             // 
-            // ClearConnectionsButton
-            // 
-            this.ClearConnectionsButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.ClearConnectionsButton.Location = new System.Drawing.Point(1146, 30);
-            this.ClearConnectionsButton.MinimumSize = new System.Drawing.Size(98, 27);
-            this.ClearConnectionsButton.Name = "ClearConnectionsButton";
-            this.ClearConnectionsButton.Size = new System.Drawing.Size(152, 27);
-            this.ClearConnectionsButton.TabIndex = 0;
-            this.ClearConnectionsButton.Text = "Clear Connections";
-            this.ClearConnectionsButton.UseVisualStyleBackColor = true;
-            this.ClearConnectionsButton.Click += new System.EventHandler(this.ClearConnectionsButton_Click);
-            // 
             // ConnectionGridView
             // 
             this.ConnectionGridView.AllowUserToAddRows = false;
@@ -355,10 +346,10 @@ namespace Kebab
             this.ConnectionGridView.ClipboardCopyMode = System.Windows.Forms.DataGridViewClipboardCopyMode.EnableWithoutHeaderText;
             dataGridViewCellStyle2.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
             dataGridViewCellStyle2.BackColor = System.Drawing.SystemColors.Control;
-            dataGridViewCellStyle2.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle2.Font = new System.Drawing.Font("Consolas", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             dataGridViewCellStyle2.ForeColor = System.Drawing.SystemColors.WindowText;
-            dataGridViewCellStyle2.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-            dataGridViewCellStyle2.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle2.SelectionBackColor = System.Drawing.SystemColors.Control;
+            dataGridViewCellStyle2.SelectionForeColor = System.Drawing.SystemColors.WindowText;
             dataGridViewCellStyle2.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
             this.ConnectionGridView.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle2;
             this.ConnectionGridView.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
@@ -376,16 +367,24 @@ namespace Kebab
             this.DstGeo,
             this.DstASNOrg});
             this.ConnectionGridView.ContextMenuStrip = this.ConnectionContextMenuStrip;
+            dataGridViewCellStyle4.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle4.BackColor = System.Drawing.SystemColors.Window;
+            dataGridViewCellStyle4.Font = new System.Drawing.Font("Consolas", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle4.ForeColor = System.Drawing.SystemColors.ControlText;
+            dataGridViewCellStyle4.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle4.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle4.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
+            this.ConnectionGridView.DefaultCellStyle = dataGridViewCellStyle4;
             this.ConnectionGridView.EditMode = System.Windows.Forms.DataGridViewEditMode.EditProgrammatically;
             this.ConnectionGridView.Location = new System.Drawing.Point(3, 3);
             this.ConnectionGridView.Name = "ConnectionGridView";
             this.ConnectionGridView.ReadOnly = true;
-            dataGridViewCellStyle4.BackColor = System.Drawing.SystemColors.Control;
-            dataGridViewCellStyle4.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            dataGridViewCellStyle4.ForeColor = System.Drawing.SystemColors.WindowText;
-            dataGridViewCellStyle4.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-            dataGridViewCellStyle4.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-            this.ConnectionGridView.RowHeadersDefaultCellStyle = dataGridViewCellStyle4;
+            dataGridViewCellStyle5.BackColor = System.Drawing.SystemColors.Control;
+            dataGridViewCellStyle5.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle5.ForeColor = System.Drawing.SystemColors.WindowText;
+            dataGridViewCellStyle5.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle5.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            this.ConnectionGridView.RowHeadersDefaultCellStyle = dataGridViewCellStyle5;
             this.ConnectionGridView.RowHeadersVisible = false;
             this.ConnectionGridView.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
             this.ConnectionGridView.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
@@ -515,13 +514,14 @@ namespace Kebab
             this.copyToolStripMenuItem,
             this.copyComponentToolStripMenuItem});
             this.ConnectionContextMenuStrip.Name = "ConnectionContextMenuStrip";
-            this.ConnectionContextMenuStrip.Size = new System.Drawing.Size(170, 48);
+            this.ConnectionContextMenuStrip.Size = new System.Drawing.Size(187, 48);
             // 
             // copyToolStripMenuItem
             // 
             this.copyToolStripMenuItem.Name = "copyToolStripMenuItem";
-            this.copyToolStripMenuItem.Size = new System.Drawing.Size(169, 22);
-            this.copyToolStripMenuItem.Text = "Copy";
+            this.copyToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.C)));
+            this.copyToolStripMenuItem.Size = new System.Drawing.Size(186, 22);
+            this.copyToolStripMenuItem.Text = "Copy  Row(s)";
             this.copyToolStripMenuItem.Click += new System.EventHandler(this.copyToolStripMenuItem_Click);
             // 
             // copyComponentToolStripMenuItem
@@ -536,77 +536,93 @@ namespace Kebab
             this.remoteAddressPortToolStripMenuItem,
             this.toolStripSeparator1,
             this.iSOToolStripMenuItem,
-            this.aSNOrganizationToolStripMenuItem});
+            this.aSNOrganizationToolStripMenuItem,
+            this.toolStripSeparator6,
+            this.allRemoteHostInformationToolStripMenuItem});
             this.copyComponentToolStripMenuItem.Name = "copyComponentToolStripMenuItem";
-            this.copyComponentToolStripMenuItem.Size = new System.Drawing.Size(169, 22);
-            this.copyComponentToolStripMenuItem.Text = "Component Copy";
+            this.copyComponentToolStripMenuItem.Size = new System.Drawing.Size(186, 22);
+            this.copyComponentToolStripMenuItem.Text = "Copy Component(s)";
             this.copyComponentToolStripMenuItem.MouseHover += new System.EventHandler(this.copyComponentToolStripMenuItem_MouseHover);
             // 
             // localAddressToolStripMenuItem
             // 
             this.localAddressToolStripMenuItem.Name = "localAddressToolStripMenuItem";
-            this.localAddressToolStripMenuItem.Size = new System.Drawing.Size(235, 22);
+            this.localAddressToolStripMenuItem.Size = new System.Drawing.Size(300, 22);
             this.localAddressToolStripMenuItem.Text = "Local Address";
             this.localAddressToolStripMenuItem.Click += new System.EventHandler(this.localAddressToolStripMenuItem_Click);
             // 
             // localPortToolStripMenuItem
             // 
             this.localPortToolStripMenuItem.Name = "localPortToolStripMenuItem";
-            this.localPortToolStripMenuItem.Size = new System.Drawing.Size(235, 22);
+            this.localPortToolStripMenuItem.Size = new System.Drawing.Size(300, 22);
             this.localPortToolStripMenuItem.Text = "Local Port";
             this.localPortToolStripMenuItem.Click += new System.EventHandler(this.localPortToolStripMenuItem_Click);
             // 
             // localAddressPortToolStripMenuItem
             // 
             this.localAddressPortToolStripMenuItem.Name = "localAddressPortToolStripMenuItem";
-            this.localAddressPortToolStripMenuItem.Size = new System.Drawing.Size(235, 22);
+            this.localAddressPortToolStripMenuItem.Size = new System.Drawing.Size(300, 22);
             this.localAddressPortToolStripMenuItem.Text = "Local Address : Local Port";
             this.localAddressPortToolStripMenuItem.Click += new System.EventHandler(this.localAddressPortToolStripMenuItem_Click);
             // 
             // toolStripSeparator2
             // 
             this.toolStripSeparator2.Name = "toolStripSeparator2";
-            this.toolStripSeparator2.Size = new System.Drawing.Size(232, 6);
+            this.toolStripSeparator2.Size = new System.Drawing.Size(297, 6);
             // 
             // remoteAddressToolStripMenuItem
             // 
             this.remoteAddressToolStripMenuItem.Name = "remoteAddressToolStripMenuItem";
-            this.remoteAddressToolStripMenuItem.Size = new System.Drawing.Size(235, 22);
+            this.remoteAddressToolStripMenuItem.Size = new System.Drawing.Size(300, 22);
             this.remoteAddressToolStripMenuItem.Text = "Remote Address";
             this.remoteAddressToolStripMenuItem.Click += new System.EventHandler(this.remoteAddressToolStripMenuItem_Click);
             // 
             // remotePortToolStripMenuItem
             // 
             this.remotePortToolStripMenuItem.Name = "remotePortToolStripMenuItem";
-            this.remotePortToolStripMenuItem.Size = new System.Drawing.Size(235, 22);
+            this.remotePortToolStripMenuItem.Size = new System.Drawing.Size(300, 22);
             this.remotePortToolStripMenuItem.Text = "Remote Port";
             this.remotePortToolStripMenuItem.Click += new System.EventHandler(this.remotePortToolStripMenuItem_Click);
             // 
             // remoteAddressPortToolStripMenuItem
             // 
             this.remoteAddressPortToolStripMenuItem.Name = "remoteAddressPortToolStripMenuItem";
-            this.remoteAddressPortToolStripMenuItem.Size = new System.Drawing.Size(235, 22);
+            this.remoteAddressPortToolStripMenuItem.Size = new System.Drawing.Size(300, 22);
             this.remoteAddressPortToolStripMenuItem.Text = "Remote Address : Remote Port";
             this.remoteAddressPortToolStripMenuItem.Click += new System.EventHandler(this.remoteAddressPortToolStripMenuItem_Click);
             // 
             // toolStripSeparator1
             // 
             this.toolStripSeparator1.Name = "toolStripSeparator1";
-            this.toolStripSeparator1.Size = new System.Drawing.Size(232, 6);
+            this.toolStripSeparator1.Size = new System.Drawing.Size(297, 6);
             // 
             // iSOToolStripMenuItem
             // 
             this.iSOToolStripMenuItem.Name = "iSOToolStripMenuItem";
-            this.iSOToolStripMenuItem.Size = new System.Drawing.Size(235, 22);
+            this.iSOToolStripMenuItem.Size = new System.Drawing.Size(300, 22);
             this.iSOToolStripMenuItem.Text = "ISO";
             this.iSOToolStripMenuItem.Click += new System.EventHandler(this.iSOToolStripMenuItem_Click);
             // 
             // aSNOrganizationToolStripMenuItem
             // 
             this.aSNOrganizationToolStripMenuItem.Name = "aSNOrganizationToolStripMenuItem";
-            this.aSNOrganizationToolStripMenuItem.Size = new System.Drawing.Size(235, 22);
+            this.aSNOrganizationToolStripMenuItem.Size = new System.Drawing.Size(300, 22);
             this.aSNOrganizationToolStripMenuItem.Text = "ASN Organization";
             this.aSNOrganizationToolStripMenuItem.Click += new System.EventHandler(this.aSNOrganizationToolStripMenuItem_Click);
+            // 
+            // toolStripSeparator6
+            // 
+            this.toolStripSeparator6.Name = "toolStripSeparator6";
+            this.toolStripSeparator6.Size = new System.Drawing.Size(297, 6);
+            // 
+            // allRemoteHostInformationToolStripMenuItem
+            // 
+            this.allRemoteHostInformationToolStripMenuItem.Name = "allRemoteHostInformationToolStripMenuItem";
+            this.allRemoteHostInformationToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)(((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Shift) 
+            | System.Windows.Forms.Keys.C)));
+            this.allRemoteHostInformationToolStripMenuItem.Size = new System.Drawing.Size(300, 22);
+            this.allRemoteHostInformationToolStripMenuItem.Text = "All Remote Host Information";
+            this.allRemoteHostInformationToolStripMenuItem.Click += new System.EventHandler(this.allRemoteHostInformationToolStripMenuItem_Click);
             // 
             // CapturePage
             // 
@@ -907,6 +923,18 @@ namespace Kebab
             this.TabControl.Size = new System.Drawing.Size(1324, 607);
             this.TabControl.TabIndex = 0;
             // 
+            // ClearConnectionsButton
+            // 
+            this.ClearConnectionsButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.ClearConnectionsButton.Location = new System.Drawing.Point(1146, 30);
+            this.ClearConnectionsButton.MinimumSize = new System.Drawing.Size(98, 27);
+            this.ClearConnectionsButton.Name = "ClearConnectionsButton";
+            this.ClearConnectionsButton.Size = new System.Drawing.Size(152, 28);
+            this.ClearConnectionsButton.TabIndex = 0;
+            this.ClearConnectionsButton.Text = "Clear Connections";
+            this.ClearConnectionsButton.UseVisualStyleBackColor = true;
+            this.ClearConnectionsButton.Click += new System.EventHandler(this.ClearConnectionsButton_Click);
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -954,7 +982,6 @@ namespace Kebab
         private System.Windows.Forms.TextBox IPDisplayFilter;
         private System.Windows.Forms.Label IPDisplayFilterLabel;
         private System.Windows.Forms.CheckBox TimeoutCheckBox;
-        private System.Windows.Forms.Button ClearConnectionsButton;
         private System.Windows.Forms.DataGridView ConnectionGridView;
         private System.Windows.Forms.TabPage CapturePage;
         private System.Windows.Forms.GroupBox CaptureOptionsGroupBox;
@@ -1015,6 +1042,9 @@ namespace Kebab
         private System.Windows.Forms.ToolStripMenuItem checkForUpdatesToolStripMenuItem;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator5;
         private System.Windows.Forms.CheckBox RemoveLocalConnectionsCheckBox;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator6;
+        private System.Windows.Forms.ToolStripMenuItem allRemoteHostInformationToolStripMenuItem;
+        private System.Windows.Forms.Button ClearConnectionsButton;
     }
 }
 
