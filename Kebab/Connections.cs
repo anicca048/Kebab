@@ -43,17 +43,12 @@ namespace Kebab
             if (obj == null || !(obj is ConnectionAddress))
                 throw new NotSupportedException("Error: compared object is not a ConnectionAddress type!");
 
-            // Cast objest to usable current type.
-            ConnectionAddress addr = (obj as ConnectionAddress);
+            // Convert addresses into numerical value for comparison.
+            UInt32 left = this.AddressAsNumericalValue();
+            UInt32 right = ((ConnectionAddress)obj).AddressAsNumericalValue();
 
-            if ((UInt32)IPAddress.NetworkToHostOrder((Int32)this.Address.Address) >
-                (UInt32)IPAddress.NetworkToHostOrder((Int32)addr.Address.Address))
-                return 1;
-            else if ((UInt32)IPAddress.NetworkToHostOrder((Int32)this.Address.Address) <
-                     (UInt32)IPAddress.NetworkToHostOrder((Int32)addr.Address.Address))
-                return -1;
-
-            return 0;
+            // Compare built in type.
+            return left.CompareTo(right);
         }
 
         public override bool Equals(Object obj)
@@ -78,18 +73,24 @@ namespace Kebab
             return (int)this.Address.GetHashCode();
         }
 
+        // Converts ConnectionAddress data into numerical value.
+        public UInt32 AddressAsNumericalValue()
+        {
+            return (UInt32)IPAddress.NetworkToHostOrder((Int32)(this.Address.Address));
+        }
+
         public bool AddressIsLocal()
         {
-            // Class A (10.0.0.0/8).
+            // Class A Private (10.0.0.0/8).
             const UInt32 CLASS_A_ADDRESS = 0x0A000000;
             const UInt32 CLASS_A_NETMASK = 0xFF000000;
-            // Class B (172.16.0.0/12).
+            // Class B Private (172.16.0.0/12).
             const UInt32 CLASS_B_ADDRESS = 0xAC100000;
             const UInt32 CLASS_B_NETMASK = 0xFFF00000;
-            // Class C (192.168.0.0/16).
+            // Class C Private (192.168.0.0/16).
             const UInt32 CLASS_C_ADDRESS = 0xC0A80000;
             const UInt32 CLASS_C_NETMASK = 0xFFFF0000;
-            //Local / Loopback (127.0.0.0/8)
+            // Local / Loopback (127.0.0.0/8)
             const UInt32 LOOPBAK_ADDRESS = 0x7F000000;
             const UInt32 LOOPBAK_NETMASK = 0xFF000000;
             // Link Local (169.254.0.0/16)
@@ -102,22 +103,22 @@ namespace Kebab
             const UInt32 BRODCST_ADDRESS = 0xFFFFFFFF;
 
             // Convert IP to 4 Byte segment (NetToHo doesn't like long for somereason).
-            UInt32 IPBytes = (UInt32)IPAddress.NetworkToHostOrder((Int32)this.Address.Address);
+            UInt32 IPValue = this.AddressAsNumericalValue();
 
             // Compares bytes to local ip ranges using netmask anding.
-            if ((IPBytes & CLASS_A_NETMASK) == CLASS_A_ADDRESS)
+            if ((IPValue & CLASS_A_NETMASK) == CLASS_A_ADDRESS)
                 return true;
-            else if ((IPBytes & CLASS_B_NETMASK) == CLASS_B_ADDRESS)
+            else if ((IPValue & CLASS_B_NETMASK) == CLASS_B_ADDRESS)
                 return true;
-            else if ((IPBytes & CLASS_C_NETMASK) == CLASS_C_ADDRESS)
+            else if ((IPValue & CLASS_C_NETMASK) == CLASS_C_ADDRESS)
                 return true;
-            else if ((IPBytes & LOOPBAK_NETMASK) == LOOPBAK_ADDRESS)
+            else if ((IPValue & LOOPBAK_NETMASK) == LOOPBAK_ADDRESS)
                 return true;
-            else if ((IPBytes & LINKLOC_NETMASK) == LINKLOC_ADDRESS)
+            else if ((IPValue & LINKLOC_NETMASK) == LINKLOC_ADDRESS)
                 return true;
-            else if ((IPBytes & MULTCST_NETMASK) == MULTCST_ADDRESS)
+            else if ((IPValue & MULTCST_NETMASK) == MULTCST_ADDRESS)
                 return true;
-            else if (IPBytes == BRODCST_ADDRESS)
+            else if (IPValue == BRODCST_ADDRESS)
                 return true;
 
             return false;
@@ -470,28 +471,19 @@ namespace Kebab
             get { return _sortPropertyValue; }
         }
 
-        // Exchange two items in list during sort.
+        // Determine if two items in list need to be exchanged during insertion sort.
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static void Exchange(IList<Connection> connList, int first, int second)
-        {
-            Connection tmpConn = connList[first];
-            connList[first] = connList[second];
-            connList[second] = tmpConn;
-        }
-
-        // Determine if two items in list need to be exchanged during sort.
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static bool ExchangeTest(IList<Connection> connList, int first, int second,
+        private static bool ExchangeTest(IList<Connection> connList, Connection key, int index,
                                          PropertyDescriptor prop, ListSortDirection direction)
         {
             if (Equals(direction, ListSortDirection.Ascending))
             {
-                if (((IComparable)prop.GetValue(connList[first])).CompareTo((IComparable)prop.GetValue(connList[second])) > 0)
+                if (((IComparable)prop.GetValue(key)).CompareTo((IComparable)prop.GetValue(connList[index])) < 0)
                     return true;
             }
             else
             {
-                if (((IComparable)prop.GetValue(connList[first])).CompareTo((IComparable)prop.GetValue(connList[second])) < 0)
+                if (((IComparable)prop.GetValue(key)).CompareTo((IComparable)prop.GetValue(connList[index])) > 0)
                     return true;
             }
 
@@ -532,31 +524,20 @@ namespace Kebab
                 // Don't sort the list.
                 return;
             }
-            
-            // Sort loop limiter.
-            int sortLength = this.Count;
 
-            // Optimized bubblesort (Skip tail sort).
-            while (sortLength > 1)
+            // Inserstion sort.
+            for (int i = 1; i < this.Count; i++)
             {
-                // Initialize default value before each run of Exchange loop.
-                int exchLocation = 0;
+                // Setup insertion parms.
+                Connection key = this[i];
 
-                // Exchange loop.
-                for (int i = 1; i < sortLength; i++)
+                // Sorted section insertion loop.
+                for (int j = (i - 1); j >= 0 && ConnectionList.ExchangeTest(this.Items, key, j, _sortPropertyValue,
+                                                                            _sortDirectionValue); j--)
                 {
-                    if (ConnectionList.ExchangeTest(this.Items, (i - 1), i, _sortPropertyValue, _sortDirectionValue))
-                    {
-                        // Exchange elements.
-                        ConnectionList.Exchange(this.Items, (i - 1), i);
-
-                        // Set location of last Exchange.
-                        exchLocation = i;
-                    }
+                    this[j + 1] = this[j];
+                    this[j] = key;
                 }
-
-                // Set the loop limit based on the position of the last element sorted.
-                sortLength = exchLocation;
             }
 
             // If an ascending sort by "Number" was performed, than we don't need to keep sorting on list changes.

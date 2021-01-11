@@ -133,8 +133,8 @@ Connection Sorting: Currently if you sort the connection list in any way
 (except by property "Number" in ascending order), under heavy load the UI loop
 can get bogged down by the constant resorting of the list. This may cause
 delayed responses to user input and manipulation of the window / controls. The
-sort algorithm has been optimized to combat this issue, but not much more can
-be done until a new algorithm is implemented. (should happen soon.)
+sort algorithm has been optimized to combat this issue. Further optimizations,
+and mitigations, are being considered to better deal with the issue.
 
 GeoIP data: sometimes geoip data will be out of date, or missing entirely for a
 given IP address. Currently the database provided is the last release of the

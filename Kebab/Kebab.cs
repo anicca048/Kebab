@@ -1,4 +1,5 @@
-﻿/* 
+﻿
+/* 
  * Copyright (c) 2018 anicca048
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
