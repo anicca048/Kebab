@@ -33,7 +33,6 @@ namespace Kebab
             System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
             System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
             System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle4 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle5 = new System.Windows.Forms.DataGridViewCellStyle();
             System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle3 = new System.Windows.Forms.DataGridViewCellStyle();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             this.TopMenu = new System.Windows.Forms.MenuStrip();
@@ -57,6 +56,7 @@ namespace Kebab
             this.IPDisplayFilter = new System.Windows.Forms.TextBox();
             this.IPDisplayFilterLabel = new System.Windows.Forms.Label();
             this.TimeoutCheckBox = new System.Windows.Forms.CheckBox();
+            this.ClearConnectionsButton = new System.Windows.Forms.Button();
             this.ConnectionGridView = new System.Windows.Forms.DataGridView();
             this.Number = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.Type = new System.Windows.Forms.DataGridViewTextBoxColumn();
@@ -109,7 +109,6 @@ namespace Kebab
             this.SourcePortFilter = new System.Windows.Forms.TextBox();
             this.DestinationPortFilter = new System.Windows.Forms.TextBox();
             this.TabControl = new System.Windows.Forms.TabControl();
-            this.ClearConnectionsButton = new System.Windows.Forms.Button();
             this.TopMenu.SuspendLayout();
             this.ConnectionPage.SuspendLayout();
             this.DisplayFilterGroupBox.SuspendLayout();
@@ -129,7 +128,7 @@ namespace Kebab
             this.HelpMenu});
             this.TopMenu.Location = new System.Drawing.Point(0, 0);
             this.TopMenu.Name = "TopMenu";
-            this.TopMenu.Size = new System.Drawing.Size(1324, 24);
+            this.TopMenu.Size = new System.Drawing.Size(1404, 24);
             this.TopMenu.TabIndex = 1;
             // 
             // FileMenu
@@ -163,6 +162,7 @@ namespace Kebab
             // 
             // toolStripSeparator3
             // 
+            this.toolStripSeparator3.BackColor = System.Drawing.SystemColors.Control;
             this.toolStripSeparator3.Name = "toolStripSeparator3";
             this.toolStripSeparator3.Size = new System.Drawing.Size(183, 6);
             // 
@@ -225,7 +225,7 @@ namespace Kebab
             this.ConnectionPage.Location = new System.Drawing.Point(4, 29);
             this.ConnectionPage.Name = "ConnectionPage";
             this.ConnectionPage.Padding = new System.Windows.Forms.Padding(3);
-            this.ConnectionPage.Size = new System.Drawing.Size(1316, 574);
+            this.ConnectionPage.Size = new System.Drawing.Size(1396, 574);
             this.ConnectionPage.TabIndex = 1;
             this.ConnectionPage.Text = "Connections";
             this.ConnectionPage.UseVisualStyleBackColor = true;
@@ -245,7 +245,7 @@ namespace Kebab
             this.DisplayFilterGroupBox.Enabled = false;
             this.DisplayFilterGroupBox.Location = new System.Drawing.Point(6, 508);
             this.DisplayFilterGroupBox.Name = "DisplayFilterGroupBox";
-            this.DisplayFilterGroupBox.Size = new System.Drawing.Size(1304, 63);
+            this.DisplayFilterGroupBox.Size = new System.Drawing.Size(1384, 60);
             this.DisplayFilterGroupBox.TabIndex = 2;
             this.DisplayFilterGroupBox.TabStop = false;
             this.DisplayFilterGroupBox.Text = "Display Filter";
@@ -253,8 +253,9 @@ namespace Kebab
             // timeLimit
             // 
             this.timeLimit.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.timeLimit.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.timeLimit.Font = new System.Drawing.Font("Consolas", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.timeLimit.Location = new System.Drawing.Point(1087, 31);
+            this.timeLimit.Location = new System.Drawing.Point(1167, 28);
             this.timeLimit.MaxLength = 3;
             this.timeLimit.Name = "timeLimit";
             this.timeLimit.Size = new System.Drawing.Size(53, 26);
@@ -265,7 +266,8 @@ namespace Kebab
             // ClearDisplayFiltersButton
             // 
             this.ClearDisplayFiltersButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.ClearDisplayFiltersButton.Location = new System.Drawing.Point(593, 30);
+            this.ClearDisplayFiltersButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.ClearDisplayFiltersButton.Location = new System.Drawing.Point(593, 27);
             this.ClearDisplayFiltersButton.MinimumSize = new System.Drawing.Size(98, 27);
             this.ClearDisplayFiltersButton.Name = "ClearDisplayFiltersButton";
             this.ClearDisplayFiltersButton.Size = new System.Drawing.Size(111, 28);
@@ -277,8 +279,9 @@ namespace Kebab
             // PortDisplayFilter
             // 
             this.PortDisplayFilter.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.PortDisplayFilter.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.PortDisplayFilter.Font = new System.Drawing.Font("Consolas", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.PortDisplayFilter.Location = new System.Drawing.Point(456, 31);
+            this.PortDisplayFilter.Location = new System.Drawing.Point(456, 28);
             this.PortDisplayFilter.MaxLength = 5;
             this.PortDisplayFilter.Name = "PortDisplayFilter";
             this.PortDisplayFilter.Size = new System.Drawing.Size(131, 26);
@@ -290,7 +293,7 @@ namespace Kebab
             // 
             this.PortDisplayFilterLabel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.PortDisplayFilterLabel.AutoSize = true;
-            this.PortDisplayFilterLabel.Location = new System.Drawing.Point(369, 33);
+            this.PortDisplayFilterLabel.Location = new System.Drawing.Point(369, 30);
             this.PortDisplayFilterLabel.Name = "PortDisplayFilterLabel";
             this.PortDisplayFilterLabel.Size = new System.Drawing.Size(81, 20);
             this.PortDisplayFilterLabel.TabIndex = 4;
@@ -299,8 +302,9 @@ namespace Kebab
             // IPDisplayFilter
             // 
             this.IPDisplayFilter.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.IPDisplayFilter.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.IPDisplayFilter.Font = new System.Drawing.Font("Consolas", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.IPDisplayFilter.Location = new System.Drawing.Point(79, 31);
+            this.IPDisplayFilter.Location = new System.Drawing.Point(79, 28);
             this.IPDisplayFilter.MaxLength = 15;
             this.IPDisplayFilter.Name = "IPDisplayFilter";
             this.IPDisplayFilter.Size = new System.Drawing.Size(284, 26);
@@ -312,7 +316,7 @@ namespace Kebab
             // 
             this.IPDisplayFilterLabel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.IPDisplayFilterLabel.AutoSize = true;
-            this.IPDisplayFilterLabel.Location = new System.Drawing.Point(6, 33);
+            this.IPDisplayFilterLabel.Location = new System.Drawing.Point(6, 30);
             this.IPDisplayFilterLabel.Name = "IPDisplayFilterLabel";
             this.IPDisplayFilterLabel.Size = new System.Drawing.Size(67, 20);
             this.IPDisplayFilterLabel.TabIndex = 2;
@@ -322,13 +326,26 @@ namespace Kebab
             // 
             this.TimeoutCheckBox.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.TimeoutCheckBox.AutoSize = true;
-            this.TimeoutCheckBox.Location = new System.Drawing.Point(996, 32);
+            this.TimeoutCheckBox.Location = new System.Drawing.Point(1076, 29);
             this.TimeoutCheckBox.Name = "TimeoutCheckBox";
             this.TimeoutCheckBox.Size = new System.Drawing.Size(85, 24);
             this.TimeoutCheckBox.TabIndex = 1;
             this.TimeoutCheckBox.Text = "Timeout";
             this.TimeoutCheckBox.UseVisualStyleBackColor = true;
             this.TimeoutCheckBox.CheckedChanged += new System.EventHandler(this.TimeoutCheckBox_CheckedChanged);
+            // 
+            // ClearConnectionsButton
+            // 
+            this.ClearConnectionsButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.ClearConnectionsButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.ClearConnectionsButton.Location = new System.Drawing.Point(1226, 27);
+            this.ClearConnectionsButton.MinimumSize = new System.Drawing.Size(98, 27);
+            this.ClearConnectionsButton.Name = "ClearConnectionsButton";
+            this.ClearConnectionsButton.Size = new System.Drawing.Size(152, 28);
+            this.ClearConnectionsButton.TabIndex = 0;
+            this.ClearConnectionsButton.Text = "Clear Connections";
+            this.ClearConnectionsButton.UseVisualStyleBackColor = true;
+            this.ClearConnectionsButton.Click += new System.EventHandler(this.ClearConnectionsButton_Click);
             // 
             // ConnectionGridView
             // 
@@ -346,7 +363,7 @@ namespace Kebab
             this.ConnectionGridView.ClipboardCopyMode = System.Windows.Forms.DataGridViewClipboardCopyMode.EnableWithoutHeaderText;
             dataGridViewCellStyle2.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
             dataGridViewCellStyle2.BackColor = System.Drawing.SystemColors.Control;
-            dataGridViewCellStyle2.Font = new System.Drawing.Font("Consolas", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle2.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             dataGridViewCellStyle2.ForeColor = System.Drawing.SystemColors.WindowText;
             dataGridViewCellStyle2.SelectionBackColor = System.Drawing.SystemColors.Control;
             dataGridViewCellStyle2.SelectionForeColor = System.Drawing.SystemColors.WindowText;
@@ -367,24 +384,16 @@ namespace Kebab
             this.DstGeo,
             this.DstASNOrg});
             this.ConnectionGridView.ContextMenuStrip = this.ConnectionContextMenuStrip;
-            dataGridViewCellStyle4.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle4.BackColor = System.Drawing.SystemColors.Window;
-            dataGridViewCellStyle4.Font = new System.Drawing.Font("Consolas", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            dataGridViewCellStyle4.ForeColor = System.Drawing.SystemColors.ControlText;
-            dataGridViewCellStyle4.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-            dataGridViewCellStyle4.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-            dataGridViewCellStyle4.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
-            this.ConnectionGridView.DefaultCellStyle = dataGridViewCellStyle4;
             this.ConnectionGridView.EditMode = System.Windows.Forms.DataGridViewEditMode.EditProgrammatically;
-            this.ConnectionGridView.Location = new System.Drawing.Point(3, 3);
+            this.ConnectionGridView.Location = new System.Drawing.Point(6, 6);
             this.ConnectionGridView.Name = "ConnectionGridView";
             this.ConnectionGridView.ReadOnly = true;
-            dataGridViewCellStyle5.BackColor = System.Drawing.SystemColors.Control;
-            dataGridViewCellStyle5.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            dataGridViewCellStyle5.ForeColor = System.Drawing.SystemColors.WindowText;
-            dataGridViewCellStyle5.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-            dataGridViewCellStyle5.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-            this.ConnectionGridView.RowHeadersDefaultCellStyle = dataGridViewCellStyle5;
+            dataGridViewCellStyle4.BackColor = System.Drawing.SystemColors.Control;
+            dataGridViewCellStyle4.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle4.ForeColor = System.Drawing.SystemColors.WindowText;
+            dataGridViewCellStyle4.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle4.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            this.ConnectionGridView.RowHeadersDefaultCellStyle = dataGridViewCellStyle4;
             this.ConnectionGridView.RowHeadersVisible = false;
             this.ConnectionGridView.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
             this.ConnectionGridView.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
@@ -392,7 +401,7 @@ namespace Kebab
             this.ConnectionGridView.ShowCellToolTips = false;
             this.ConnectionGridView.ShowEditingIcon = false;
             this.ConnectionGridView.ShowRowErrors = false;
-            this.ConnectionGridView.Size = new System.Drawing.Size(1310, 499);
+            this.ConnectionGridView.Size = new System.Drawing.Size(1384, 496);
             this.ConnectionGridView.StandardTab = true;
             this.ConnectionGridView.TabIndex = 1;
             this.ConnectionGridView.RowsAdded += new System.Windows.Forms.DataGridViewRowsAddedEventHandler(this.ConnectionGridView_RowsAdded);
@@ -475,20 +484,20 @@ namespace Kebab
             this.PacketCount.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
             this.PacketCount.DataPropertyName = "PacketCount";
             this.PacketCount.HeaderText = "Packets Sent";
-            this.PacketCount.MinimumWidth = 140;
+            this.PacketCount.MinimumWidth = 145;
             this.PacketCount.Name = "PacketCount";
             this.PacketCount.ReadOnly = true;
-            this.PacketCount.Width = 140;
+            this.PacketCount.Width = 145;
             // 
             // ByteCount
             // 
             this.ByteCount.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
             this.ByteCount.DataPropertyName = "ByteCount";
             this.ByteCount.HeaderText = "Data Sent";
-            this.ByteCount.MinimumWidth = 140;
+            this.ByteCount.MinimumWidth = 160;
             this.ByteCount.Name = "ByteCount";
             this.ByteCount.ReadOnly = true;
-            this.ByteCount.Width = 140;
+            this.ByteCount.Width = 160;
             // 
             // DstGeo
             // 
@@ -632,7 +641,7 @@ namespace Kebab
             this.CapturePage.Location = new System.Drawing.Point(4, 29);
             this.CapturePage.Name = "CapturePage";
             this.CapturePage.Padding = new System.Windows.Forms.Padding(3);
-            this.CapturePage.Size = new System.Drawing.Size(1316, 574);
+            this.CapturePage.Size = new System.Drawing.Size(1396, 574);
             this.CapturePage.TabIndex = 0;
             this.CapturePage.Text = "Capture";
             this.CapturePage.UseVisualStyleBackColor = true;
@@ -650,7 +659,7 @@ namespace Kebab
             this.CaptureOptionsGroupBox.Controls.Add(this.CaptureStartButton);
             this.CaptureOptionsGroupBox.Location = new System.Drawing.Point(6, 6);
             this.CaptureOptionsGroupBox.Name = "CaptureOptionsGroupBox";
-            this.CaptureOptionsGroupBox.Size = new System.Drawing.Size(1304, 280);
+            this.CaptureOptionsGroupBox.Size = new System.Drawing.Size(1384, 280);
             this.CaptureOptionsGroupBox.TabIndex = 12;
             this.CaptureOptionsGroupBox.TabStop = false;
             this.CaptureOptionsGroupBox.Text = "Capture Options";
@@ -669,6 +678,7 @@ namespace Kebab
             // 
             // RefreshInterfacesButton
             // 
+            this.RefreshInterfacesButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.RefreshInterfacesButton.Location = new System.Drawing.Point(441, 76);
             this.RefreshInterfacesButton.Name = "RefreshInterfacesButton";
             this.RefreshInterfacesButton.Size = new System.Drawing.Size(205, 40);
@@ -687,7 +697,7 @@ namespace Kebab
             // 
             // InterfaceDropDownList
             // 
-            this.InterfaceDropDownList.FlatStyle = System.Windows.Forms.FlatStyle.System;
+            this.InterfaceDropDownList.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.InterfaceDropDownList.Font = new System.Drawing.Font("Consolas", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.InterfaceDropDownList.FormattingEnabled = true;
             this.InterfaceDropDownList.Location = new System.Drawing.Point(139, 44);
@@ -699,6 +709,7 @@ namespace Kebab
             // CaptureStopButton
             // 
             this.CaptureStopButton.Enabled = false;
+            this.CaptureStopButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.CaptureStopButton.Location = new System.Drawing.Point(290, 76);
             this.CaptureStopButton.Name = "CaptureStopButton";
             this.CaptureStopButton.Size = new System.Drawing.Size(145, 40);
@@ -710,6 +721,7 @@ namespace Kebab
             // CaptureStartButton
             // 
             this.CaptureStartButton.Enabled = false;
+            this.CaptureStartButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.CaptureStartButton.Location = new System.Drawing.Point(139, 76);
             this.CaptureStartButton.Name = "CaptureStartButton";
             this.CaptureStartButton.Size = new System.Drawing.Size(145, 40);
@@ -738,9 +750,9 @@ namespace Kebab
             this.CaptureFilterGroupBox.Controls.Add(this.SourcePortFilter);
             this.CaptureFilterGroupBox.Controls.Add(this.DestinationPortFilter);
             this.CaptureFilterGroupBox.Enabled = false;
-            this.CaptureFilterGroupBox.Location = new System.Drawing.Point(6, 287);
+            this.CaptureFilterGroupBox.Location = new System.Drawing.Point(6, 292);
             this.CaptureFilterGroupBox.Name = "CaptureFilterGroupBox";
-            this.CaptureFilterGroupBox.Size = new System.Drawing.Size(1304, 280);
+            this.CaptureFilterGroupBox.Size = new System.Drawing.Size(1384, 276);
             this.CaptureFilterGroupBox.TabIndex = 12;
             this.CaptureFilterGroupBox.TabStop = false;
             this.CaptureFilterGroupBox.Text = "Capture Filter";
@@ -761,7 +773,7 @@ namespace Kebab
             // 
             this.FilterStringLabel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.FilterStringLabel.AutoSize = true;
-            this.FilterStringLabel.Location = new System.Drawing.Point(20, 125);
+            this.FilterStringLabel.Location = new System.Drawing.Point(20, 121);
             this.FilterStringLabel.Name = "FilterStringLabel";
             this.FilterStringLabel.Size = new System.Drawing.Size(94, 20);
             this.FilterStringLabel.TabIndex = 17;
@@ -770,8 +782,9 @@ namespace Kebab
             // complexFilter
             // 
             this.complexFilter.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.complexFilter.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.complexFilter.Font = new System.Drawing.Font("Consolas", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.complexFilter.Location = new System.Drawing.Point(139, 122);
+            this.complexFilter.Location = new System.Drawing.Point(139, 118);
             this.complexFilter.MaxLength = 1000;
             this.complexFilter.Name = "complexFilter";
             this.complexFilter.Size = new System.Drawing.Size(507, 26);
@@ -780,7 +793,8 @@ namespace Kebab
             // ClearFiltersButton
             // 
             this.ClearFiltersButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.ClearFiltersButton.Location = new System.Drawing.Point(139, 184);
+            this.ClearFiltersButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.ClearFiltersButton.Location = new System.Drawing.Point(139, 180);
             this.ClearFiltersButton.Name = "ClearFiltersButton";
             this.ClearFiltersButton.Size = new System.Drawing.Size(110, 40);
             this.ClearFiltersButton.TabIndex = 13;
@@ -792,7 +806,7 @@ namespace Kebab
             // 
             this.ProtocolLabel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.ProtocolLabel.AutoSize = true;
-            this.ProtocolLabel.Location = new System.Drawing.Point(20, 93);
+            this.ProtocolLabel.Location = new System.Drawing.Point(20, 89);
             this.ProtocolLabel.Name = "ProtocolLabel";
             this.ProtocolLabel.Size = new System.Drawing.Size(71, 20);
             this.ProtocolLabel.TabIndex = 2;
@@ -804,7 +818,7 @@ namespace Kebab
             this.UDPCheckBox.AutoSize = true;
             this.UDPCheckBox.Checked = true;
             this.UDPCheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.UDPCheckBox.Location = new System.Drawing.Point(203, 92);
+            this.UDPCheckBox.Location = new System.Drawing.Point(203, 88);
             this.UDPCheckBox.Name = "UDPCheckBox";
             this.UDPCheckBox.Size = new System.Drawing.Size(62, 24);
             this.UDPCheckBox.TabIndex = 15;
@@ -817,7 +831,7 @@ namespace Kebab
             this.TCPCheckBox.AutoSize = true;
             this.TCPCheckBox.Checked = true;
             this.TCPCheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.TCPCheckBox.Location = new System.Drawing.Point(139, 92);
+            this.TCPCheckBox.Location = new System.Drawing.Point(139, 88);
             this.TCPCheckBox.Name = "TCPCheckBox";
             this.TCPCheckBox.Size = new System.Drawing.Size(58, 24);
             this.TCPCheckBox.TabIndex = 14;
@@ -828,7 +842,7 @@ namespace Kebab
             // 
             this.SourceIPLabel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.SourceIPLabel.AutoSize = true;
-            this.SourceIPLabel.Location = new System.Drawing.Point(20, 31);
+            this.SourceIPLabel.Location = new System.Drawing.Point(20, 27);
             this.SourceIPLabel.Name = "SourceIPLabel";
             this.SourceIPLabel.Size = new System.Drawing.Size(83, 20);
             this.SourceIPLabel.TabIndex = 8;
@@ -838,7 +852,7 @@ namespace Kebab
             // 
             this.DestinationIPLabel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.DestinationIPLabel.AutoSize = true;
-            this.DestinationIPLabel.Location = new System.Drawing.Point(20, 63);
+            this.DestinationIPLabel.Location = new System.Drawing.Point(20, 59);
             this.DestinationIPLabel.Name = "DestinationIPLabel";
             this.DestinationIPLabel.Size = new System.Drawing.Size(113, 20);
             this.DestinationIPLabel.TabIndex = 11;
@@ -847,8 +861,9 @@ namespace Kebab
             // SourceIPFilter
             // 
             this.SourceIPFilter.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.SourceIPFilter.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.SourceIPFilter.Font = new System.Drawing.Font("Consolas", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.SourceIPFilter.Location = new System.Drawing.Point(139, 28);
+            this.SourceIPFilter.Location = new System.Drawing.Point(139, 24);
             this.SourceIPFilter.MaxLength = 15;
             this.SourceIPFilter.Name = "SourceIPFilter";
             this.SourceIPFilter.Size = new System.Drawing.Size(284, 26);
@@ -859,7 +874,7 @@ namespace Kebab
             // 
             this.DestinationPortLabel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.DestinationPortLabel.AutoSize = true;
-            this.DestinationPortLabel.Location = new System.Drawing.Point(429, 63);
+            this.DestinationPortLabel.Location = new System.Drawing.Point(429, 59);
             this.DestinationPortLabel.Name = "DestinationPortLabel";
             this.DestinationPortLabel.Size = new System.Drawing.Size(80, 20);
             this.DestinationPortLabel.TabIndex = 10;
@@ -868,8 +883,9 @@ namespace Kebab
             // DestinationIPFilter
             // 
             this.DestinationIPFilter.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.DestinationIPFilter.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.DestinationIPFilter.Font = new System.Drawing.Font("Consolas", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.DestinationIPFilter.Location = new System.Drawing.Point(139, 60);
+            this.DestinationIPFilter.Location = new System.Drawing.Point(139, 56);
             this.DestinationIPFilter.MaxLength = 15;
             this.DestinationIPFilter.Name = "DestinationIPFilter";
             this.DestinationIPFilter.Size = new System.Drawing.Size(284, 26);
@@ -880,7 +896,7 @@ namespace Kebab
             // 
             this.SourcePortLabel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.SourcePortLabel.AutoSize = true;
-            this.SourcePortLabel.Location = new System.Drawing.Point(439, 31);
+            this.SourcePortLabel.Location = new System.Drawing.Point(439, 27);
             this.SourcePortLabel.Name = "SourcePortLabel";
             this.SourcePortLabel.Size = new System.Drawing.Size(70, 20);
             this.SourcePortLabel.TabIndex = 9;
@@ -889,8 +905,9 @@ namespace Kebab
             // SourcePortFilter
             // 
             this.SourcePortFilter.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.SourcePortFilter.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.SourcePortFilter.Font = new System.Drawing.Font("Consolas", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.SourcePortFilter.Location = new System.Drawing.Point(515, 25);
+            this.SourcePortFilter.Location = new System.Drawing.Point(515, 21);
             this.SourcePortFilter.MaxLength = 5;
             this.SourcePortFilter.Name = "SourcePortFilter";
             this.SourcePortFilter.Size = new System.Drawing.Size(131, 26);
@@ -900,8 +917,9 @@ namespace Kebab
             // DestinationPortFilter
             // 
             this.DestinationPortFilter.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.DestinationPortFilter.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.DestinationPortFilter.Font = new System.Drawing.Font("Consolas", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.DestinationPortFilter.Location = new System.Drawing.Point(515, 61);
+            this.DestinationPortFilter.Location = new System.Drawing.Point(515, 57);
             this.DestinationPortFilter.MaxLength = 5;
             this.DestinationPortFilter.Name = "DestinationPortFilter";
             this.DestinationPortFilter.Size = new System.Drawing.Size(131, 26);
@@ -920,27 +938,15 @@ namespace Kebab
             this.TabControl.Location = new System.Drawing.Point(0, 24);
             this.TabControl.Name = "TabControl";
             this.TabControl.SelectedIndex = 0;
-            this.TabControl.Size = new System.Drawing.Size(1324, 607);
+            this.TabControl.Size = new System.Drawing.Size(1404, 607);
             this.TabControl.TabIndex = 0;
-            // 
-            // ClearConnectionsButton
-            // 
-            this.ClearConnectionsButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.ClearConnectionsButton.Location = new System.Drawing.Point(1146, 30);
-            this.ClearConnectionsButton.MinimumSize = new System.Drawing.Size(98, 27);
-            this.ClearConnectionsButton.Name = "ClearConnectionsButton";
-            this.ClearConnectionsButton.Size = new System.Drawing.Size(152, 28);
-            this.ClearConnectionsButton.TabIndex = 0;
-            this.ClearConnectionsButton.Text = "Clear Connections";
-            this.ClearConnectionsButton.UseVisualStyleBackColor = true;
-            this.ClearConnectionsButton.Click += new System.EventHandler(this.ClearConnectionsButton_Click);
             // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.SystemColors.Control;
-            this.ClientSize = new System.Drawing.Size(1324, 631);
+            this.ClientSize = new System.Drawing.Size(1404, 631);
             this.Controls.Add(this.TabControl);
             this.Controls.Add(this.TopMenu);
             this.DoubleBuffered = true;
@@ -1025,6 +1031,15 @@ namespace Kebab
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
         private System.Windows.Forms.ToolStripMenuItem iSOToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem aSNOrganizationToolStripMenuItem;
+        private System.Windows.Forms.CheckBox clearConnsOnStartCheckBox;
+        private System.Windows.Forms.ToolStripMenuItem libpcapVersionInfoToolStripMenuItem;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator4;
+        private System.Windows.Forms.ToolStripMenuItem checkForUpdatesToolStripMenuItem;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator5;
+        private System.Windows.Forms.CheckBox RemoveLocalConnectionsCheckBox;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator6;
+        private System.Windows.Forms.ToolStripMenuItem allRemoteHostInformationToolStripMenuItem;
+        private System.Windows.Forms.Button ClearConnectionsButton;
         private System.Windows.Forms.DataGridViewTextBoxColumn Number;
         private System.Windows.Forms.DataGridViewTextBoxColumn Type;
         private System.Windows.Forms.DataGridViewTextBoxColumn Source;
@@ -1036,15 +1051,6 @@ namespace Kebab
         private System.Windows.Forms.DataGridViewTextBoxColumn ByteCount;
         private System.Windows.Forms.DataGridViewTextBoxColumn DstGeo;
         private System.Windows.Forms.DataGridViewTextBoxColumn DstASNOrg;
-        private System.Windows.Forms.CheckBox clearConnsOnStartCheckBox;
-        private System.Windows.Forms.ToolStripMenuItem libpcapVersionInfoToolStripMenuItem;
-        private System.Windows.Forms.ToolStripSeparator toolStripSeparator4;
-        private System.Windows.Forms.ToolStripMenuItem checkForUpdatesToolStripMenuItem;
-        private System.Windows.Forms.ToolStripSeparator toolStripSeparator5;
-        private System.Windows.Forms.CheckBox RemoveLocalConnectionsCheckBox;
-        private System.Windows.Forms.ToolStripSeparator toolStripSeparator6;
-        private System.Windows.Forms.ToolStripMenuItem allRemoteHostInformationToolStripMenuItem;
-        private System.Windows.Forms.Button ClearConnectionsButton;
     }
 }
 

@@ -11,13 +11,13 @@ namespace Kebab
     public class ConfVars
     {
         public string banner_message = (@"v" + Program.Version);
-        public string theme = @"light";
+        public string theme = @"dark";
     }
 
     // Definitions of excepted values for config variables (all value types should be easy to validate).
     public class ConfVarDefinitions
     {
-        public readonly List<string> theme = new List<string>() {@"light", @"dark"};
+        public readonly List<string> theme = new List<string>() {@"dark"};
     }
 
     public class Config

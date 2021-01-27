@@ -229,18 +229,24 @@ namespace Kebab
             this.Enabled = true;
         }
 
-        // Updates state of application with the user set configuration values on program startup.
-        private static readonly Color MidGray = ColorTranslator.FromHtml("#333333");
-        private static readonly Color DarkGray = ColorTranslator.FromHtml("#202020");
-        private static readonly Color CharGray = ColorTranslator.FromHtml("#191919");
-        private static readonly Color ChillBlue = ColorTranslator.FromHtml("#007ACC");
-        private static readonly Color ChillTeal = ColorTranslator.FromHtml("#4EC9B0");
-        private static readonly Color MatrixGreen = ColorTranslator.FromHtml("#59db56");
+        // Static color vars for use in setting the theme.
+        public static readonly Color MidGray = ColorTranslator.FromHtml("#333333");
+        public static readonly Color DarkGray = ColorTranslator.FromHtml("#202020");
+        public static readonly Color CharGray = ColorTranslator.FromHtml("#191919");
+        public static readonly Color ChillBlue = ColorTranslator.FromHtml("#007ACC");
+        public static readonly Color ChillTeal = ColorTranslator.FromHtml("#4EC9B0");
+        public static readonly Color ChillGreen = ColorTranslator.FromHtml("#04cc84");
 
-        private Color MatchingConn = Color.Red;
-        //private Color MatchingConnSelected = ChillBlue;
-        private Color NonMatchingConn = Color.Gray;
-        //private Color NonMatchingConnSelected = ChillBlue;
+        // Dynamic color vars for updating theme.
+        private Color ForePrimary = Color.White;
+        private Color ForeSecondary = SystemColors.GrayText;
+        private Color ForeNoticeablePrimary = ChillGreen;
+        private Color ForeNoticeableSecondary = ChillBlue;
+        private Color BackPrimary = DarkGray;
+        private Color BackSecondary = MidGray;
+        private Color BackNoticeablePrimary = CharGray;
+        private Color BackNoticeableSecondary = Color.Black;
+
 
         // Apply loaded configuration settings.
         private void ApplyConfig()
@@ -248,19 +254,14 @@ namespace Kebab
             // Apply banner message string to mainform title.
             this.Text += (" - " + programConfig.Vars.banner_message);
 
-            // Apply theme to form.
-            if (programConfig.Vars.theme.Equals("dark"))
-            {
-                // Apply windows 10 dark theme defaults.
-                if (!SetDarkMode(this.Handle, true)) MessageBox.Show("FAIL");
+            // Apply Win10 dark theme (dark border) to form.
+            if (!SetDarkMode(this.Handle, true)) MessageBox.Show("FAIL");
 
-                // Apply manual theme changes.
-                MatchingConn = MatrixGreen;
-                ApplyThemeToControls(this, Color.White, MatrixGreen, ChillBlue, ChillTeal, DarkGray, MidGray, CharGray, Color.Black);
-                ApplyThemeToToolStripItems(this.copyComponentToolStripMenuItem.DropDownItems, Color.White, DarkGray);
-                ApplyThemeToToolStripItems(this.FileMenu.DropDownItems, Color.White, DarkGray);
-                ApplyThemeToToolStripItems(this.HelpMenu.DropDownItems, Color.White, DarkGray);
-            }
+            // Apply manual theme changes.
+            ApplyThemeToControls(this);
+            ApplyThemeToToolStripItems(this.copyComponentToolStripMenuItem.DropDownItems);
+            ApplyThemeToToolStripItems(this.FileMenu.DropDownItems);
+            ApplyThemeToToolStripItems(this.HelpMenu.DropDownItems);
         }
 
         [DllImport("dwmapi.dll")]
@@ -297,27 +298,27 @@ namespace Kebab
                     && Environment.OSVersion.Version.Build >= build_ver);
         }
 
-        private void ApplyThemeToToolStripItems(ToolStripItemCollection items, Color F1, Color B1)
+        private void ApplyThemeToToolStripItems(ToolStripItemCollection items)
         {
             foreach (ToolStripItem item in items)
             {
-                item.ForeColor = F1;
-                item.BackColor = B1;
+                item.ForeColor = ForePrimary;
+                item.BackColor = BackSecondary;
             }
         }
 
-        private void ApplyThemeToControls(Control control, Color F1, Color F2, Color F3, Color F4, Color B1, Color B2, Color B3, Color B4)
+        private void ApplyThemeToControls(Control control)
         {
             // Form background should be different color from all other controls.
             if (control is Form)
             {
-                control.ForeColor = F1;
-                control.BackColor = B3;
+                control.ForeColor = ForePrimary;
+                control.BackColor = BackNoticeablePrimary;
             }
             else if (control is MenuStrip)
             {
-                control.ForeColor = F1;
-                control.BackColor = B4;
+                control.ForeColor = ForePrimary;
+                control.BackColor = BackNoticeableSecondary;
             }
             // Make data grid view cells and headers pop.
             else if (control is DataGridView)
@@ -326,55 +327,55 @@ namespace Kebab
 
                 dgv.EnableHeadersVisualStyles = false;
 
-                dgv.BackgroundColor = B3;
+                dgv.BackgroundColor = BackNoticeablePrimary;
 
-                dgv.DefaultCellStyle.ForeColor = F2;
-                dgv.DefaultCellStyle.SelectionForeColor = B3;
-                dgv.DefaultCellStyle.BackColor = B3;
-                dgv.DefaultCellStyle.SelectionBackColor = F2;
+                dgv.DefaultCellStyle.ForeColor = ForeNoticeablePrimary;
+                dgv.DefaultCellStyle.BackColor = BackNoticeablePrimary;
+                dgv.DefaultCellStyle.SelectionForeColor = BackNoticeablePrimary;
+                dgv.DefaultCellStyle.SelectionBackColor = ForeNoticeablePrimary;
 
-                dgv.ColumnHeadersDefaultCellStyle.ForeColor = F1;
-                dgv.ColumnHeadersDefaultCellStyle.SelectionForeColor = F1;
-                dgv.ColumnHeadersDefaultCellStyle.BackColor = B2;
-                dgv.ColumnHeadersDefaultCellStyle.SelectionBackColor = B2;
+                dgv.ColumnHeadersDefaultCellStyle.ForeColor = ForePrimary;
+                dgv.ColumnHeadersDefaultCellStyle.BackColor = BackSecondary;
+                dgv.ColumnHeadersDefaultCellStyle.SelectionForeColor = ForePrimary;
+                dgv.ColumnHeadersDefaultCellStyle.SelectionBackColor = BackSecondary;
 
-                dgv.ContextMenuStrip.ForeColor = F1;
-                dgv.ContextMenuStrip.BackColor = B1;
+                dgv.ContextMenuStrip.ForeColor = ForePrimary;
+                dgv.ContextMenuStrip.BackColor = BackSecondary;
             }
             // Make combo box text pop.
             else if (control is ComboBox)
             {
-                control.ForeColor = F2;
-                control.BackColor = B2;
+                control.ForeColor = ForeNoticeablePrimary;
+                control.BackColor = BackSecondary;
             }
             // Make text box text pop.
             else if (control is TextBox)
             {
-                control.ForeColor = F2;
-                control.BackColor = B2;
+                control.ForeColor = ForeNoticeablePrimary;
+                control.BackColor = BackSecondary;
             }
             // Make button text pop.
             else if (control is Button)
             {
-                control.ForeColor = F1;
-                control.BackColor = B2;
+                control.ForeColor = ForePrimary;
+                control.BackColor = BackSecondary;
             }
             // Apply default fore and back colors to everything not specified.
             else
             {
-                control.ForeColor = F1;
-                control.BackColor = B1;
+                control.ForeColor = ForePrimary;
+                control.BackColor = BackPrimary;
 
                 if (control.ContextMenuStrip != default(ContextMenuStrip))
                 {
-                    control.ContextMenuStrip.ForeColor = F1;
-                    control.ContextMenuStrip.BackColor = B1;
+                    control.ContextMenuStrip.ForeColor = ForePrimary;
+                    control.ContextMenuStrip.BackColor = BackPrimary;
                 }
             }
 
             // Recursivley apply to sub controls.
             foreach (Control sub_control in control.Controls)
-                ApplyThemeToControls(sub_control, F1, F2, F3, F4, B1, B2, B3, B4);
+                ApplyThemeToControls(sub_control);
         }
 
         // Reusable grouping for cleanup tasks when form needs to close.
@@ -610,13 +611,13 @@ namespace Kebab
             {
                 if (!CheckDisplayFilter(row.DataBoundItem))
                 {
-                    row.DefaultCellStyle.ForeColor = NonMatchingConn;
+                    row.DefaultCellStyle.ForeColor = ForeSecondary;
                     //row.DefaultCellStyle.SelectionForeColor = NonMatchingConnSelected;
                     row.DefaultCellStyle.Font = ConnectionGridView.DefaultCellStyle.Font;
                 }
                 else
                 {
-                    row.DefaultCellStyle.ForeColor = MatchingConn;
+                    row.DefaultCellStyle.ForeColor = ForeNoticeablePrimary;
                     //row.DefaultCellStyle.SelectionForeColor = MatchingConnSelected;
                     row.DefaultCellStyle.Font = new Font(ConnectionGridView.DefaultCellStyle.Font.Name,
                                                          ConnectionGridView.DefaultCellStyle.Font.Size,
