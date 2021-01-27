@@ -10,7 +10,6 @@ using System.IO;
 using System.Text.RegularExpressions;
 using System.Net;
 using System.Net.NetworkInformation;
-using System.Runtime.InteropServices;
 using System.Security.Principal;
 
 using ShimDotNet;
@@ -48,12 +47,10 @@ namespace Kebab
                                          + "and https://github.com/maxmind/GeoIP2-dotnet";
 
         // Header to match connections for saving list.
-        private const string connListHdr = "#    Type    LocalAddress:Port  State   RemoteAddress:Port  PacketsSent  DataSent     ISO    ASNOrg\n";
+        private const string connListHdr = "#    Type    LocalAddress:Port  State   RemoteAddress:Port  PacketsSent  DataSent(B)     ISO    ASNOrg\n";
 
         // Configuration object.
         private Config programConfig;
-        // Marks a non savable config state (such as the program not having permissions to write in it's directory).
-        //private bool nonPersistentConfig = false;
 
         // Interface drop down list data source.
         private BindingList<string> deviceList;
@@ -225,157 +222,100 @@ namespace Kebab
                 //nonPersistentConfig = true;
             }
 
+            // Check if auto update functionality is enabled.
+            if (programConfig.Vars.update_check == "true")
+            {
+                // Retrieve current version.
+                string tagName = GetCurrentTagName();
+
+                // Application is not the latest version.
+                if (!Program.GithubAPI_ReleaseTagElementValue.Equals(tagName))
+                {
+                    // Inform user of available update, and ask if they would like to visit web page.
+                    if (MessageBox.Show("An update is available!\n\nCurrent version: \t" + Program.GithubAPI_ReleaseTagElementValue + "\nLatest version: \t"
+                                        + tagName + "\n\nWould you like to vist the latest release web page?",
+                                        Program.Name, MessageBoxButtons.YesNo) == DialogResult.Yes)
+                    {
+                        // Load URL in default web browser.
+                        System.Diagnostics.Process.Start(Program.GithubWEB_LatestReleaseURL);
+                    }
+                }
+            }
+
             // Enable form after init is done.
             this.Enabled = true;
         }
 
-        // Static color vars for use in setting the theme.
-        public static readonly Color MidGray = ColorTranslator.FromHtml("#333333");
-        public static readonly Color DarkGray = ColorTranslator.FromHtml("#202020");
-        public static readonly Color CharGray = ColorTranslator.FromHtml("#191919");
-        public static readonly Color ChillBlue = ColorTranslator.FromHtml("#007ACC");
-        public static readonly Color ChillTeal = ColorTranslator.FromHtml("#4EC9B0");
-        public static readonly Color ChillGreen = ColorTranslator.FromHtml("#04cc84");
+        // Fetch update information.
+        private string GetCurrentTagName()
+        {
+            // Create HTTP WEB request using API URL string.
+            HttpWebRequest APIRequest = (HttpWebRequest)WebRequest.Create(Program.GithubAPI_LatestReleaseURL);
+            // Github API requires a user agent to be set.
+            APIRequest.UserAgent = Program.GithubAPI_HTTPUserAgent;
+            // Create storage location for response data.
+            HttpWebResponse APIresponse;
 
-        // Dynamic color vars for updating theme.
-        private Color ForePrimary = Color.White;
-        private Color ForeSecondary = SystemColors.GrayText;
-        private Color ForeNoticeablePrimary = ChillGreen;
-        private Color ForeNoticeableSecondary = ChillBlue;
-        private Color BackPrimary = DarkGray;
-        private Color BackSecondary = MidGray;
-        private Color BackNoticeablePrimary = CharGray;
-        private Color BackNoticeableSecondary = Color.Black;
+            // Send GET and attempt to store response.
+            try
+            {
+                APIresponse = (HttpWebResponse)APIRequest.GetResponse();
+            }
+            // Catch any failures such as 400 series web responses.
+            catch (System.Net.WebException ex)
+            {
+                MessageBox.Show(("Error: failed to check for update:\n" + ex.Message
+                                 + "\n\nMake sure that you have a valid internet connection."), Program.Name);
+                return "";
+            }
 
+            // Get payload data from response.
+            Stream responseDataStream = APIresponse.GetResponseStream();
+            StreamReader responseReader = new StreamReader(responseDataStream);
+            // Save data as string.
+            string JSONString = responseReader.ReadToEnd();
+
+            // Cleanup response data parsing opjects.
+            responseReader.Close();
+            responseDataStream.Close();
+            APIresponse.Close();
+
+            // Create json object to parse json data.
+            JObject JSONObj;
+
+            // Attempt to parse json data.
+            try
+            {
+                JSONObj = JObject.Parse(JSONString);
+            }
+            catch (JsonReaderException)
+            {
+                MessageBox.Show("Error: failed to check for update:\nAPI data is invalid or corrupt.", Program.Name);
+                return "";
+            }
+
+            // tag_name value string.
+            string tagName;
+
+            // Attempt to get tag_name element for comparison.
+            try
+            {
+                tagName = JSONObj[Program.GithubAPI_ReleaseTagElementName].Value<string>();
+            }
+            catch (System.ArgumentNullException)
+            {
+                MessageBox.Show("Error: failed to check for update:\nAPI data is invalid.", Program.Name);
+                return "";
+            }
+
+            return tagName;
+        }
 
         // Apply loaded configuration settings.
         private void ApplyConfig()
         {
             // Apply banner message string to mainform title.
             this.Text += (" - " + programConfig.Vars.banner_message);
-
-            // Apply Win10 dark theme (dark border) to form.
-            if (!SetDarkMode(this.Handle, true)) MessageBox.Show("FAIL");
-
-            // Apply manual theme changes.
-            ApplyThemeToControls(this);
-            ApplyThemeToToolStripItems(this.copyComponentToolStripMenuItem.DropDownItems);
-            ApplyThemeToToolStripItems(this.FileMenu.DropDownItems);
-            ApplyThemeToToolStripItems(this.HelpMenu.DropDownItems);
-        }
-
-        [DllImport("dwmapi.dll")]
-        private static extern int DwmSetWindowAttribute(IntPtr hwnd,
-                                                        int dwAttribute,
-                                                        ref int pvAttribute,
-                                                        int cbAttribute);
-
-        private const int DWMWA_USE_IMMERSIVE_DARK_MODE_BEFORE_20H1 = 19;
-        private const int DWMWA_USE_IMMERSIVE_DARK_MODE = 20;
-
-        private static bool SetDarkMode(IntPtr hwnd, bool enabled)
-        {
-            if (OSIsVersionOrHIgher(10, 17763))
-            {
-                int dwAttribute = DWMWA_USE_IMMERSIVE_DARK_MODE_BEFORE_20H1;
-
-                if (OSIsVersionOrHIgher(10, 18985))
-                    dwAttribute = DWMWA_USE_IMMERSIVE_DARK_MODE;
-
-                int pvAttribute = enabled ? 1 : 0;
-
-                return (DwmSetWindowAttribute(hwnd, dwAttribute,
-                                              ref pvAttribute,
-                                              sizeof(int)) == 0);
-            }
-
-            return false;
-        }
-
-        private static bool OSIsVersionOrHIgher(int major_ver, int build_ver)
-        {
-            return (Environment.OSVersion.Version.Major >= major_ver
-                    && Environment.OSVersion.Version.Build >= build_ver);
-        }
-
-        private void ApplyThemeToToolStripItems(ToolStripItemCollection items)
-        {
-            foreach (ToolStripItem item in items)
-            {
-                item.ForeColor = ForePrimary;
-                item.BackColor = BackSecondary;
-            }
-        }
-
-        private void ApplyThemeToControls(Control control)
-        {
-            // Form background should be different color from all other controls.
-            if (control is Form)
-            {
-                control.ForeColor = ForePrimary;
-                control.BackColor = BackNoticeablePrimary;
-            }
-            else if (control is MenuStrip)
-            {
-                control.ForeColor = ForePrimary;
-                control.BackColor = BackNoticeableSecondary;
-            }
-            // Make data grid view cells and headers pop.
-            else if (control is DataGridView)
-            {
-                DataGridView dgv = (DataGridView)control;
-
-                dgv.EnableHeadersVisualStyles = false;
-
-                dgv.BackgroundColor = BackNoticeablePrimary;
-
-                dgv.DefaultCellStyle.ForeColor = ForeNoticeablePrimary;
-                dgv.DefaultCellStyle.BackColor = BackNoticeablePrimary;
-                dgv.DefaultCellStyle.SelectionForeColor = BackNoticeablePrimary;
-                dgv.DefaultCellStyle.SelectionBackColor = ForeNoticeablePrimary;
-
-                dgv.ColumnHeadersDefaultCellStyle.ForeColor = ForePrimary;
-                dgv.ColumnHeadersDefaultCellStyle.BackColor = BackSecondary;
-                dgv.ColumnHeadersDefaultCellStyle.SelectionForeColor = ForePrimary;
-                dgv.ColumnHeadersDefaultCellStyle.SelectionBackColor = BackSecondary;
-
-                dgv.ContextMenuStrip.ForeColor = ForePrimary;
-                dgv.ContextMenuStrip.BackColor = BackSecondary;
-            }
-            // Make combo box text pop.
-            else if (control is ComboBox)
-            {
-                control.ForeColor = ForeNoticeablePrimary;
-                control.BackColor = BackSecondary;
-            }
-            // Make text box text pop.
-            else if (control is TextBox)
-            {
-                control.ForeColor = ForeNoticeablePrimary;
-                control.BackColor = BackSecondary;
-            }
-            // Make button text pop.
-            else if (control is Button)
-            {
-                control.ForeColor = ForePrimary;
-                control.BackColor = BackSecondary;
-            }
-            // Apply default fore and back colors to everything not specified.
-            else
-            {
-                control.ForeColor = ForePrimary;
-                control.BackColor = BackPrimary;
-
-                if (control.ContextMenuStrip != default(ContextMenuStrip))
-                {
-                    control.ContextMenuStrip.ForeColor = ForePrimary;
-                    control.ContextMenuStrip.BackColor = BackPrimary;
-                }
-            }
-
-            // Recursivley apply to sub controls.
-            foreach (Control sub_control in control.Controls)
-                ApplyThemeToControls(sub_control);
         }
 
         // Reusable grouping for cleanup tasks when form needs to close.
@@ -611,14 +551,12 @@ namespace Kebab
             {
                 if (!CheckDisplayFilter(row.DataBoundItem))
                 {
-                    row.DefaultCellStyle.ForeColor = ForeSecondary;
-                    //row.DefaultCellStyle.SelectionForeColor = NonMatchingConnSelected;
+                    row.DefaultCellStyle.ForeColor = SystemColors.GrayText;
                     row.DefaultCellStyle.Font = ConnectionGridView.DefaultCellStyle.Font;
                 }
                 else
                 {
-                    row.DefaultCellStyle.ForeColor = ForeNoticeablePrimary;
-                    //row.DefaultCellStyle.SelectionForeColor = MatchingConnSelected;
+                    row.DefaultCellStyle.ForeColor = System.Drawing.ColorTranslator.FromHtml("#04cc84");
                     row.DefaultCellStyle.Font = new Font(ConnectionGridView.DefaultCellStyle.Font.Name,
                                                          ConnectionGridView.DefaultCellStyle.Font.Size,
                                                          FontStyle.Bold);
@@ -996,7 +934,7 @@ namespace Kebab
                               + row.Cells[4].Value.ToString().PadRight(5) + " "
                               + row.Cells[5].Value.ToString().PadLeft(15) + ":" + row.Cells[6].Value.ToString().PadRight(5) + " "
                               + row.Cells[7].Value.ToString().PadRight(12) + " "
-                              + row.Cells[8].Value.ToString().PadRight(12) + " "
+                              + row.Cells[8].Value.ToString().PadRight(15) + " "
                               + row.Cells[9].Value.ToString().PadRight(6) + " "
                               + row.Cells[10].Value.ToString()
                               + "\n");
@@ -1634,64 +1572,8 @@ namespace Kebab
         // Check if there is a newer release by comparing embeded release tag to latest release tag.
         private void checkForUpdatesToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            // Create HTTP WEB request using API URL string.
-            HttpWebRequest APIRequest = (HttpWebRequest)WebRequest.Create(Program.GithubAPI_LatestReleaseURL);
-            // Github API requires a user agent to be set.
-            APIRequest.UserAgent = Program.GithubAPI_HTTPUserAgent;
-            // Create storage location for response data.
-            HttpWebResponse APIresponse;
-
-            // Send GET and attempt to store response.
-            try
-            {
-                APIresponse = (HttpWebResponse)APIRequest.GetResponse();
-            }
-            // Catch any failures such as 400 series web responses.
-            catch (System.Net.WebException ex)
-            {
-                MessageBox.Show(("Error: failed to check for update:\n" + ex.Message
-                                 + "\n\nMake sure that you have a valid internet connection."), Program.Name);
-                return;
-            }
-
-            // Get payload data from response.
-            Stream responseDataStream = APIresponse.GetResponseStream();
-            StreamReader responseReader = new StreamReader(responseDataStream);
-            // Save data as string.
-            string JSONString = responseReader.ReadToEnd();
-
-            // Cleanup response data parsing opjects.
-            responseReader.Close();
-            responseDataStream.Close();
-            APIresponse.Close();
-
-            // Create json object to parse json data.
-            JObject JSONObj;
-
-            // Attempt to parse json data.
-            try
-            {
-                JSONObj = JObject.Parse(JSONString);
-            }
-            catch (JsonReaderException)
-            {
-                MessageBox.Show("Error: failed to check for update:\nAPI data is invalid or corrupt.", Program.Name);
-                return;
-            }
-
-            // tag_name value string.
-            string tagName;
-
-            // Attempt to get tag_name element for comparison.
-            try
-            {
-                tagName = JSONObj[Program.GithubAPI_ReleaseTagElementName].Value<string>();
-            }
-            catch (System.ArgumentNullException)
-            {
-                MessageBox.Show("Error: failed to check for update:\nAPI data is invalid.", Program.Name);
-                return;
-            }
+            // Retrieve current version.
+            string tagName = GetCurrentTagName();
 
             // Application is latest version.
             if (Program.GithubAPI_ReleaseTagElementValue.Equals(tagName))

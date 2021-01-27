@@ -11,13 +11,13 @@ namespace Kebab
     public class ConfVars
     {
         public string banner_message = (@"v" + Program.Version);
-        public string theme = @"dark";
+        public string update_check = @"false";
     }
 
     // Definitions of excepted values for config variables (all value types should be easy to validate).
     public class ConfVarDefinitions
     {
-        public readonly List<string> theme = new List<string>() {@"dark"};
+        public readonly List<string> update_check = new List<string>() {@"false", @"true"};
     }
 
     public class Config
@@ -82,10 +82,10 @@ namespace Kebab
                 Vars.banner_message = savedConfig.banner_message;
 
             // Apply theme if valid.
-            if (!savedConfig.theme.Equals(Vars.theme))
+            if (!savedConfig.update_check.Equals(Vars.update_check))
             {
-                if (ValidateConfigVariable(savedConfig.theme, VarDefs.theme))
-                    Vars.theme = savedConfig.theme;
+                if (ValidateConfigVariable(savedConfig.update_check, VarDefs.update_check))
+                    Vars.update_check = savedConfig.update_check;
             }
         }
 
