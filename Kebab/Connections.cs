@@ -214,11 +214,11 @@ namespace Kebab
         public override string ToString()
         {
             if (Equals(this.Direction, TransmissionDirection.ONE_WAY))
-                return "->";
+                return " -> ";
             else if (Equals(this.Direction, TransmissionDirection.REV_ONE_WAY))
-                return "<-";
+                return " <- ";
             else
-                return "<>";
+                return " <> ";
         }
 
         public int CompareTo(object obj)

@@ -31,13 +31,13 @@ namespace Kebab
         // Name of program for repeated use.
         public const string Name = @"Kebab";
         // Version of the program (for releases).
-        public const string Version = @"1.1.3.1";
+        public const string Version = @"1.1.3.3";
 
         // Links and strings for update checking mechanism.
         public const string GithubWEB_LatestReleaseURL = @"https://github.com/anicca048/Kebab/releases/latest";
         public const string GithubAPI_LatestReleaseURL = @"https://api.github.com/repos/anicca048/Kebab/releases/latest";
         public const string GithubAPI_ReleaseTagElementName = @"tag_name";
-        public const string GithubAPI_ReleaseTagElementValue = @"v1.1.3.1_Windows_x86_64";
+        public const string GithubAPI_ReleaseTagElementValue = @"v1.1.3.3_Windows_x86_64";
         // Github API requires a http user agent to be set.
         public const string GithubAPI_HTTPUserAgent = (Program.Name + "/" + Program.Version);
 

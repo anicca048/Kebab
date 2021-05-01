@@ -47,7 +47,7 @@ namespace Kebab
                                          + "and https://github.com/maxmind/GeoIP2-dotnet";
 
         // Header to match connections for saving list.
-        private const string connListHdr = "#    Type    LocalAddress:Port  State   RemoteAddress:Port  PacketsSent  DataSent(B)     ISO    ASNOrg\n";
+        private const string connListHdr = "#    Type    LocalAddress:Port  RXTX    RemoteAddress:Port  PacketsSent  DataSent(B)     ISO    ASNOrg\n";
 
         // Configuration object.
         private Config programConfig;
@@ -88,7 +88,7 @@ namespace Kebab
         // File stream for using save option without reprompting dialog.
         private string saveFileName;
         // Filter string to use for file dialog window.
-        private const string saveFileFilter = "text files (*.txt)|*.txt|All files (*.*)|*.*";
+        private const string saveFileFilter = "text file (*.txt)|*.txt|All files (*.*)|*.*";
 
         // Used to evaluate textfields that should only contian numeric values such as ports.
         private const string nonNumericRegex = @"[^0-9]";
