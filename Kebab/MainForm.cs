@@ -1254,6 +1254,7 @@ namespace Kebab
             InterfaceDropDownList.Enabled = false;
             clearConnsOnStartCheckBox.Enabled = false;
             CaptureFilterGroupBox.Enabled = false;
+            AssumeRawCheckBox.Enabled = false;
 
             // Enable Connection page elements.
             DisplayFilterGroupBox.Enabled = true;
@@ -1275,6 +1276,7 @@ namespace Kebab
             InterfaceDropDownList.Enabled = true;
             clearConnsOnStartCheckBox.Enabled = true;
             CaptureFilterGroupBox.Enabled = true;
+            AssumeRawCheckBox.Enabled = true;
         }
 
         // Determine if the user can start a capture or not based on valid drop down selection.
@@ -1392,7 +1394,7 @@ namespace Kebab
                 if (getCaptureFilterStr(out captureFilterStr) == -1)
                     return;
 
-                bool assumeInterfaceIsRaw = assumeRawCheckBox.Checked;
+                bool assumeInterfaceIsRaw = AssumeRawCheckBox.Checked;
 
                 // Open pcap live session (offset index by -1 because of invalid first entry in drop down list).
                 if (captureEngine.startCapture((InterfaceDropDownList.SelectedIndex - 1), captureFilterStr, assumeInterfaceIsRaw) == -1)

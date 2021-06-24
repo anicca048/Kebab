@@ -85,7 +85,7 @@ namespace Kebab
             this.allRemoteHostInformationToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.CapturePage = new System.Windows.Forms.TabPage();
             this.CaptureOptionsGroupBox = new System.Windows.Forms.GroupBox();
-            this.assumeRawCheckBox = new System.Windows.Forms.CheckBox();
+            this.AssumeRawCheckBox = new System.Windows.Forms.CheckBox();
             this.clearConnsOnStartCheckBox = new System.Windows.Forms.CheckBox();
             this.RefreshInterfacesButton = new System.Windows.Forms.Button();
             this.InterfaceLabel = new System.Windows.Forms.Label();
@@ -656,7 +656,7 @@ namespace Kebab
             this.CaptureOptionsGroupBox.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.CaptureOptionsGroupBox.Controls.Add(this.assumeRawCheckBox);
+            this.CaptureOptionsGroupBox.Controls.Add(this.AssumeRawCheckBox);
             this.CaptureOptionsGroupBox.Controls.Add(this.clearConnsOnStartCheckBox);
             this.CaptureOptionsGroupBox.Controls.Add(this.RefreshInterfacesButton);
             this.CaptureOptionsGroupBox.Controls.Add(this.InterfaceLabel);
@@ -670,15 +670,15 @@ namespace Kebab
             this.CaptureOptionsGroupBox.TabStop = false;
             this.CaptureOptionsGroupBox.Text = "Capture Options";
             // 
-            // assumeRawCheckBox
+            // AssumeRawCheckBox
             // 
-            this.assumeRawCheckBox.AutoSize = true;
-            this.assumeRawCheckBox.Location = new System.Drawing.Point(139, 152);
-            this.assumeRawCheckBox.Name = "assumeRawCheckBox";
-            this.assumeRawCheckBox.Size = new System.Drawing.Size(243, 24);
-            this.assumeRawCheckBox.TabIndex = 5;
-            this.assumeRawCheckBox.Text = "Assume Interface Type is Raw";
-            this.assumeRawCheckBox.UseVisualStyleBackColor = true;
+            this.AssumeRawCheckBox.AutoSize = true;
+            this.AssumeRawCheckBox.Location = new System.Drawing.Point(139, 152);
+            this.AssumeRawCheckBox.Name = "AssumeRawCheckBox";
+            this.AssumeRawCheckBox.Size = new System.Drawing.Size(243, 24);
+            this.AssumeRawCheckBox.TabIndex = 5;
+            this.AssumeRawCheckBox.Text = "Assume Interface Type is Raw";
+            this.AssumeRawCheckBox.UseVisualStyleBackColor = true;
             // 
             // clearConnsOnStartCheckBox
             // 
@@ -1058,7 +1058,7 @@ namespace Kebab
         private System.Windows.Forms.DataGridViewTextBoxColumn ByteCount;
         private System.Windows.Forms.DataGridViewTextBoxColumn DstGeo;
         private System.Windows.Forms.DataGridViewTextBoxColumn DstASNOrg;
-        private System.Windows.Forms.CheckBox assumeRawCheckBox;
+        private System.Windows.Forms.CheckBox AssumeRawCheckBox;
     }
 }
 
