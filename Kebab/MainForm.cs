@@ -105,6 +105,9 @@ namespace Kebab
         // Indicates that the form closing event has been called and that the worker completion method needs to close the form.
         private bool formClosePending = false;
 
+        // Font to be used for numeric value containers.
+        private readonly Font DataFont = new Font("Consolas", 12, FontStyle.Regular);
+
         // 
         // Main form directly related methods.
         // 
@@ -136,6 +139,10 @@ namespace Kebab
             typeof(Control).InvokeMember("DoubleBuffered",
                                          BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.SetProperty,
                                          null, ConnectionGridView, new object[] { true });
+
+            // Set DGV fonts (becuase VS UI editor keeps reseting them).
+            ConnectionGridView.DefaultCellStyle.Font = DataFont;
+            ConnectionGridView.ColumnHeadersDefaultCellStyle.Font = DataFont;
 
             // Spawn mainform on top (but don't force always on top).
             this.TopMost = true;
@@ -1252,9 +1259,10 @@ namespace Kebab
             CaptureStartButton.Enabled = false;
             InterfaceLabel.Enabled = false;
             InterfaceDropDownList.Enabled = false;
-            clearConnsOnStartCheckBox.Enabled = false;
+            ClearConnsOnStartCheckBox.Enabled = false;
+            RemoveLocalConnectionsCheckBox.Enabled = false;
+            ForceRawCheckBox.Enabled = false;
             CaptureFilterGroupBox.Enabled = false;
-            AssumeRawCheckBox.Enabled = false;
 
             // Enable Connection page elements.
             DisplayFilterGroupBox.Enabled = true;
@@ -1274,9 +1282,12 @@ namespace Kebab
             CaptureStartButton.Enabled = true;
             InterfaceLabel.Enabled = true;
             InterfaceDropDownList.Enabled = true;
-            clearConnsOnStartCheckBox.Enabled = true;
-            CaptureFilterGroupBox.Enabled = true;
-            AssumeRawCheckBox.Enabled = true;
+            ClearConnsOnStartCheckBox.Enabled = true;
+            RemoveLocalConnectionsCheckBox.Enabled = true;
+            ForceRawCheckBox.Enabled = true;
+
+            if (!ForceRawCheckBox.Checked)
+                CaptureFilterGroupBox.Enabled = true;
         }
 
         // Determine if the user can start a capture or not based on valid drop down selection.
@@ -1286,12 +1297,18 @@ namespace Kebab
             if (InterfaceDropDownList.SelectedIndex > 0)
             {
                 CaptureStartButton.Enabled = true;
+                ClearConnsOnStartCheckBox.Enabled = true;
+                RemoveLocalConnectionsCheckBox.Enabled = true;
+                ForceRawCheckBox.Enabled = true;
                 CaptureFilterGroupBox.Enabled = true;
             }
             // Shouldn't be possible after first selection but just to be safe here it is.
             else
             {
                 CaptureStartButton.Enabled = false;
+                ClearConnsOnStartCheckBox.Enabled = false;
+                RemoveLocalConnectionsCheckBox.Enabled = false;
+                ForceRawCheckBox.Enabled = false;
                 CaptureFilterGroupBox.Enabled = false;
             }
         }
@@ -1302,6 +1319,10 @@ namespace Kebab
             // Init string.
             captureFilterStr = String.Empty;
 
+            // Don't copy filter info if forcing raw interface.
+            if (ForceRawCheckBox.Checked)
+                return 0;
+
             // Ensure at least one protocol (tcp or udp) is selected in Filter Options.
             if (!TCPCheckBox.Checked && !UDPCheckBox.Checked)
             {
@@ -1310,20 +1331,46 @@ namespace Kebab
             }
 
             // Add protocol to filter.
-            if (TCPCheckBox.Checked && UDPCheckBox.Checked)
-                captureFilterStr = "( tcp or udp ) and ";
+            if (TCPCheckBox.Checked && !UDPCheckBox.Checked)
+                captureFilterStr = "tcp and ";
             else if (!TCPCheckBox.Checked && UDPCheckBox.Checked)
                 captureFilterStr = "udp and ";
-            else
-                captureFilterStr = "tcp and ";
 
-            // Check for user entered ip.
+            // Check for user entered any-direction-matching IP address.
+            if (AnyIPFilter.Text.Trim().Length > 0)
+            {
+                // Ensure ip is valid.
+                if (!IPAddress.TryParse(AnyIPFilter.Text.Trim(), out IPAddress _))
+                {
+                    MessageBox.Show("Error: invalid any IP address!", Program.Name);
+                    return -1;
+                }
+
+                // Add ip to filter string.
+                captureFilterStr += ("host " + AnyIPFilter.Text.Trim() + " and ");
+            }
+
+            // Check for user entered any-direction-matching port.
+            if (AnyPortFilter.Text.Trim().Length > 0)
+            {
+                // Ensure port number is valid.
+                if (!UInt16.TryParse(AnyPortFilter.Text.Trim(), out _))
+                {
+                    MessageBox.Show("Error: invalid any port number!", Program.Name);
+                    return -1;
+                }
+
+                // Add port to filter string.
+                captureFilterStr += ("port " + AnyPortFilter.Text.Trim() + " and ");
+            }
+
+            // Check for user entered source IP address.
             if (SourceIPFilter.Text.Trim().Length > 0)
             {
                 // Ensure ip is valid.
                 if (!IPAddress.TryParse(SourceIPFilter.Text.Trim(), out IPAddress _))
                 {
-                    MessageBox.Show("Error: invalid source ip address!", Program.Name);
+                    MessageBox.Show("Error: invalid source IP address!", Program.Name);
                     return -1;
                 }
 
@@ -1331,7 +1378,7 @@ namespace Kebab
                 captureFilterStr += ("src host " + SourceIPFilter.Text.Trim() + " and ");
             }
 
-            // Check for user entered port.
+            // Check for user entered source port.
             if (SourcePortFilter.Text.Trim().Length > 0)
             {
                 // Ensure port number is valid.
@@ -1345,7 +1392,7 @@ namespace Kebab
                 captureFilterStr += ("src port " + SourcePortFilter.Text.Trim() + " and ");
             }
 
-            // Check for user entered ip.
+            // Check for user entered destination IP address.
             if (DestinationIPFilter.Text.Trim().Length > 0)
             {
                 // Ensure ip is valid.
@@ -1359,7 +1406,7 @@ namespace Kebab
                 captureFilterStr += ("dst host " + DestinationIPFilter.Text.Trim() + " and ");
             }
 
-            // Check for user entered port.
+            // Check for user entered destination port.
             if (DestinationPortFilter.Text.Trim().Length > 0)
             {
                 // Ensure port number is valid.
@@ -1374,7 +1421,8 @@ namespace Kebab
             }
 
             // Remove trailing " and ".
-            captureFilterStr = captureFilterStr.Remove(captureFilterStr.Length - 5);
+            if (captureFilterStr != String.Empty)
+                captureFilterStr = captureFilterStr.Remove(captureFilterStr.Length - 5);
 
             // Check and see if user opted to use complexFilter (directly using libpcap filter string).
             if (complexFilter.Text.Trim().Length > 0)
@@ -1394,10 +1442,8 @@ namespace Kebab
                 if (getCaptureFilterStr(out captureFilterStr) == -1)
                     return;
 
-                bool assumeInterfaceIsRaw = AssumeRawCheckBox.Checked;
-
                 // Open pcap live session (offset index by -1 because of invalid first entry in drop down list).
-                if (captureEngine.startCapture((InterfaceDropDownList.SelectedIndex - 1), captureFilterStr, assumeInterfaceIsRaw) == -1)
+                if (captureEngine.startCapture((InterfaceDropDownList.SelectedIndex - 1), captureFilterStr, ForceRawCheckBox.Checked) == -1)
                 {
                     // If an error happens here we want the user to be able to try another interface.
                     MessageBox.Show(("Error: failed starting capture:\n" + captureEngine.getEngineError()), Program.Name);
@@ -1426,7 +1472,7 @@ namespace Kebab
                 }
 
                 // Clear connections list if settings is set.
-                if (clearConnsOnStartCheckBox.Checked)
+                if (ClearConnsOnStartCheckBox.Checked)
                     ClearConnList();
 
                 // Sets up all background workers.
@@ -1597,6 +1643,14 @@ namespace Kebab
                     System.Diagnostics.Process.Start(Program.GithubWEB_LatestReleaseURL);
                 }
             }
+        }
+
+        private void ForceRawCheckBox_CheckedChanged(object sender, EventArgs e)
+        {
+            if (ForceRawCheckBox.Checked)
+                CaptureFilterGroupBox.Enabled = false;
+            else
+                CaptureFilterGroupBox.Enabled = true;
         }
     }
 }
