@@ -1392,8 +1392,10 @@ namespace Kebab
                 if (getCaptureFilterStr(out captureFilterStr) == -1)
                     return;
 
+                bool assumeInterfaceIsRaw = assumeRawCheckBox.Checked;
+
                 // Open pcap live session (offset index by -1 because of invalid first entry in drop down list).
-                if (captureEngine.startCapture((InterfaceDropDownList.SelectedIndex - 1), captureFilterStr) == -1)
+                if (captureEngine.startCapture((InterfaceDropDownList.SelectedIndex - 1), captureFilterStr, assumeInterfaceIsRaw) == -1)
                 {
                     // If an error happens here we want the user to be able to try another interface.
                     MessageBox.Show(("Error: failed starting capture:\n" + captureEngine.getEngineError()), Program.Name);
