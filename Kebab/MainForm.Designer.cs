@@ -85,6 +85,7 @@ namespace Kebab
             this.allRemoteHostInformationToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.CapturePage = new System.Windows.Forms.TabPage();
             this.CaptureOptionsGroupBox = new System.Windows.Forms.GroupBox();
+            this.assumeRawCheckBox = new System.Windows.Forms.CheckBox();
             this.clearConnsOnStartCheckBox = new System.Windows.Forms.CheckBox();
             this.RefreshInterfacesButton = new System.Windows.Forms.Button();
             this.InterfaceLabel = new System.Windows.Forms.Label();
@@ -108,7 +109,6 @@ namespace Kebab
             this.SourcePortFilter = new System.Windows.Forms.TextBox();
             this.DestinationPortFilter = new System.Windows.Forms.TextBox();
             this.TabControl = new System.Windows.Forms.TabControl();
-            this.assumeRawCheckBox = new System.Windows.Forms.CheckBox();
             this.TopMenu.SuspendLayout();
             this.ConnectionPage.SuspendLayout();
             this.DisplayFilterGroupBox.SuspendLayout();
@@ -358,7 +358,7 @@ namespace Kebab
             this.ConnectionGridView.ColumnHeadersBorderStyle = System.Windows.Forms.DataGridViewHeaderBorderStyle.None;
             dataGridViewCellStyle1.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
             dataGridViewCellStyle1.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(28)))), ((int)(((byte)(28)))), ((int)(((byte)(37)))));
-            dataGridViewCellStyle1.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle1.Font = new System.Drawing.Font("Consolas", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             dataGridViewCellStyle1.ForeColor = System.Drawing.Color.White;
             dataGridViewCellStyle1.SelectionBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(28)))), ((int)(((byte)(28)))), ((int)(((byte)(37)))));
             dataGridViewCellStyle1.SelectionForeColor = System.Drawing.Color.White;
@@ -382,7 +382,7 @@ namespace Kebab
             this.ConnectionGridView.Cursor = System.Windows.Forms.Cursors.Hand;
             dataGridViewCellStyle2.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
             dataGridViewCellStyle2.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(37)))), ((int)(((byte)(38)))), ((int)(((byte)(46)))));
-            dataGridViewCellStyle2.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle2.Font = new System.Drawing.Font("Consolas", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             dataGridViewCellStyle2.ForeColor = System.Drawing.Color.White;
             dataGridViewCellStyle2.SelectionBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(4)))), ((int)(((byte)(204)))), ((int)(((byte)(132)))));
             dataGridViewCellStyle2.SelectionForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(37)))), ((int)(((byte)(38)))), ((int)(((byte)(46)))));
@@ -670,6 +670,16 @@ namespace Kebab
             this.CaptureOptionsGroupBox.TabStop = false;
             this.CaptureOptionsGroupBox.Text = "Capture Options";
             // 
+            // assumeRawCheckBox
+            // 
+            this.assumeRawCheckBox.AutoSize = true;
+            this.assumeRawCheckBox.Location = new System.Drawing.Point(139, 152);
+            this.assumeRawCheckBox.Name = "assumeRawCheckBox";
+            this.assumeRawCheckBox.Size = new System.Drawing.Size(243, 24);
+            this.assumeRawCheckBox.TabIndex = 5;
+            this.assumeRawCheckBox.Text = "Assume Interface Type is Raw";
+            this.assumeRawCheckBox.UseVisualStyleBackColor = true;
+            // 
             // clearConnsOnStartCheckBox
             // 
             this.clearConnsOnStartCheckBox.AutoSize = true;
@@ -937,16 +947,6 @@ namespace Kebab
             this.TabControl.SelectedIndex = 0;
             this.TabControl.Size = new System.Drawing.Size(1454, 607);
             this.TabControl.TabIndex = 0;
-            // 
-            // assumeRawCheckBox
-            // 
-            this.assumeRawCheckBox.AutoSize = true;
-            this.assumeRawCheckBox.Location = new System.Drawing.Point(139, 152);
-            this.assumeRawCheckBox.Name = "assumeRawCheckBox";
-            this.assumeRawCheckBox.Size = new System.Drawing.Size(243, 24);
-            this.assumeRawCheckBox.TabIndex = 5;
-            this.assumeRawCheckBox.Text = "Assume Interface Type is Raw";
-            this.assumeRawCheckBox.UseVisualStyleBackColor = true;
             // 
             // MainForm
             // 
