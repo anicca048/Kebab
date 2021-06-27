@@ -21,8 +21,8 @@ namespace Kebab
     public enum MatchType
     {
         MATCH,
-        NO_MATCH,
-        REVERSE_MATCH
+        REV_MATCH,
+        NON_MATCH
     }
 
     // Wrapperclass to implement IComparable for IPV4Address from pacapdotnet.
@@ -332,10 +332,10 @@ namespace Kebab
         public DateTime TimeStamp { get; set; }
 
         // Ctor allows conversion from L4Packet to Connection.
-        public Connection(IPV4_PACKET pkt, TransmissionDirection direction)
+        public Connection(IPV4_PACKET pkt)
         {
             this.Type = new ConnectionType(pkt.protocol);
-            this.State = new ConnectionState(direction);
+            this.State = new ConnectionState(TransmissionDirection.ONE_WAY);
             this.Source = new ConnectionAddress(pkt.source_address);
             this.Destination = new ConnectionAddress(pkt.destination_address);
             this.SrcPort = pkt.source_port;
@@ -359,7 +359,7 @@ namespace Kebab
         {
             // Check protocol first (biggest devider of connections).
             if (!Equals(this.Type.Protocol, pkt.protocol))
-                return MatchType.NO_MATCH;
+                return MatchType.NON_MATCH;
 
             // Check if IP's and ports (or inverse) match.
             if ((Equals(this.Source.Address, pkt.source_address) && Equals(this.SrcPort, pkt.source_port))
@@ -367,9 +367,9 @@ namespace Kebab
                 return MatchType.MATCH;
             else if ((Equals(this.Source.Address, pkt.destination_address) && Equals(this.SrcPort, pkt.destination_port))
                      && (Equals(this.Destination.Address, pkt.source_address) && Equals(this.DstPort, pkt.source_port)))
-                return MatchType.REVERSE_MATCH;
+                return MatchType.REV_MATCH;
 
-            return MatchType.NO_MATCH;
+            return MatchType.NON_MATCH;
         }
 
         // Match pre-existing connections (Equals() is check value, == is check reference).

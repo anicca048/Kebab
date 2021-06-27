@@ -47,7 +47,7 @@ namespace Kebab
                                          + "and https://github.com/maxmind/GeoIP2-dotnet";
 
         // Header to match connections for saving list.
-        private const string connListHdr = "#    Type    LocalAddress:Port  RXTX    RemoteAddress:Port  PacketsSent  DataSent(B)     ISO    ASNOrg\n";
+        private const string connListHdr = "#    Type    LocalAddress:Port  RXTX    RemoteAddress:Port  PacketsSent  BytesSent       ISO    ASNOrg\n";
 
         // Configuration object.
         private Config programConfig;
@@ -230,7 +230,7 @@ namespace Kebab
             }
 
             // Check if auto update functionality is enabled.
-            if (programConfig.Vars.update_check == "true")
+            if (programConfig.CVars.update_check == "true")
             {
                 // Retrieve current version.
                 string tagName = GetCurrentTagName();
@@ -322,7 +322,7 @@ namespace Kebab
         private void ApplyConfig()
         {
             // Apply banner message string to mainform title.
-            this.Text += (" - " + programConfig.Vars.banner_message);
+            this.Text += (" - " + programConfig.CVars.flavor_text);
         }
 
         // Reusable grouping for cleanup tasks when form needs to close.
@@ -686,31 +686,31 @@ namespace Kebab
                     pkt = pendingPackets.Dequeue();
                 }
 
-                // Set direction for packet.
-                TransmissionDirection direction = TransmissionDirection.ONE_WAY;
-
                 // Make sure we don't add a new connection when a matching one already exists and was updated.
                 bool packetMatched = false;
 
                 // Loop through connections list and see if we have a new connection.
-                foreach (Connection tmpConn in connectionList)
+                foreach (Connection conn in connectionList)
                 {
+                    // Get match type of packet.
+                    MatchType packetMatch = conn.PacketMatch(pkt);
+
                     // Find matching connections(regardless of source and dest orientation).
-                    if (tmpConn.PacketMatch(pkt) != MatchType.NO_MATCH)
+                    if (packetMatch != MatchType.NON_MATCH)
                     {
-                        tmpConn.PacketCount++;
-                        tmpConn.ByteCount += pkt.payload_size;
-                        tmpConn.TimeStamp = DateTime.Now;
+                        conn.PacketCount++;
+                        conn.ByteCount += pkt.payload_size;
+                        conn.TimeStamp = DateTime.Now;
 
                         // Check if direction needs to be updated to both ways.
-                        if (tmpConn.State.Direction != TransmissionDirection.TWO_WAY)
+                        if (conn.State.Direction != TransmissionDirection.TWO_WAY)
                         {
-                            if (tmpConn.PacketMatch(pkt) == MatchType.REVERSE_MATCH
-                                && tmpConn.State.Direction == direction)
-                                tmpConn.State.Direction = TransmissionDirection.TWO_WAY;
-                            // Deals with case where both endpoints are local so no setting of REV_ONE_WAY occurs.
-                            else if (tmpConn.State.Direction != direction)
-                                tmpConn.State.Direction = TransmissionDirection.TWO_WAY;
+                            // Reverse match with both packets going from src to dest means we have a two way conn.
+                            if (packetMatch == MatchType.REV_MATCH && conn.State.Direction == TransmissionDirection.ONE_WAY)
+                                conn.State.Direction = TransmissionDirection.TWO_WAY;
+                            // Matched packet but the original had src, dst, and direction flipped, means we have a two way conn.
+                            else if (packetMatch == MatchType.MATCH && conn.State.Direction == TransmissionDirection.REV_ONE_WAY)
+                                conn.State.Direction = TransmissionDirection.TWO_WAY;
                         }
 
                         // Match made.
@@ -727,7 +727,7 @@ namespace Kebab
                 if (!packetMatched)
                 {
                     // Create new connection.
-                    Connection newConn = new Connection(pkt, direction);
+                    Connection newConn = new Connection(pkt);
 
                     // Don't create local connections if not wanted by user.
                     if (newConn.Source.AddressIsLocal() && newConn.Destination.AddressIsLocal() && RemoveLocalConnectionsCheckBox.Checked)
@@ -851,13 +851,13 @@ namespace Kebab
                 bool removedConnection = false;
 
                 // Loop through connectionList and remove an inactive entry if we find one.
-                foreach (Connection loopConn in connectionList)
+                foreach (Connection conn in connectionList)
                 {
                     // Find Inactive connetion based on timestamp.
-                    if ((DateTime.Now - loopConn.TimeStamp).TotalSeconds >= timeoutInactivityLimit)
+                    if ((DateTime.Now - conn.TimeStamp).TotalSeconds >= timeoutInactivityLimit)
                     {
                         // Remove inactive entry and mark flag so that we will do another inactive connection check.
-                        connectionList.Remove(loopConn);
+                        connectionList.Remove(conn);
                         removedConnection = true;
 
                         if (!reorderConnections)
@@ -1130,7 +1130,7 @@ namespace Kebab
             {
                 // Create and setup save file dialog.
                 SaveFileDialog saveFileDialog = new SaveFileDialog();
-                saveFileDialog.Title =
+                saveFileDialog.Title = "Save As";
                 saveFileDialog.Filter = saveFileFilter;
                 saveFileDialog.FilterIndex = 1;
                 saveFileDialog.RestoreDirectory = true;
@@ -1157,15 +1157,6 @@ namespace Kebab
             // Open file directly if dialog wasn't requested.
             else
             {
-                // If file no longer exists, then prompt the user for new file to save.
-                if (!File.Exists(saveFileName))
-                {
-                    // Call member recursivley to get dialog.
-                    saveConnListToFile(true);
-
-                    return;
-                }
-
                 // Open file stream for writing.
                 try
                 {
@@ -1318,6 +1309,7 @@ namespace Kebab
         {
             // Init string.
             captureFilterStr = String.Empty;
+            List<String> filterStrs = new List<string>();
 
             // Don't copy filter info if forcing raw interface.
             if (ForceRawCheckBox.Checked)
@@ -1332,9 +1324,9 @@ namespace Kebab
 
             // Add protocol to filter.
             if (TCPCheckBox.Checked && !UDPCheckBox.Checked)
-                captureFilterStr = "tcp and ";
+                filterStrs.Add("tcp");
             else if (!TCPCheckBox.Checked && UDPCheckBox.Checked)
-                captureFilterStr = "udp and ";
+                filterStrs.Add("udp");
 
             // Check for user entered any-direction-matching IP address.
             if (AnyIPFilter.Text.Trim().Length > 0)
@@ -1347,7 +1339,7 @@ namespace Kebab
                 }
 
                 // Add ip to filter string.
-                captureFilterStr += ("host " + AnyIPFilter.Text.Trim() + " and ");
+                filterStrs.Add("host " + AnyIPFilter.Text.Trim());
             }
 
             // Check for user entered any-direction-matching port.
@@ -1361,7 +1353,7 @@ namespace Kebab
                 }
 
                 // Add port to filter string.
-                captureFilterStr += ("port " + AnyPortFilter.Text.Trim() + " and ");
+                filterStrs.Add("port " + AnyPortFilter.Text.Trim());
             }
 
             // Check for user entered source IP address.
@@ -1375,7 +1367,7 @@ namespace Kebab
                 }
 
                 // Add ip to filter string.
-                captureFilterStr += ("src host " + SourceIPFilter.Text.Trim() + " and ");
+                filterStrs.Add("src host " + SourceIPFilter.Text.Trim());
             }
 
             // Check for user entered source port.
@@ -1389,7 +1381,7 @@ namespace Kebab
                 }
 
                 // Add port to filter string.
-                captureFilterStr += ("src port " + SourcePortFilter.Text.Trim() + " and ");
+                filterStrs.Add("src port " + SourcePortFilter.Text.Trim());
             }
 
             // Check for user entered destination IP address.
@@ -1403,7 +1395,7 @@ namespace Kebab
                 }
 
                 // Add ip to filter string.
-                captureFilterStr += ("dst host " + DestinationIPFilter.Text.Trim() + " and ");
+                filterStrs.Add("dst host " + DestinationIPFilter.Text.Trim());
             }
 
             // Check for user entered destination port.
@@ -1417,16 +1409,20 @@ namespace Kebab
                 }
 
                 // Add port to filter string.
-                captureFilterStr += ("dst port " + DestinationPortFilter.Text.Trim() + " and ");
+                filterStrs.Add("dst port " + DestinationPortFilter.Text.Trim());
             }
+
+            // Check and see if user opted to use complexFilter (directly using libpcap filter string).
+            if (ComplexFilter.Text.Trim().Length > 0)
+                filterStrs.Add("( " + ComplexFilter.Text.Trim() + " )");
+
+            // Add up all the filter strings into the final capture filter string.
+            foreach (string filter in filterStrs)
+                captureFilterStr += (filter + " and ");
 
             // Remove trailing " and ".
             if (captureFilterStr != String.Empty)
                 captureFilterStr = captureFilterStr.Remove(captureFilterStr.Length - 5);
-
-            // Check and see if user opted to use complexFilter (directly using libpcap filter string).
-            if (complexFilter.Text.Trim().Length > 0)
-                captureFilterStr += " and ( " + complexFilter.Text.Trim() + " )";
 
             return 0;
         }
@@ -1533,11 +1529,13 @@ namespace Kebab
             RemoveLocalConnectionsCheckBox.Checked = true;
 
             // Remove any text in filter text boxes.
+            AnyIPFilter.Clear();
+            AnyPortFilter.Clear();
             SourceIPFilter.Clear();
             SourcePortFilter.Clear();
             DestinationIPFilter.Clear();
             DestinationPortFilter.Clear();
-            complexFilter.Clear();
+            ComplexFilter.Clear();
         }
 
         // Clear binded connection list if user presses button.

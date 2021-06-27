@@ -8,14 +8,14 @@ using Newtonsoft.Json;
 namespace Kebab
 {
     // Class for config variables to be written to conf file (all value types should be easy to validate).
-    public class ConfVars
+    public class ConfigVariables
     {
-        public string banner_message = (@"v" + Program.Version);
+        public string flavor_text = (@"v" + Program.Version);
         public string update_check = @"false";
     }
 
     // Definitions of excepted values for config variables (all value types should be easy to validate).
-    public class ConfVarDefinitions
+    public class ConfigDefinitions
     {
         public readonly List<string> update_check = new List<string>() {@"false", @"true"};
     }
@@ -23,8 +23,8 @@ namespace Kebab
     public class Config
     {
         // List of config variables to be (de)serialized to and from json elements.
-        public ConfVars Vars = new ConfVars();
-        private ConfVarDefinitions VarDefs = new ConfVarDefinitions();
+        public ConfigVariables CVars = new ConfigVariables();
+        private ConfigDefinitions CVarDefs = new ConfigDefinitions();
 
         // Filename of config file save location.
         private string ConfigFileName;
@@ -51,12 +51,12 @@ namespace Kebab
             }
 
             // Storage area for config if load.
-            ConfVars savedConfig;
+            ConfigVariables savedConfig;
 
             // Attempt to parse file data as JSON data (any invalid variable names are discarded).
             try
             {
-                savedConfig = JsonConvert.DeserializeObject<ConfVars>(jsonData);
+                savedConfig = JsonConvert.DeserializeObject<ConfigVariables>(jsonData);
             }
             catch (Newtonsoft.Json.JsonReaderException)
             {
@@ -75,17 +75,17 @@ namespace Kebab
         }
 
         // Update varisables with new values if valid.
-        private void UpdateConfig(ConfVars savedConfig)
+        private void UpdateConfig(ConfigVariables savedConfig)
         {
             // Apply banner message.
-            if (!savedConfig.banner_message.Equals(Vars.banner_message))
-                Vars.banner_message = savedConfig.banner_message;
+            if (!savedConfig.flavor_text.Equals(CVars.flavor_text))
+                CVars.flavor_text = savedConfig.flavor_text;
 
             // Apply theme if valid.
-            if (!savedConfig.update_check.Equals(Vars.update_check))
+            if (!savedConfig.update_check.Equals(CVars.update_check))
             {
-                if (ValidateConfigVariable(savedConfig.update_check, VarDefs.update_check))
-                    Vars.update_check = savedConfig.update_check;
+                if (ValidateConfigVariable(savedConfig.update_check, CVarDefs.update_check))
+                    CVars.update_check = savedConfig.update_check;
             }
         }
 
@@ -93,7 +93,7 @@ namespace Kebab
         public bool SaveConfig()
         {
             // Serialize config vars to JSON object.
-            string jsonData = JsonConvert.SerializeObject(Vars, Formatting.Indented);
+            string jsonData = JsonConvert.SerializeObject(CVars, Formatting.Indented);
 
             // Write JSON object to config file (complete overwrite of file) or return false on fail.
             try
@@ -110,13 +110,13 @@ namespace Kebab
         }
 
         // Check if saved value matches a supprted value.
-        private bool ValidateConfigVariable<T>(T value, List<T> valueDefinitions)
+        private bool ValidateConfigVariable<T>(T cvar, List<T> defs)
         where T : IEquatable<T>
         {
             // Loop through all valid options and return true if one matches.
-            foreach (T definition in valueDefinitions)
+            foreach (T def in defs)
             {
-                if (definition.Equals(value))
+                if (def.Equals(cvar))
                     return true;
             }
 

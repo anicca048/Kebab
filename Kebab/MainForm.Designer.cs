@@ -57,17 +57,6 @@ namespace Kebab
             this.TimeoutCheckBox = new System.Windows.Forms.CheckBox();
             this.ClearConnectionsButton = new System.Windows.Forms.Button();
             this.ConnectionGridView = new System.Windows.Forms.DataGridView();
-            this.Number = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.Type = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.Source = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.SrcPort = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.State = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.Destination = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.DstPort = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.PacketCount = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.ByteCount = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.DstGeo = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.DstASNOrg = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.ConnectionContextMenuStrip = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.copyToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.copyComponentToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -89,6 +78,7 @@ namespace Kebab
             this.ClearConnsOnStartCheckBox = new System.Windows.Forms.CheckBox();
             this.RefreshInterfacesButton = new System.Windows.Forms.Button();
             this.InterfaceLabel = new System.Windows.Forms.Label();
+            this.RemoveLocalConnectionsCheckBox = new System.Windows.Forms.CheckBox();
             this.InterfaceDropDownList = new System.Windows.Forms.ComboBox();
             this.CaptureStopButton = new System.Windows.Forms.Button();
             this.CaptureStartButton = new System.Windows.Forms.Button();
@@ -97,9 +87,8 @@ namespace Kebab
             this.AnyPortLabel = new System.Windows.Forms.Label();
             this.AnyIPFilter = new System.Windows.Forms.TextBox();
             this.AnyIPLabel = new System.Windows.Forms.Label();
-            this.RemoveLocalConnectionsCheckBox = new System.Windows.Forms.CheckBox();
             this.FilterStringLabel = new System.Windows.Forms.Label();
-            this.complexFilter = new System.Windows.Forms.TextBox();
+            this.ComplexFilter = new System.Windows.Forms.TextBox();
             this.ClearFiltersButton = new System.Windows.Forms.Button();
             this.ProtocolLabel = new System.Windows.Forms.Label();
             this.UDPCheckBox = new System.Windows.Forms.CheckBox();
@@ -113,6 +102,17 @@ namespace Kebab
             this.SourcePortFilter = new System.Windows.Forms.TextBox();
             this.DestinationPortFilter = new System.Windows.Forms.TextBox();
             this.TabControl = new System.Windows.Forms.TabControl();
+            this.Number = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.Type = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.Source = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.SrcPort = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.State = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.Destination = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.DstPort = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.PacketCount = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.ByteCount = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.DstGeo = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.DstASNOrg = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.TopMenu.SuspendLayout();
             this.ConnectionPage.SuspendLayout();
             this.DisplayFilterGroupBox.SuspendLayout();
@@ -260,7 +260,7 @@ namespace Kebab
             this.timeLimit.MaxLength = 3;
             this.timeLimit.Name = "timeLimit";
             this.timeLimit.Size = new System.Drawing.Size(53, 26);
-            this.timeLimit.TabIndex = 7;
+            this.timeLimit.TabIndex = 5;
             this.timeLimit.Text = "30";
             this.timeLimit.TextChanged += new System.EventHandler(this.timeLimit_TextChanged);
             // 
@@ -270,7 +270,7 @@ namespace Kebab
             this.ClearDisplayFiltersButton.MinimumSize = new System.Drawing.Size(98, 27);
             this.ClearDisplayFiltersButton.Name = "ClearDisplayFiltersButton";
             this.ClearDisplayFiltersButton.Size = new System.Drawing.Size(111, 28);
-            this.ClearDisplayFiltersButton.TabIndex = 6;
+            this.ClearDisplayFiltersButton.TabIndex = 3;
             this.ClearDisplayFiltersButton.Text = "Clear Filters";
             this.ClearDisplayFiltersButton.UseVisualStyleBackColor = true;
             this.ClearDisplayFiltersButton.Click += new System.EventHandler(this.ClearDisplayFiltersButton_Click);
@@ -282,7 +282,7 @@ namespace Kebab
             this.PortDisplayFilter.MaxLength = 5;
             this.PortDisplayFilter.Name = "PortDisplayFilter";
             this.PortDisplayFilter.Size = new System.Drawing.Size(131, 26);
-            this.PortDisplayFilter.TabIndex = 5;
+            this.PortDisplayFilter.TabIndex = 2;
             this.PortDisplayFilter.WordWrap = false;
             this.PortDisplayFilter.TextChanged += new System.EventHandler(this.PortDisplayFilter_TextChanged);
             // 
@@ -292,7 +292,7 @@ namespace Kebab
             this.PortDisplayFilterLabel.Location = new System.Drawing.Point(369, 30);
             this.PortDisplayFilterLabel.Name = "PortDisplayFilterLabel";
             this.PortDisplayFilterLabel.Size = new System.Drawing.Size(81, 20);
-            this.PortDisplayFilterLabel.TabIndex = 4;
+            this.PortDisplayFilterLabel.TabIndex = 0;
             this.PortDisplayFilterLabel.Text = "Port Filter:";
             // 
             // IPDisplayFilter
@@ -302,7 +302,7 @@ namespace Kebab
             this.IPDisplayFilter.MaxLength = 15;
             this.IPDisplayFilter.Name = "IPDisplayFilter";
             this.IPDisplayFilter.Size = new System.Drawing.Size(284, 26);
-            this.IPDisplayFilter.TabIndex = 3;
+            this.IPDisplayFilter.TabIndex = 1;
             this.IPDisplayFilter.WordWrap = false;
             this.IPDisplayFilter.TextChanged += new System.EventHandler(this.IPDisplayFilter_TextChanged);
             // 
@@ -312,7 +312,7 @@ namespace Kebab
             this.IPDisplayFilterLabel.Location = new System.Drawing.Point(6, 30);
             this.IPDisplayFilterLabel.Name = "IPDisplayFilterLabel";
             this.IPDisplayFilterLabel.Size = new System.Drawing.Size(67, 20);
-            this.IPDisplayFilterLabel.TabIndex = 2;
+            this.IPDisplayFilterLabel.TabIndex = 0;
             this.IPDisplayFilterLabel.Text = "IP Filter:";
             // 
             // TimeoutCheckBox
@@ -321,7 +321,7 @@ namespace Kebab
             this.TimeoutCheckBox.Location = new System.Drawing.Point(710, 29);
             this.TimeoutCheckBox.Name = "TimeoutCheckBox";
             this.TimeoutCheckBox.Size = new System.Drawing.Size(89, 24);
-            this.TimeoutCheckBox.TabIndex = 1;
+            this.TimeoutCheckBox.TabIndex = 4;
             this.TimeoutCheckBox.Text = "Timeout:";
             this.TimeoutCheckBox.UseVisualStyleBackColor = true;
             this.TimeoutCheckBox.CheckedChanged += new System.EventHandler(this.TimeoutCheckBox_CheckedChanged);
@@ -332,7 +332,7 @@ namespace Kebab
             this.ClearConnectionsButton.MinimumSize = new System.Drawing.Size(98, 27);
             this.ClearConnectionsButton.Name = "ClearConnectionsButton";
             this.ClearConnectionsButton.Size = new System.Drawing.Size(152, 28);
-            this.ClearConnectionsButton.TabIndex = 0;
+            this.ClearConnectionsButton.TabIndex = 6;
             this.ClearConnectionsButton.Text = "Clear Connections";
             this.ClearConnectionsButton.UseVisualStyleBackColor = true;
             this.ClearConnectionsButton.Click += new System.EventHandler(this.ClearConnectionsButton_Click);
@@ -403,117 +403,10 @@ namespace Kebab
             this.ConnectionGridView.ShowRowErrors = false;
             this.ConnectionGridView.Size = new System.Drawing.Size(1390, 548);
             this.ConnectionGridView.StandardTab = true;
-            this.ConnectionGridView.TabIndex = 1;
+            this.ConnectionGridView.TabIndex = 0;
+            this.ConnectionGridView.TabStop = false;
             this.ConnectionGridView.RowsAdded += new System.Windows.Forms.DataGridViewRowsAddedEventHandler(this.ConnectionGridView_RowsAdded);
             this.ConnectionGridView.Sorted += new System.EventHandler(this.ConnectionGridView_Sorted);
-            // 
-            // Number
-            // 
-            this.Number.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
-            this.Number.DataPropertyName = "Number";
-            this.Number.HeaderText = "#";
-            this.Number.MinimumWidth = 60;
-            this.Number.Name = "Number";
-            this.Number.ReadOnly = true;
-            this.Number.Width = 60;
-            // 
-            // Type
-            // 
-            this.Type.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
-            this.Type.DataPropertyName = "Type";
-            this.Type.HeaderText = "Type";
-            this.Type.MinimumWidth = 70;
-            this.Type.Name = "Type";
-            this.Type.ReadOnly = true;
-            this.Type.Width = 70;
-            // 
-            // Source
-            // 
-            this.Source.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
-            this.Source.DataPropertyName = "Source";
-            this.Source.HeaderText = "Local Address";
-            this.Source.MinimumWidth = 160;
-            this.Source.Name = "Source";
-            this.Source.ReadOnly = true;
-            this.Source.Width = 160;
-            // 
-            // SrcPort
-            // 
-            this.SrcPort.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
-            this.SrcPort.DataPropertyName = "SrcPort";
-            this.SrcPort.HeaderText = "Port";
-            this.SrcPort.MinimumWidth = 70;
-            this.SrcPort.Name = "SrcPort";
-            this.SrcPort.ReadOnly = true;
-            this.SrcPort.Width = 70;
-            // 
-            // State
-            // 
-            this.State.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
-            this.State.DataPropertyName = "State";
-            this.State.HeaderText = "RXTX";
-            this.State.MinimumWidth = 80;
-            this.State.Name = "State";
-            this.State.ReadOnly = true;
-            this.State.Width = 80;
-            // 
-            // Destination
-            // 
-            this.Destination.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
-            this.Destination.DataPropertyName = "Destination";
-            this.Destination.HeaderText = "Remote Address";
-            this.Destination.MinimumWidth = 160;
-            this.Destination.Name = "Destination";
-            this.Destination.ReadOnly = true;
-            this.Destination.Width = 160;
-            // 
-            // DstPort
-            // 
-            this.DstPort.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
-            this.DstPort.DataPropertyName = "DstPort";
-            this.DstPort.HeaderText = "Port";
-            this.DstPort.MinimumWidth = 70;
-            this.DstPort.Name = "DstPort";
-            this.DstPort.ReadOnly = true;
-            this.DstPort.Width = 70;
-            // 
-            // PacketCount
-            // 
-            this.PacketCount.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
-            this.PacketCount.DataPropertyName = "PacketCount";
-            this.PacketCount.HeaderText = "Packets Sent";
-            this.PacketCount.MinimumWidth = 145;
-            this.PacketCount.Name = "PacketCount";
-            this.PacketCount.ReadOnly = true;
-            this.PacketCount.Width = 145;
-            // 
-            // ByteCount
-            // 
-            this.ByteCount.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
-            this.ByteCount.DataPropertyName = "ByteCount";
-            this.ByteCount.HeaderText = "Data Sent (B)";
-            this.ByteCount.MinimumWidth = 182;
-            this.ByteCount.Name = "ByteCount";
-            this.ByteCount.ReadOnly = true;
-            this.ByteCount.Width = 182;
-            // 
-            // DstGeo
-            // 
-            this.DstGeo.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
-            this.DstGeo.DataPropertyName = "DstGeo";
-            this.DstGeo.HeaderText = "ISO";
-            this.DstGeo.MinimumWidth = 80;
-            this.DstGeo.Name = "DstGeo";
-            this.DstGeo.ReadOnly = true;
-            this.DstGeo.Width = 80;
-            // 
-            // DstASNOrg
-            // 
-            this.DstASNOrg.DataPropertyName = "DstASNOrg";
-            this.DstASNOrg.HeaderText = "ASN Organization";
-            this.DstASNOrg.MinimumWidth = 220;
-            this.DstASNOrg.Name = "DstASNOrg";
-            this.DstASNOrg.ReadOnly = true;
             // 
             // ConnectionContextMenuStrip
             // 
@@ -670,7 +563,7 @@ namespace Kebab
             this.ForceRawCheckBox.Location = new System.Drawing.Point(139, 174);
             this.ForceRawCheckBox.Name = "ForceRawCheckBox";
             this.ForceRawCheckBox.Size = new System.Drawing.Size(211, 24);
-            this.ForceRawCheckBox.TabIndex = 5;
+            this.ForceRawCheckBox.TabIndex = 6;
             this.ForceRawCheckBox.Text = "Force Raw Interface Type";
             this.ForceRawCheckBox.UseVisualStyleBackColor = true;
             this.ForceRawCheckBox.CheckedChanged += new System.EventHandler(this.ForceRawCheckBox_CheckedChanged);
@@ -705,6 +598,19 @@ namespace Kebab
             this.InterfaceLabel.Size = new System.Drawing.Size(77, 20);
             this.InterfaceLabel.TabIndex = 0;
             this.InterfaceLabel.Text = "Interface:";
+            // 
+            // RemoveLocalConnectionsCheckBox
+            // 
+            this.RemoveLocalConnectionsCheckBox.AutoSize = true;
+            this.RemoveLocalConnectionsCheckBox.Checked = true;
+            this.RemoveLocalConnectionsCheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.RemoveLocalConnectionsCheckBox.Enabled = false;
+            this.RemoveLocalConnectionsCheckBox.Location = new System.Drawing.Point(139, 144);
+            this.RemoveLocalConnectionsCheckBox.Name = "RemoveLocalConnectionsCheckBox";
+            this.RemoveLocalConnectionsCheckBox.Size = new System.Drawing.Size(222, 24);
+            this.RemoveLocalConnectionsCheckBox.TabIndex = 5;
+            this.RemoveLocalConnectionsCheckBox.Text = "Remove Local Connections";
+            this.RemoveLocalConnectionsCheckBox.UseVisualStyleBackColor = true;
             // 
             // InterfaceDropDownList
             // 
@@ -749,7 +655,7 @@ namespace Kebab
             this.CaptureFilterGroupBox.Controls.Add(this.AnyIPFilter);
             this.CaptureFilterGroupBox.Controls.Add(this.AnyIPLabel);
             this.CaptureFilterGroupBox.Controls.Add(this.FilterStringLabel);
-            this.CaptureFilterGroupBox.Controls.Add(this.complexFilter);
+            this.CaptureFilterGroupBox.Controls.Add(this.ComplexFilter);
             this.CaptureFilterGroupBox.Controls.Add(this.ClearFiltersButton);
             this.CaptureFilterGroupBox.Controls.Add(this.ProtocolLabel);
             this.CaptureFilterGroupBox.Controls.Add(this.UDPCheckBox);
@@ -777,7 +683,7 @@ namespace Kebab
             this.AnyPortFilter.MaxLength = 5;
             this.AnyPortFilter.Name = "AnyPortFilter";
             this.AnyPortFilter.Size = new System.Drawing.Size(131, 26);
-            this.AnyPortFilter.TabIndex = 23;
+            this.AnyPortFilter.TabIndex = 8;
             this.AnyPortFilter.WordWrap = false;
             // 
             // AnyPortLabel
@@ -786,7 +692,7 @@ namespace Kebab
             this.AnyPortLabel.Location = new System.Drawing.Point(436, 38);
             this.AnyPortLabel.Name = "AnyPortLabel";
             this.AnyPortLabel.Size = new System.Drawing.Size(73, 20);
-            this.AnyPortLabel.TabIndex = 22;
+            this.AnyPortLabel.TabIndex = 0;
             this.AnyPortLabel.Text = "Any Port:";
             // 
             // AnyIPFilter
@@ -796,7 +702,7 @@ namespace Kebab
             this.AnyIPFilter.MaxLength = 15;
             this.AnyIPFilter.Name = "AnyIPFilter";
             this.AnyIPFilter.Size = new System.Drawing.Size(284, 26);
-            this.AnyIPFilter.TabIndex = 21;
+            this.AnyIPFilter.TabIndex = 7;
             this.AnyIPFilter.WordWrap = false;
             // 
             // AnyIPLabel
@@ -805,21 +711,8 @@ namespace Kebab
             this.AnyIPLabel.Location = new System.Drawing.Point(20, 38);
             this.AnyIPLabel.Name = "AnyIPLabel";
             this.AnyIPLabel.Size = new System.Drawing.Size(59, 20);
-            this.AnyIPLabel.TabIndex = 20;
+            this.AnyIPLabel.TabIndex = 0;
             this.AnyIPLabel.Text = "Any IP:";
-            // 
-            // RemoveLocalConnectionsCheckBox
-            // 
-            this.RemoveLocalConnectionsCheckBox.AutoSize = true;
-            this.RemoveLocalConnectionsCheckBox.Checked = true;
-            this.RemoveLocalConnectionsCheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.RemoveLocalConnectionsCheckBox.Enabled = false;
-            this.RemoveLocalConnectionsCheckBox.Location = new System.Drawing.Point(139, 144);
-            this.RemoveLocalConnectionsCheckBox.Name = "RemoveLocalConnectionsCheckBox";
-            this.RemoveLocalConnectionsCheckBox.Size = new System.Drawing.Size(222, 24);
-            this.RemoveLocalConnectionsCheckBox.TabIndex = 19;
-            this.RemoveLocalConnectionsCheckBox.Text = "Remove Local Connections";
-            this.RemoveLocalConnectionsCheckBox.UseVisualStyleBackColor = true;
             // 
             // FilterStringLabel
             // 
@@ -827,24 +720,24 @@ namespace Kebab
             this.FilterStringLabel.Location = new System.Drawing.Point(20, 165);
             this.FilterStringLabel.Name = "FilterStringLabel";
             this.FilterStringLabel.Size = new System.Drawing.Size(94, 20);
-            this.FilterStringLabel.TabIndex = 17;
+            this.FilterStringLabel.TabIndex = 0;
             this.FilterStringLabel.Text = "Filter String:";
             // 
-            // complexFilter
+            // ComplexFilter
             // 
-            this.complexFilter.Font = new System.Drawing.Font("Consolas", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.complexFilter.Location = new System.Drawing.Point(139, 162);
-            this.complexFilter.MaxLength = 1000;
-            this.complexFilter.Name = "complexFilter";
-            this.complexFilter.Size = new System.Drawing.Size(507, 26);
-            this.complexFilter.TabIndex = 16;
+            this.ComplexFilter.Font = new System.Drawing.Font("Consolas", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.ComplexFilter.Location = new System.Drawing.Point(139, 162);
+            this.ComplexFilter.MaxLength = 1024;
+            this.ComplexFilter.Name = "ComplexFilter";
+            this.ComplexFilter.Size = new System.Drawing.Size(507, 26);
+            this.ComplexFilter.TabIndex = 15;
             // 
             // ClearFiltersButton
             // 
             this.ClearFiltersButton.Location = new System.Drawing.Point(139, 194);
             this.ClearFiltersButton.Name = "ClearFiltersButton";
             this.ClearFiltersButton.Size = new System.Drawing.Size(110, 40);
-            this.ClearFiltersButton.TabIndex = 13;
+            this.ClearFiltersButton.TabIndex = 16;
             this.ClearFiltersButton.Text = "Clear Filters";
             this.ClearFiltersButton.UseVisualStyleBackColor = true;
             this.ClearFiltersButton.Click += new System.EventHandler(this.ClearFiltersButton_Click);
@@ -855,7 +748,7 @@ namespace Kebab
             this.ProtocolLabel.Location = new System.Drawing.Point(20, 133);
             this.ProtocolLabel.Name = "ProtocolLabel";
             this.ProtocolLabel.Size = new System.Drawing.Size(71, 20);
-            this.ProtocolLabel.TabIndex = 2;
+            this.ProtocolLabel.TabIndex = 0;
             this.ProtocolLabel.Text = "Protocol:";
             // 
             // UDPCheckBox
@@ -866,7 +759,7 @@ namespace Kebab
             this.UDPCheckBox.Location = new System.Drawing.Point(203, 132);
             this.UDPCheckBox.Name = "UDPCheckBox";
             this.UDPCheckBox.Size = new System.Drawing.Size(62, 24);
-            this.UDPCheckBox.TabIndex = 15;
+            this.UDPCheckBox.TabIndex = 14;
             this.UDPCheckBox.Text = "UDP";
             this.UDPCheckBox.UseVisualStyleBackColor = true;
             // 
@@ -878,7 +771,7 @@ namespace Kebab
             this.TCPCheckBox.Location = new System.Drawing.Point(139, 132);
             this.TCPCheckBox.Name = "TCPCheckBox";
             this.TCPCheckBox.Size = new System.Drawing.Size(58, 24);
-            this.TCPCheckBox.TabIndex = 14;
+            this.TCPCheckBox.TabIndex = 13;
             this.TCPCheckBox.Text = "TCP";
             this.TCPCheckBox.UseVisualStyleBackColor = true;
             // 
@@ -888,7 +781,7 @@ namespace Kebab
             this.SourceIPLabel.Location = new System.Drawing.Point(20, 71);
             this.SourceIPLabel.Name = "SourceIPLabel";
             this.SourceIPLabel.Size = new System.Drawing.Size(83, 20);
-            this.SourceIPLabel.TabIndex = 8;
+            this.SourceIPLabel.TabIndex = 0;
             this.SourceIPLabel.Text = "Source IP:";
             // 
             // DestinationIPLabel
@@ -897,7 +790,7 @@ namespace Kebab
             this.DestinationIPLabel.Location = new System.Drawing.Point(20, 103);
             this.DestinationIPLabel.Name = "DestinationIPLabel";
             this.DestinationIPLabel.Size = new System.Drawing.Size(113, 20);
-            this.DestinationIPLabel.TabIndex = 11;
+            this.DestinationIPLabel.TabIndex = 0;
             this.DestinationIPLabel.Text = "Destination IP:";
             // 
             // SourceIPFilter
@@ -907,7 +800,7 @@ namespace Kebab
             this.SourceIPFilter.MaxLength = 15;
             this.SourceIPFilter.Name = "SourceIPFilter";
             this.SourceIPFilter.Size = new System.Drawing.Size(284, 26);
-            this.SourceIPFilter.TabIndex = 4;
+            this.SourceIPFilter.TabIndex = 9;
             this.SourceIPFilter.WordWrap = false;
             // 
             // DestinationPortLabel
@@ -916,7 +809,7 @@ namespace Kebab
             this.DestinationPortLabel.Location = new System.Drawing.Point(429, 103);
             this.DestinationPortLabel.Name = "DestinationPortLabel";
             this.DestinationPortLabel.Size = new System.Drawing.Size(80, 20);
-            this.DestinationPortLabel.TabIndex = 10;
+            this.DestinationPortLabel.TabIndex = 0;
             this.DestinationPortLabel.Text = "Dest Port:";
             // 
             // DestinationIPFilter
@@ -926,7 +819,7 @@ namespace Kebab
             this.DestinationIPFilter.MaxLength = 15;
             this.DestinationIPFilter.Name = "DestinationIPFilter";
             this.DestinationIPFilter.Size = new System.Drawing.Size(284, 26);
-            this.DestinationIPFilter.TabIndex = 5;
+            this.DestinationIPFilter.TabIndex = 11;
             this.DestinationIPFilter.WordWrap = false;
             // 
             // SourcePortLabel
@@ -935,7 +828,7 @@ namespace Kebab
             this.SourcePortLabel.Location = new System.Drawing.Point(439, 71);
             this.SourcePortLabel.Name = "SourcePortLabel";
             this.SourcePortLabel.Size = new System.Drawing.Size(70, 20);
-            this.SourcePortLabel.TabIndex = 9;
+            this.SourcePortLabel.TabIndex = 0;
             this.SourcePortLabel.Text = "Src Port:";
             // 
             // SourcePortFilter
@@ -945,7 +838,7 @@ namespace Kebab
             this.SourcePortFilter.MaxLength = 5;
             this.SourcePortFilter.Name = "SourcePortFilter";
             this.SourcePortFilter.Size = new System.Drawing.Size(131, 26);
-            this.SourcePortFilter.TabIndex = 6;
+            this.SourcePortFilter.TabIndex = 10;
             this.SourcePortFilter.WordWrap = false;
             // 
             // DestinationPortFilter
@@ -955,7 +848,7 @@ namespace Kebab
             this.DestinationPortFilter.MaxLength = 5;
             this.DestinationPortFilter.Name = "DestinationPortFilter";
             this.DestinationPortFilter.Size = new System.Drawing.Size(131, 26);
-            this.DestinationPortFilter.TabIndex = 7;
+            this.DestinationPortFilter.TabIndex = 12;
             this.DestinationPortFilter.WordWrap = false;
             // 
             // TabControl
@@ -970,6 +863,114 @@ namespace Kebab
             this.TabControl.SelectedIndex = 0;
             this.TabControl.Size = new System.Drawing.Size(1404, 587);
             this.TabControl.TabIndex = 0;
+            // 
+            // Number
+            // 
+            this.Number.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
+            this.Number.DataPropertyName = "Number";
+            this.Number.HeaderText = "#";
+            this.Number.MinimumWidth = 60;
+            this.Number.Name = "Number";
+            this.Number.ReadOnly = true;
+            this.Number.Width = 60;
+            // 
+            // Type
+            // 
+            this.Type.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
+            this.Type.DataPropertyName = "Type";
+            this.Type.HeaderText = "Type";
+            this.Type.MinimumWidth = 70;
+            this.Type.Name = "Type";
+            this.Type.ReadOnly = true;
+            this.Type.Width = 70;
+            // 
+            // Source
+            // 
+            this.Source.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
+            this.Source.DataPropertyName = "Source";
+            this.Source.HeaderText = "Local Address";
+            this.Source.MinimumWidth = 160;
+            this.Source.Name = "Source";
+            this.Source.ReadOnly = true;
+            this.Source.Width = 160;
+            // 
+            // SrcPort
+            // 
+            this.SrcPort.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
+            this.SrcPort.DataPropertyName = "SrcPort";
+            this.SrcPort.HeaderText = "Port";
+            this.SrcPort.MinimumWidth = 70;
+            this.SrcPort.Name = "SrcPort";
+            this.SrcPort.ReadOnly = true;
+            this.SrcPort.Width = 70;
+            // 
+            // State
+            // 
+            this.State.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
+            this.State.DataPropertyName = "State";
+            this.State.HeaderText = "RXTX";
+            this.State.MinimumWidth = 80;
+            this.State.Name = "State";
+            this.State.ReadOnly = true;
+            this.State.Width = 80;
+            // 
+            // Destination
+            // 
+            this.Destination.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
+            this.Destination.DataPropertyName = "Destination";
+            this.Destination.HeaderText = "Remote Address";
+            this.Destination.MinimumWidth = 160;
+            this.Destination.Name = "Destination";
+            this.Destination.ReadOnly = true;
+            this.Destination.Width = 160;
+            // 
+            // DstPort
+            // 
+            this.DstPort.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
+            this.DstPort.DataPropertyName = "DstPort";
+            this.DstPort.HeaderText = "Port";
+            this.DstPort.MinimumWidth = 70;
+            this.DstPort.Name = "DstPort";
+            this.DstPort.ReadOnly = true;
+            this.DstPort.Width = 70;
+            // 
+            // PacketCount
+            // 
+            this.PacketCount.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
+            this.PacketCount.DataPropertyName = "PacketCount";
+            this.PacketCount.HeaderText = "Packets Sent";
+            this.PacketCount.MinimumWidth = 145;
+            this.PacketCount.Name = "PacketCount";
+            this.PacketCount.ReadOnly = true;
+            this.PacketCount.Width = 145;
+            // 
+            // ByteCount
+            // 
+            this.ByteCount.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
+            this.ByteCount.DataPropertyName = "ByteCount";
+            this.ByteCount.HeaderText = "Bytes Sent";
+            this.ByteCount.MinimumWidth = 182;
+            this.ByteCount.Name = "ByteCount";
+            this.ByteCount.ReadOnly = true;
+            this.ByteCount.Width = 182;
+            // 
+            // DstGeo
+            // 
+            this.DstGeo.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
+            this.DstGeo.DataPropertyName = "DstGeo";
+            this.DstGeo.HeaderText = "ISO";
+            this.DstGeo.MinimumWidth = 80;
+            this.DstGeo.Name = "DstGeo";
+            this.DstGeo.ReadOnly = true;
+            this.DstGeo.Width = 80;
+            // 
+            // DstASNOrg
+            // 
+            this.DstASNOrg.DataPropertyName = "DstASNOrg";
+            this.DstASNOrg.HeaderText = "ASN Organization";
+            this.DstASNOrg.MinimumWidth = 220;
+            this.DstASNOrg.Name = "DstASNOrg";
+            this.DstASNOrg.ReadOnly = true;
             // 
             // MainForm
             // 
@@ -1048,7 +1049,7 @@ namespace Kebab
         private System.Windows.Forms.ToolStripMenuItem HelpMenu;
         private System.Windows.Forms.ToolStripMenuItem aboutToolStripMenuItem;
         private System.Windows.Forms.Label FilterStringLabel;
-        private System.Windows.Forms.TextBox complexFilter;
+        private System.Windows.Forms.TextBox ComplexFilter;
         private System.Windows.Forms.ToolStripMenuItem localAddressToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem localPortToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem remoteAddressToolStripMenuItem;
@@ -1070,6 +1071,11 @@ namespace Kebab
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator6;
         private System.Windows.Forms.ToolStripMenuItem allRemoteHostInformationToolStripMenuItem;
         private System.Windows.Forms.Button ClearConnectionsButton;
+        private System.Windows.Forms.CheckBox ForceRawCheckBox;
+        private System.Windows.Forms.TextBox AnyPortFilter;
+        private System.Windows.Forms.Label AnyPortLabel;
+        private System.Windows.Forms.TextBox AnyIPFilter;
+        private System.Windows.Forms.Label AnyIPLabel;
         private System.Windows.Forms.DataGridViewTextBoxColumn Number;
         private System.Windows.Forms.DataGridViewTextBoxColumn Type;
         private System.Windows.Forms.DataGridViewTextBoxColumn Source;
@@ -1081,11 +1087,6 @@ namespace Kebab
         private System.Windows.Forms.DataGridViewTextBoxColumn ByteCount;
         private System.Windows.Forms.DataGridViewTextBoxColumn DstGeo;
         private System.Windows.Forms.DataGridViewTextBoxColumn DstASNOrg;
-        private System.Windows.Forms.CheckBox ForceRawCheckBox;
-        private System.Windows.Forms.TextBox AnyPortFilter;
-        private System.Windows.Forms.Label AnyPortLabel;
-        private System.Windows.Forms.TextBox AnyIPFilter;
-        private System.Windows.Forms.Label AnyIPLabel;
     }
 }
 
