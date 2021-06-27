@@ -507,56 +507,13 @@ namespace Kebab
         // Display filter related methods.
         // 
 
-        // Checks if display filters match a connection.
-        private bool CheckDisplayFilter(object DataSource)
-        {
-            // Convert dataGridViewRow data source to actual type.
-            Connection connection = (Connection)DataSource;
-
-            // Ceck if we have a display filter to use.
-            bool IPFilter = (IPDisplayFilter.Text.Trim().Length > 0);
-            bool PortFilter = (PortDisplayFilter.Text.Trim().Length > 0);
-
-            if (IPFilter && PortFilter)
-            {
-                if ((connection.Source.ToString() == IPDisplayFilter.Text.Trim()
-                     || connection.Destination.ToString() == IPDisplayFilter.Text.Trim())
-                    && (connection.SrcPort.ToString() == PortDisplayFilter.Text.Trim()
-                     || connection.DstPort.ToString() == PortDisplayFilter.Text.Trim()))
-                    return true;
-                else
-                    return false;
-            }
-            else if (IPFilter)
-            {
-                if (connection.Source.ToString() == IPDisplayFilter.Text.Trim()
-                    || connection.Destination.ToString() == IPDisplayFilter.Text.Trim())
-                    return true;
-                else
-                    return false;
-            }
-            else if (PortFilter)
-            {
-                if (connection.SrcPort.ToString() == PortDisplayFilter.Text.Trim()
-                    || connection.DstPort.ToString() == PortDisplayFilter.Text.Trim())
-                    return true;
-                else
-                    return false;
-            }
-            else
-            {
-                return true;
-            }
-        }
-
-        // Make sure we don't paint rows that don't match the display filter.
-        private bool _displayFilterSet = false;
+        // Colors matching connections differently from non-matching connections.
         private void ApplyDisplayFilter()
         {
             // Loop through connectionList and hide any connections that don't match filter (and unhide ones that do).
             foreach (DataGridViewRow row in ConnectionGridView.Rows)
             {
-                if (!CheckDisplayFilter(row.DataBoundItem))
+                if (!_displayFilter.IsMatch((Connection)row.DataBoundItem))
                 {
                     row.DefaultCellStyle.ForeColor = SystemColors.GrayText;
                     row.DefaultCellStyle.Font = ConnectionGridView.DefaultCellStyle.Font;
@@ -570,10 +527,6 @@ namespace Kebab
                 }
             }
 
-            // Mark displayfilter flag true.
-            if (!_displayFilterSet)
-                _displayFilterSet = true;
-
             // Show displayfilter changes.
             ConnectionGridView.Update();
         }
@@ -582,8 +535,7 @@ namespace Kebab
         private void ClearDisplayFilter()
         {
             // Clear display filter text.
-            IPDisplayFilter.Clear();
-            PortDisplayFilter.Clear();
+            DisplayFilter.Clear();
         }
 
         // Removes filter from connection list.
@@ -596,52 +548,49 @@ namespace Kebab
                 row.DefaultCellStyle.Font = ConnectionGridView.DefaultCellStyle.Font;
             }
 
-            // Mark displayfilter flag false.
-            if (_displayFilterSet)
-                _displayFilterSet = false;
-
             // Show displayfilter changes.
             ConnectionGridView.Update();
         }
 
+        private DisplayFilter _displayFilter = new DisplayFilter();
+        private bool _displayFilterActive = false;
         // Force repaint for display filter adhearence.
-        private void IPDisplayFilter_TextChanged(object sender, EventArgs e)
+        private void DisplayFilter_TextChanged(object sender, EventArgs e)
         {
-            if (!(IPDisplayFilter.Text.Trim().Length > 0 || PortDisplayFilter.Text.Trim().Length > 0))
+            // Check if we have a valid display filter string.
+            if (DisplayFilter.Text.Trim().Length > 0 && _displayFilter.TryParse(DisplayFilter.Text.Trim()))
             {
-                if (_displayFilterSet)
-                    RemoveDisplayFilter();
+                // Set font to indicate a valid filter.
+                if (DisplayFilter.ForeColor != SystemColors.WindowText)
+                    DisplayFilter.ForeColor = SystemColors.WindowText;
 
-                displayFilterTimer.Stop();
+                // Enable display filtering.
+                _displayFilterActive = true;
+                _displayFilter.Clear();
+                ApplyDisplayFilter();
+                displayFilterTimer.Start();
 
                 return;
             }
 
-            ApplyDisplayFilter();
-            displayFilterTimer.Start();
-        }
+            // Set red font to indicate invalid / empty filter.
+            if (DisplayFilter.ForeColor != Color.Red)
+                DisplayFilter.ForeColor = Color.Red;
 
-        // Force repaint for display filter adhearence.
-        private void PortDisplayFilter_TextChanged(object sender, EventArgs e)
-        {
-            if (!(PortDisplayFilter.Text.Trim().Length > 0 || IPDisplayFilter.Text.Trim().Length > 0))
+            // Otherwise if a filter is active we need to disable it.
+            if (_displayFilterActive)
             {
-                if (_displayFilterSet)
-                    RemoveDisplayFilter();
-
                 displayFilterTimer.Stop();
-
-                return;
+                RemoveDisplayFilter();
+                _displayFilter.Clear();
+                _displayFilterActive = false;
             }
-
-            ApplyDisplayFilter();
-            displayFilterTimer.Start();
         }
 
         // Force repaint for display filter adhearence when rows are added.
         private void ConnectionGridView_RowsAdded(object sender, DataGridViewRowsAddedEventArgs e)
         {
-            if (_displayFilterSet)
+            if (_displayFilterActive)
             {
                 ApplyDisplayFilter();
             }
@@ -649,7 +598,7 @@ namespace Kebab
         // Force repaint for display filter adhearence when the list is sorted by a property.
         private void ConnectionGridView_Sorted(object sender, EventArgs e)
         {
-            if (_displayFilterSet)
+            if (_displayFilterActive)
             {
                 ApplyDisplayFilter();
             }
@@ -810,7 +759,7 @@ namespace Kebab
         }
 
         // Reorders connection numbers to remove gaps in the order and avoid large number to small conn count ratios.
-        private void ReorderOnRemoval()
+        private void ReorderOnInsertionDeletion()
         {
             // Create list of connection numbers.
             List<uint> connNums = new List<uint>();
@@ -875,7 +824,7 @@ namespace Kebab
                     if (reorderConnections)
                     {
                         // Cleanup connection numbers in the wake of created gaps.
-                        ReorderOnRemoval();
+                        ReorderOnInsertionDeletion();
 
                         // Refresh DataGridView values to avoid errors with pending UI events on removed connections.
                         ConnectionGridView.Update();
@@ -889,7 +838,7 @@ namespace Kebab
         // Apply displayfilter if enabled.
         private void FilterConnList(object sender, EventArgs e)
         {
-            if (_displayFilterSet)
+            if (_displayFilterActive)
             {
                 ApplyDisplayFilter();
             }
@@ -1413,8 +1362,8 @@ namespace Kebab
             }
 
             // Check and see if user opted to use complexFilter (directly using libpcap filter string).
-            if (ComplexFilter.Text.Trim().Length > 0)
-                filterStrs.Add("( " + ComplexFilter.Text.Trim() + " )");
+            if (CaptureFilterStr.Text.Trim().Length > 0)
+                filterStrs.Add("( " + CaptureFilterStr.Text.Trim() + " )");
 
             // Add up all the filter strings into the final capture filter string.
             foreach (string filter in filterStrs)
@@ -1478,7 +1427,7 @@ namespace Kebab
                 packetTimer.Start();
 
                 // Start displayfilterTimer if display filter is set by user.
-                if (_displayFilterSet)
+                if (_displayFilterActive)
                     displayFilterTimer.Start();
 
                 // Start timeoutTimer if timout is set by user.
@@ -1535,7 +1484,7 @@ namespace Kebab
             SourcePortFilter.Clear();
             DestinationIPFilter.Clear();
             DestinationPortFilter.Clear();
-            ComplexFilter.Clear();
+            CaptureFilterStr.Clear();
         }
 
         // Clear binded connection list if user presses button.
@@ -1574,6 +1523,15 @@ namespace Kebab
         private void aboutToolStripMenuItem_Click(object sender, EventArgs e)
         {
             MessageBox.Show(aboutPage, Program.Name);
+        }
+
+        // Disable capture filter group if force raw is checked (and undo if unchecked).
+        private void ForceRawCheckBox_CheckedChanged(object sender, EventArgs e)
+        {
+            if (ForceRawCheckBox.Checked)
+                CaptureFilterGroupBox.Enabled = false;
+            else
+                CaptureFilterGroupBox.Enabled = true;
         }
 
         // Decide if filter timer needs to be started or stoped.
@@ -1641,14 +1599,6 @@ namespace Kebab
                     System.Diagnostics.Process.Start(Program.GithubWEB_LatestReleaseURL);
                 }
             }
-        }
-
-        private void ForceRawCheckBox_CheckedChanged(object sender, EventArgs e)
-        {
-            if (ForceRawCheckBox.Checked)
-                CaptureFilterGroupBox.Enabled = false;
-            else
-                CaptureFilterGroupBox.Enabled = true;
         }
     }
 }

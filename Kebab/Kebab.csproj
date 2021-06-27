@@ -111,7 +111,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Config.cs" />
-    <Compile Include="Connections.cs" />
+    <Compile Include="Connection.cs" />
+    <Compile Include="Filter.cs" />
     <Compile Include="MainForm.cs">
       <SubType>Form</SubType>
     </Compile>
