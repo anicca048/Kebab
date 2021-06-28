@@ -273,7 +273,7 @@ namespace Kebab
             {
                 MessageBox.Show(("Error: failed to check for update:\n" + ex.Message
                                  + "\n\nMake sure that you have a valid internet connection."), Program.Name);
-                return "";
+                return String.Empty;
             }
 
             // Get payload data from response.
@@ -298,7 +298,7 @@ namespace Kebab
             catch (JsonReaderException)
             {
                 MessageBox.Show("Error: failed to check for update:\nAPI data is invalid or corrupt.", Program.Name);
-                return "";
+                return String.Empty;
             }
 
             // tag_name value string.
@@ -312,7 +312,7 @@ namespace Kebab
             catch (System.ArgumentNullException)
             {
                 MessageBox.Show("Error: failed to check for update:\nAPI data is invalid.", Program.Name);
-                return "";
+                return String.Empty;
             }
 
             return tagName;
@@ -535,7 +535,7 @@ namespace Kebab
         private void ClearDisplayFilter()
         {
             // Clear display filter text.
-            DisplayFilter.Clear();
+            DisplayFilterStr.Clear();
         }
 
         // Removes filter from connection list.
@@ -552,21 +552,20 @@ namespace Kebab
             ConnectionGridView.Update();
         }
 
-        private DisplayFilter _displayFilter = new DisplayFilter();
+        private DisplayFilter _displayFilter;
         private bool _displayFilterActive = false;
         // Force repaint for display filter adhearence.
         private void DisplayFilter_TextChanged(object sender, EventArgs e)
         {
             // Check if we have a valid display filter string.
-            if (DisplayFilter.Text.Trim().Length > 0 && _displayFilter.TryParse(DisplayFilter.Text.Trim()))
+            if (DisplayFilterStr.Text.Trim().Length > 0 && DisplayFilter.TryParse(DisplayFilterStr.Text.Trim(), out _displayFilter))
             {
                 // Set font to indicate a valid filter.
-                if (DisplayFilter.ForeColor != SystemColors.WindowText)
-                    DisplayFilter.ForeColor = SystemColors.WindowText;
+                if (DisplayFilterStr.ForeColor != SystemColors.WindowText)
+                    DisplayFilterStr.ForeColor = SystemColors.WindowText;
 
                 // Enable display filtering.
                 _displayFilterActive = true;
-                _displayFilter.Clear();
                 ApplyDisplayFilter();
                 displayFilterTimer.Start();
 
@@ -574,15 +573,14 @@ namespace Kebab
             }
 
             // Set red font to indicate invalid / empty filter.
-            if (DisplayFilter.ForeColor != Color.Red)
-                DisplayFilter.ForeColor = Color.Red;
+            if (DisplayFilterStr.ForeColor != Color.Red)
+                DisplayFilterStr.ForeColor = Color.Red;
 
             // Otherwise if a filter is active we need to disable it.
             if (_displayFilterActive)
             {
                 displayFilterTimer.Stop();
                 RemoveDisplayFilter();
-                _displayFilter.Clear();
                 _displayFilterActive = false;
             }
         }
@@ -880,23 +878,23 @@ namespace Kebab
         // Turns specified rows from connListView into formated conn lines as a string for copy and save functions.
         private string getConnsFromRows(List<DataGridViewRow> rows)
         {
-            string outputStr = "";
+            string connList = String.Empty;
 
             foreach (DataGridViewRow row in rows)
             {
-                outputStr += (row.Cells[0].Value.ToString().PadRight(4) + " "
-                              + row.Cells[1].Value.ToString().PadRight(4) + " "
-                              + row.Cells[2].Value.ToString().PadLeft(15) + ":" + row.Cells[3].Value.ToString().PadRight(5) + " "
-                              + row.Cells[4].Value.ToString().PadRight(5) + " "
-                              + row.Cells[5].Value.ToString().PadLeft(15) + ":" + row.Cells[6].Value.ToString().PadRight(5) + " "
-                              + row.Cells[7].Value.ToString().PadRight(12) + " "
-                              + row.Cells[8].Value.ToString().PadRight(15) + " "
-                              + row.Cells[9].Value.ToString().PadRight(6) + " "
-                              + row.Cells[10].Value.ToString()
-                              + "\n");
+                connList += (row.Cells[0].Value.ToString().PadRight(4) + " "
+                             + row.Cells[1].Value.ToString().PadRight(4) + " "
+                             + row.Cells[2].Value.ToString().PadLeft(15) + ":" + row.Cells[3].Value.ToString().PadRight(5) + " "
+                             + row.Cells[4].Value.ToString().PadRight(5) + " "
+                             + row.Cells[5].Value.ToString().PadLeft(15) + ":" + row.Cells[6].Value.ToString().PadRight(5) + " "
+                             + row.Cells[7].Value.ToString().PadRight(12) + " "
+                             + row.Cells[8].Value.ToString().PadRight(15) + " "
+                             + row.Cells[9].Value.ToString().PadRight(6) + " "
+                             + row.Cells[10].Value.ToString()
+                             + "\n");
             }
 
-            return outputStr;
+            return connList;
         }
 
         // Copy all selected rows with right click.
@@ -907,10 +905,10 @@ namespace Kebab
                 || ConnectionGridView == null || ConnectionGridView.SelectedRows.Count == 0)
                 return;
 
-            string copyStr = getConnsFromRows(getSelectedRows());
+            string connList = getConnsFromRows(getSelectedRows());
 
-            if (copyStr != "")
-                Clipboard.SetText(copyStr);
+            if (connList != String.Empty)
+                Clipboard.SetText(connList);
         }
 
         // Copy local address of connection for all selected connections.
@@ -921,13 +919,13 @@ namespace Kebab
                 || ConnectionGridView == null || ConnectionGridView.SelectedRows.Count == 0)
                 return;
 
-            string copyString = "";
+            string localAddrList = String.Empty;
 
             foreach (DataGridViewRow row in getSelectedRows())
-                copyString += (row.Cells[2].Value.ToString() + "\n");
+                localAddrList += (row.Cells[2].Value.ToString() + "\n");
 
-            if (copyString != "")
-                Clipboard.SetText(copyString);
+            if (localAddrList != String.Empty)
+                Clipboard.SetText(localAddrList);
         }
 
         // Copy local port of connection for all selected connections.
@@ -938,13 +936,13 @@ namespace Kebab
                 || ConnectionGridView == null || ConnectionGridView.SelectedRows.Count == 0)
                 return;
 
-            string copyString = "";
+            string localPortList = String.Empty;
 
             foreach (DataGridViewRow row in getSelectedRows())
-                copyString += (row.Cells[3].Value.ToString() + "\n");
+                localPortList += (row.Cells[3].Value.ToString() + "\n");
 
-            if (copyString != "")
-                Clipboard.SetText(copyString);
+            if (localPortList != String.Empty)
+                Clipboard.SetText(localPortList);
         }
 
         // Copy local address and port pair of connection for all selected connections.
@@ -955,13 +953,13 @@ namespace Kebab
                 || ConnectionGridView == null || ConnectionGridView.SelectedRows.Count == 0)
                 return;
 
-            string copyString = "";
+            string localAddrPortList = String.Empty;
 
             foreach (DataGridViewRow row in getSelectedRows())
-                copyString += (row.Cells[2].Value.ToString() + ":" + row.Cells[3].Value.ToString() + "\n");
+                localAddrPortList += (row.Cells[2].Value.ToString() + ":" + row.Cells[3].Value.ToString() + "\n");
 
-            if (copyString != "")
-                Clipboard.SetText(copyString);
+            if (localAddrPortList != String.Empty)
+                Clipboard.SetText(localAddrPortList);
         }
 
         // Copy remote address of connection for all selected connections.
@@ -972,13 +970,13 @@ namespace Kebab
                 || ConnectionGridView == null || ConnectionGridView.SelectedRows.Count == 0)
                 return;
 
-            string copyString = "";
+            string remoteAddrList = String.Empty;
 
             foreach (DataGridViewRow row in getSelectedRows())
-                copyString += (row.Cells[5].Value.ToString() + "\n");
+                remoteAddrList += (row.Cells[5].Value.ToString() + "\n");
 
-            if (copyString != "")
-                Clipboard.SetText(copyString);
+            if (remoteAddrList != String.Empty)
+                Clipboard.SetText(remoteAddrList);
         }
 
         // Copy remote pair of connection for all selected connections.
@@ -989,13 +987,13 @@ namespace Kebab
                 || ConnectionGridView == null || ConnectionGridView.SelectedRows.Count == 0)
                     return;
 
-            string copyString = "";
+            string remotePortList = String.Empty;
 
             foreach (DataGridViewRow row in getSelectedRows())
-                copyString += (row.Cells[6].Value.ToString() + "\n");
+                remotePortList += (row.Cells[6].Value.ToString() + "\n");
 
-            if (copyString != "")
-                Clipboard.SetText(copyString);
+            if (remotePortList != String.Empty)
+                Clipboard.SetText(remotePortList);
         }
 
         // Copy remote address and port pair of connection for all selected connections.
@@ -1006,13 +1004,13 @@ namespace Kebab
                 || ConnectionGridView == null || ConnectionGridView.SelectedRows.Count == 0)
                 return;
 
-            string copyString = "";
+            string remoteAddrPortList = String.Empty;
 
             foreach (DataGridViewRow row in getSelectedRows())
-                copyString += (row.Cells[5].Value.ToString() + ":" + row.Cells[6].Value.ToString() + "\n");
+                remoteAddrPortList += (row.Cells[5].Value.ToString() + ":" + row.Cells[6].Value.ToString() + "\n");
 
-            if (copyString != "")
-                Clipboard.SetText(copyString);
+            if (remoteAddrPortList != String.Empty)
+                Clipboard.SetText(remoteAddrPortList);
         }
 
         // Copy ISO Country and Subregion code string for all selected connections.
@@ -1023,13 +1021,13 @@ namespace Kebab
                 || ConnectionGridView == null || ConnectionGridView.SelectedRows.Count == 0)
                 return;
 
-            string copyString = "";
+            string ISOList = String.Empty;
 
             foreach (DataGridViewRow row in getSelectedRows())
-                copyString += (row.Cells[9].Value.ToString() + "\n");
+                ISOList += (row.Cells[9].Value.ToString() + "\n");
 
-            if (copyString != "")
-                Clipboard.SetText(copyString);
+            if (ISOList != String.Empty)
+                Clipboard.SetText(ISOList);
         }
 
         // Copy ASN Organization name for all selected connections.
@@ -1040,13 +1038,13 @@ namespace Kebab
                 || ConnectionGridView == null || ConnectionGridView.SelectedRows.Count == 0)
                 return;
 
-            string copyString = "";
+            string ASNOrgList = String.Empty;
 
             foreach (DataGridViewRow row in getSelectedRows())
-                copyString += (row.Cells[10].Value.ToString() + "\n");
+                ASNOrgList += (row.Cells[10].Value.ToString() + "\n");
 
-            if (copyString != "")
-                Clipboard.SetText(copyString);
+            if (ASNOrgList != String.Empty)
+                Clipboard.SetText(ASNOrgList);
         }
 
         // Copy remote address, port, and related meta info (such as ASN org and GEO info).
@@ -1057,15 +1055,15 @@ namespace Kebab
                 || ConnectionGridView == null || ConnectionGridView.SelectedRows.Count == 0)
                 return;
 
-            string copyString = "";
+            string remoteHostInfoList = String.Empty;
 
             foreach (DataGridViewRow row in getSelectedRows())
-                copyString += ((row.Cells[5].Value.ToString() + ":" + row.Cells[6].Value.ToString()).PadRight(21)
-                               + " " + row.Cells[9].Value.ToString().PadRight(6) + " " + row.Cells[10].Value.ToString()
-                               + "\n");
+                remoteHostInfoList += ((row.Cells[5].Value.ToString() + ":" + row.Cells[6].Value.ToString()).PadRight(21)
+                                       + " " + row.Cells[9].Value.ToString().PadRight(6) + " " + row.Cells[10].Value.ToString()
+                                       + "\n");
 
-            if (copyString != "")
-                Clipboard.SetText(copyString);
+            if (remoteHostInfoList != String.Empty)
+                Clipboard.SetText(remoteHostInfoList);
         }
 
         // Saves connectionlist to file either with dialog or manually if a dialog was already used.
@@ -1240,7 +1238,9 @@ namespace Kebab
                 ClearConnsOnStartCheckBox.Enabled = true;
                 RemoveLocalConnectionsCheckBox.Enabled = true;
                 ForceRawCheckBox.Enabled = true;
-                CaptureFilterGroupBox.Enabled = true;
+
+                if (!ForceRawCheckBox.Checked)
+                    CaptureFilterGroupBox.Enabled = true;
             }
             // Shouldn't be possible after first selection but just to be safe here it is.
             else
@@ -1254,10 +1254,10 @@ namespace Kebab
         }
 
         // Build capture filter from user selected controls for use with shim.
-        private int getCaptureFilterStr(out string captureFilterStr)
+        private int getCaptureFilter(out string captureFilter)
         {
             // Init string.
-            captureFilterStr = String.Empty;
+            captureFilter = String.Empty;
             List<String> filterStrs = new List<string>();
 
             // Don't copy filter info if forcing raw interface.
@@ -1363,15 +1363,15 @@ namespace Kebab
 
             // Check and see if user opted to use complexFilter (directly using libpcap filter string).
             if (CaptureFilterStr.Text.Trim().Length > 0)
-                filterStrs.Add("( " + CaptureFilterStr.Text.Trim() + " )");
+                filterStrs.Add("( " + CaptureFilterStr.Text.Trim().ToLower() + " )");
 
             // Add up all the filter strings into the final capture filter string.
             foreach (string filter in filterStrs)
-                captureFilterStr += (filter + " and ");
+                captureFilter += (filter + " and ");
 
             // Remove trailing " and ".
-            if (captureFilterStr != String.Empty)
-                captureFilterStr = captureFilterStr.Remove(captureFilterStr.Length - 5);
+            if (captureFilter != String.Empty)
+                captureFilter = captureFilter.Remove(captureFilter.Length - 5);
 
             return 0;
         }
@@ -1382,13 +1382,13 @@ namespace Kebab
             if (InterfaceDropDownList.SelectedIndex > 0)
             {
                 // Get libpcap syntax filter string to pass to ShimDotNet.
-                string captureFilterStr;
+                string captureFilter;
 
-                if (getCaptureFilterStr(out captureFilterStr) == -1)
+                if (getCaptureFilter(out captureFilter) == -1)
                     return;
 
                 // Open pcap live session (offset index by -1 because of invalid first entry in drop down list).
-                if (captureEngine.startCapture((InterfaceDropDownList.SelectedIndex - 1), captureFilterStr, ForceRawCheckBox.Checked) == -1)
+                if (captureEngine.startCapture((InterfaceDropDownList.SelectedIndex - 1), captureFilter, ForceRawCheckBox.Checked) == -1)
                 {
                     // If an error happens here we want the user to be able to try another interface.
                     MessageBox.Show(("Error: failed starting capture:\n" + captureEngine.getEngineError()), Program.Name);

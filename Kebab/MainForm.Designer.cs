@@ -50,7 +50,7 @@ namespace Kebab
             this.DisplayFilterGroupBox = new System.Windows.Forms.GroupBox();
             this.timeLimit = new System.Windows.Forms.TextBox();
             this.ClearDisplayFilterButton = new System.Windows.Forms.Button();
-            this.DisplayFilter = new System.Windows.Forms.TextBox();
+            this.DisplayFilterStr = new System.Windows.Forms.TextBox();
             this.DisplayFilterStringLabel = new System.Windows.Forms.Label();
             this.TimeoutCheckBox = new System.Windows.Forms.CheckBox();
             this.ClearConnectionsButton = new System.Windows.Forms.Button();
@@ -236,7 +236,7 @@ namespace Kebab
             // 
             this.DisplayFilterGroupBox.Controls.Add(this.timeLimit);
             this.DisplayFilterGroupBox.Controls.Add(this.ClearDisplayFilterButton);
-            this.DisplayFilterGroupBox.Controls.Add(this.DisplayFilter);
+            this.DisplayFilterGroupBox.Controls.Add(this.DisplayFilterStr);
             this.DisplayFilterGroupBox.Controls.Add(this.DisplayFilterStringLabel);
             this.DisplayFilterGroupBox.Controls.Add(this.TimeoutCheckBox);
             this.DisplayFilterGroupBox.Controls.Add(this.ClearConnectionsButton);
@@ -271,16 +271,16 @@ namespace Kebab
             this.ClearDisplayFilterButton.UseVisualStyleBackColor = true;
             this.ClearDisplayFilterButton.Click += new System.EventHandler(this.ClearDisplayFiltersButton_Click);
             // 
-            // DisplayFilter
+            // DisplayFilterStr
             // 
-            this.DisplayFilter.Font = new System.Drawing.Font("Consolas", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.DisplayFilter.Location = new System.Drawing.Point(106, 28);
-            this.DisplayFilter.MaxLength = 1024;
-            this.DisplayFilter.Name = "DisplayFilter";
-            this.DisplayFilter.Size = new System.Drawing.Size(507, 26);
-            this.DisplayFilter.TabIndex = 1;
-            this.DisplayFilter.WordWrap = false;
-            this.DisplayFilter.TextChanged += new System.EventHandler(this.DisplayFilter_TextChanged);
+            this.DisplayFilterStr.Font = new System.Drawing.Font("Consolas", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.DisplayFilterStr.Location = new System.Drawing.Point(106, 28);
+            this.DisplayFilterStr.MaxLength = 1024;
+            this.DisplayFilterStr.Name = "DisplayFilterStr";
+            this.DisplayFilterStr.Size = new System.Drawing.Size(507, 26);
+            this.DisplayFilterStr.TabIndex = 1;
+            this.DisplayFilterStr.WordWrap = false;
+            this.DisplayFilterStr.TextChanged += new System.EventHandler(this.DisplayFilter_TextChanged);
             // 
             // DisplayFilterStringLabel
             // 
@@ -990,7 +990,7 @@ namespace Kebab
         private System.Windows.Forms.TabPage ConnectionPage;
         private System.Windows.Forms.GroupBox DisplayFilterGroupBox;
         private System.Windows.Forms.Button ClearDisplayFilterButton;
-        private System.Windows.Forms.TextBox DisplayFilter;
+        private System.Windows.Forms.TextBox DisplayFilterStr;
         private System.Windows.Forms.Label DisplayFilterStringLabel;
         private System.Windows.Forms.CheckBox TimeoutCheckBox;
         private System.Windows.Forms.DataGridView ConnectionGridView;

@@ -28,6 +28,11 @@ namespace Kebab
     // Wrapperclass to implement IComparable for IPV4Address from pacapdotnet.
     public class ConnectionAddress : IComparable
     {
+        static public UInt32 IPV4ToUint32(IPAddress address)
+        {
+            return (UInt32)IPAddress.NetworkToHostOrder((Int32)(address.Address));
+        }
+
         public IPAddress Address { get; set; }
 
         public ConnectionAddress(IPAddress addr) { this.Address = addr; }
@@ -44,8 +49,8 @@ namespace Kebab
                 throw new NotSupportedException("Error: compared object is not a ConnectionAddress type!");
 
             // Convert addresses into numerical value for comparison.
-            UInt32 left = this.AddressAsNumericalValue();
-            UInt32 right = ((ConnectionAddress)obj).AddressAsNumericalValue();
+            UInt32 left = this.AddressValue();
+            UInt32 right = ((ConnectionAddress)obj).AddressValue();
 
             // Compare built in type.
             return left.CompareTo(right);
@@ -74,9 +79,9 @@ namespace Kebab
         }
 
         // Converts ConnectionAddress data into numerical value.
-        public UInt32 AddressAsNumericalValue()
+        public UInt32 AddressValue()
         {
-            return (UInt32)IPAddress.NetworkToHostOrder((Int32)(this.Address.Address));
+            return IPV4ToUint32(this.Address);
         }
 
         public bool AddressIsLocal()
@@ -103,7 +108,7 @@ namespace Kebab
             const UInt32 BRODCST_ADDRESS = 0xFFFFFFFF;
 
             // Convert IP to 4 Byte segment (NetToHo doesn't like long for somereason).
-            UInt32 IPValue = this.AddressAsNumericalValue();
+            UInt32 IPValue = this.AddressValue();
 
             // Compares bytes to local ip ranges using netmask anding.
             if ((IPValue & CLASS_A_NETMASK) == CLASS_A_ADDRESS)
