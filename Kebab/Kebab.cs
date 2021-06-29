@@ -29,20 +29,20 @@ namespace Kebab
     static class Program
     {
         // Name of program for repeated use.
-        public const string Name = @"Kebab";
+        static public readonly string Name = @"Kebab";
         // Version of the program (for releases).
-        public const string Version = @"1.1.3.5";
+        static public readonly string Version = @"1.1.3.5";
 
         // Links and strings for update checking mechanism.
-        public const string GithubWEB_LatestReleaseURL = @"https://github.com/anicca048/Kebab/releases/latest";
-        public const string GithubAPI_LatestReleaseURL = @"https://api.github.com/repos/anicca048/Kebab/releases/latest";
-        public const string GithubAPI_ReleaseTagElementName = @"tag_name";
-        public const string GithubAPI_ReleaseTagElementValue = @"v1.1.3.5_Windows_x86_64";
+        static public readonly string GithubWEB_LatestReleaseURL = @"https://github.com/anicca048/Kebab/releases/latest";
+        static public readonly string GithubAPI_LatestReleaseURL = @"https://api.github.com/repos/anicca048/Kebab/releases/latest";
+        static public readonly string GithubAPI_ReleaseTagElementName = @"tag_name";
+        static public readonly string GithubAPI_ReleaseTagElementValue = @"v1.1.3.5_Windows_x86_64";
         // Github API requires a http user agent to be set.
-        public const string GithubAPI_HTTPUserAgent = (Program.Name + "/" + Program.Version);
+        static public readonly string GithubAPI_HTTPUserAgent = (Program.Name + "/" + Program.Version);
 
         // Name of file to store config variables (in json format).
-        public const string ConfigFileName = @"kebab_config.json";
+        static public readonly string ConfigFileName = @"kebab_config.json";
 
         // Entry point for program.
         [STAThread]

@@ -1,53 +1,52 @@
 ﻿
 using System;
-using System.Linq;
-using System.Reflection;
-using System.Drawing;
-using System.ComponentModel;
-using System.Windows.Forms;
-using System.Collections.Generic;
 using System.IO;
-using System.Text.RegularExpressions;
 using System.Net;
-using System.Net.NetworkInformation;
+using System.Linq;
+using System.Drawing;
+using System.Reflection;
+using System.Windows.Forms;
+using System.ComponentModel;
 using System.Security.Principal;
+using System.Collections.Generic;
+using System.Net.NetworkInformation;
+using System.Text.RegularExpressions;
 
 using ShimDotNet;
 
+using MaxMind.Db;
 using MaxMind.GeoIP2;
 using MaxMind.GeoIP2.Responses;
-using MaxMind.Db;
 
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-
 
 namespace Kebab
 {
     public partial class MainForm : Form
     {
         // Breif description of the program.
-        private const string aboutPage = Program.Name + " version " + Program.Version
-                                         + "\n"
-                                         + "Copyright © 2018 anicca048\n"
-                                         + "\n"
-                                         + "Written in C#, " + Program.Name + " is published for free under the terms of the MIT opensource license.\n"
-                                         + "\n"
-                                         + Program.Name + " uses Npcap, and the MaxMind GeoLite2 City and ASN databases and accompanying C# API.\n"
-                                         + "\n"
-                                         + "All third party API's / libraries / dll's used by " + Program.Name + " are opensource.\n"
-                                         + "\n"
-                                         + "Program and legal documentation are included in the *Readme* and *License* / *Copyright* files respectively.\n"
-                                         + "\n"
-                                         + "Further documentation and source code can be found on the project's Github repo.\n"
-                                         + "\n"
-                                         + Program.Name + " Github repo: https://github.com/anicca048/Kebab\n"
-                                         + "Npcap Github repo: https://github.com/nmap/npcap\n"
-                                         + "MaxMind C# API Github repo: https://github.com/maxmind/MaxMind-DB-Reader-dotnet\n"
-                                         + "and https://github.com/maxmind/GeoIP2-dotnet";
+        static private readonly string aboutPage = Program.Name + " version " + Program.Version
+                                                   + "\n"
+                                                   + "Copyright © 2018 anicca048\n"
+                                                   + "\n"
+                                                   + "Written in C#, " + Program.Name + " is published for free under the terms of the MIT opensource license.\n"
+                                                   + "\n"
+                                                   + Program.Name + " uses Npcap, and the MaxMind GeoLite2 City and ASN databases and accompanying C# API.\n"
+                                                   + "\n"
+                                                   + "All third party API's / libraries / dll's used by " + Program.Name + " are opensource.\n"
+                                                   + "\n"
+                                                   + "Program and legal documentation are included in the *Readme* and *License* / *Copyright* files respectively.\n"
+                                                   + "\n"
+                                                   + "Further documentation and source code can be found on the project's Github repo.\n"
+                                                   + "\n"
+                                                   + Program.Name + " Github repo: https://github.com/anicca048/Kebab\n"
+                                                   + "Npcap Github repo: https://github.com/nmap/npcap\n"
+                                                   + "MaxMind C# API Github repo: https://github.com/maxmind/MaxMind-DB-Reader-dotnet\n"
+                                                   + "and https://github.com/maxmind/GeoIP2-dotnet";
 
         // Header to match connections for saving list.
-        private const string connListHdr = "#    Type    LocalAddress:Port  RXTX    RemoteAddress:Port  PacketsSent  BytesSent       ISO    ASNOrg\n";
+        static private readonly string connListHdr = "#    Type    LocalAddress:Port  RXTX    RemoteAddress:Port  PacketsSent  BytesSent       ISO    ASNOrg\n";
 
         // Configuration object.
         private Config programConfig;
@@ -88,16 +87,16 @@ namespace Kebab
         // File stream for using save option without reprompting dialog.
         private string saveFileName;
         // Filter string to use for file dialog window.
-        private const string saveFileFilter = "text file (*.txt)|*.txt|All files (*.*)|*.*";
+        static private readonly string saveFileFilter = "text file (*.txt)|*.txt|All files (*.*)|*.*";
 
         // Used to evaluate textfields that should only contian numeric values such as ports.
-        private const string nonNumericRegex = @"[^0-9]";
+        static private readonly string nonNumericRegex = @"[^0-9]";
         // Used to evaluate textfields that contain numeric vaules and periods such as ip addrs.
-        private const string nonNumericDotRegex = @"[^0-9\.]";
+        static private readonly string nonNumericDotRegex = @"[^0-9\.]";
 
         // GeoLite2 dbase filenames.
-        private const string IPCityLookupDB = "db/GeoLite2-City.mmdb";
-        private const string IPASNLookupDB = "db/GeoLite2-ASN.mmdb";
+        static private readonly string IPCityLookupDB = "db/GeoLite2-City.mmdb";
+        static private readonly string IPASNLookupDB = "db/GeoLite2-ASN.mmdb";
         // MM GeoLite2 dbase mapper / reader object.
         private DatabaseReader CityReader;
         private DatabaseReader ASNReader;
@@ -602,6 +601,79 @@ namespace Kebab
             }
         }
 
+        // Flag to determine if selection is currently allowed.
+        private bool _selectionDisabled = true;
+
+        // Disable automatically selecting rows.
+        private void ConnectionGridView_SelectionChanged(object sender, EventArgs e)
+        {
+            if (_selectionDisabled)
+                ConnectionGridView.ClearSelection();
+        }
+
+        // Disables row selection and ensures current row is not selected if applicable.
+        private void DisableRowSelection()
+        {
+            if (!_selectionDisabled)
+            {
+                // Disable selection of current ruow.
+                _selectionDisabled = true;
+
+                // Deselect rows.
+                ConnectionGridView.ClearSelection();
+
+                // Disable context meny items (for copying conn info).
+                foreach (ToolStripItem item in ConnectionContextMenuStrip.Items)
+                    item.Enabled = false;
+            }
+        }
+
+        // Enables row selection and ensures current row is selected if applicable.
+        private void EnableRowSelection()
+        {
+            if (_selectionDisabled)
+            {
+                // Enable selection of current ruow.
+                _selectionDisabled = false;
+
+                // Select current row if applicaable.
+                if (ConnectionGridView.CurrentRow != null)
+                    ConnectionGridView.CurrentRow.Selected = true;
+
+                // Enable context meny items (for copying conn info).
+                foreach (ToolStripItem item in ConnectionContextMenuStrip.Items)
+                    item.Enabled = true;
+            }
+        }
+
+        // Enable row selection on click.
+        private void ConnectionGridView_CellClick(object sender, DataGridViewCellEventArgs e)
+        {
+            EnableRowSelection();
+        }
+
+        // Clear row selection on header click.
+        private void ConnectionGridView_ColumnHeaderMouseClick(object sender, DataGridViewCellMouseEventArgs e)
+        {
+            DisableRowSelection();
+        }
+
+        // Handle row selection events on certian key releases.
+        private void ConnectionGridView_KeyUp(object sender, KeyEventArgs e)
+        {
+            // Disable selection on escape.
+            if (e.KeyCode == Keys.Escape)
+            {
+                DisableRowSelection();
+            }
+            // Select all on Ctrl+A.
+            else if (e.Modifiers == Keys.Control && e.KeyCode == Keys.A)
+            {
+                EnableRowSelection();
+                ConnectionGridView.SelectAll();
+            }
+        }
+
         // 
         // ConnectionGridView modifiers.
         // 
@@ -852,6 +924,7 @@ namespace Kebab
             }
 
             // Clear the binded list of entries.
+            _selectionDisabled = true;
             ConnectionGridView.ClearSelection();
             connectionList.Clear();
             
@@ -1382,9 +1455,7 @@ namespace Kebab
             if (InterfaceDropDownList.SelectedIndex > 0)
             {
                 // Get libpcap syntax filter string to pass to ShimDotNet.
-                string captureFilter;
-
-                if (getCaptureFilter(out captureFilter) == -1)
+                if (getCaptureFilter(out string captureFilter) == -1)
                     return;
 
                 // Open pcap live session (offset index by -1 because of invalid first entry in drop down list).
@@ -1415,6 +1486,9 @@ namespace Kebab
                     ConnectionGridView.ColumnHeadersVisible = true;
                     ConnectionGridView.DataSource = connectionSource;
                 }
+
+                // Don't select a sell by defualt on start.
+                ConnectionGridView.ClearSelection();
 
                 // Clear connections list if settings is set.
                 if (ClearConnsOnStartCheckBox.Checked)
@@ -1517,6 +1591,12 @@ namespace Kebab
 
             // Otherwise just close form.
             this.Close();
+        }
+
+        // Open settings file.
+        private void preferencesToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            System.Diagnostics.Process.Start(Program.ConfigFileName);
         }
 
         // Show about page (well really a msgbox becuase I don't want to waste a form on an about page).

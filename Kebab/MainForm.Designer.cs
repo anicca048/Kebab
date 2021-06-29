@@ -111,6 +111,8 @@ namespace Kebab
             this.SourcePortFilter = new System.Windows.Forms.TextBox();
             this.DestinationPortFilter = new System.Windows.Forms.TextBox();
             this.TabControl = new System.Windows.Forms.TabControl();
+            this.editToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.preferencesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.TopMenu.SuspendLayout();
             this.ConnectionPage.SuspendLayout();
             this.DisplayFilterGroupBox.SuspendLayout();
@@ -127,6 +129,7 @@ namespace Kebab
             this.TopMenu.BackColor = System.Drawing.SystemColors.Window;
             this.TopMenu.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.FileMenu,
+            this.editToolStripMenuItem,
             this.HelpMenu});
             this.TopMenu.Location = new System.Drawing.Point(0, 0);
             this.TopMenu.Name = "TopMenu";
@@ -251,8 +254,9 @@ namespace Kebab
             // 
             // timeLimit
             // 
+            this.timeLimit.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.timeLimit.Font = new System.Drawing.Font("Consolas", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.timeLimit.Location = new System.Drawing.Point(831, 28);
+            this.timeLimit.Location = new System.Drawing.Point(1173, 28);
             this.timeLimit.MaxLength = 3;
             this.timeLimit.Name = "timeLimit";
             this.timeLimit.Size = new System.Drawing.Size(53, 26);
@@ -262,7 +266,8 @@ namespace Kebab
             // 
             // ClearDisplayFilterButton
             // 
-            this.ClearDisplayFilterButton.Location = new System.Drawing.Point(619, 27);
+            this.ClearDisplayFilterButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.ClearDisplayFilterButton.Location = new System.Drawing.Point(961, 27);
             this.ClearDisplayFilterButton.MinimumSize = new System.Drawing.Size(98, 27);
             this.ClearDisplayFilterButton.Name = "ClearDisplayFilterButton";
             this.ClearDisplayFilterButton.Size = new System.Drawing.Size(111, 28);
@@ -273,12 +278,14 @@ namespace Kebab
             // 
             // DisplayFilterStr
             // 
+            this.DisplayFilterStr.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.DisplayFilterStr.Font = new System.Drawing.Font("Consolas", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.DisplayFilterStr.Location = new System.Drawing.Point(106, 28);
             this.DisplayFilterStr.MaxLength = 1024;
             this.DisplayFilterStr.Name = "DisplayFilterStr";
-            this.DisplayFilterStr.Size = new System.Drawing.Size(507, 26);
-            this.DisplayFilterStr.TabIndex = 1;
+            this.DisplayFilterStr.Size = new System.Drawing.Size(849, 26);
+            this.DisplayFilterStr.TabIndex = 2;
             this.DisplayFilterStr.WordWrap = false;
             this.DisplayFilterStr.TextChanged += new System.EventHandler(this.DisplayFilter_TextChanged);
             // 
@@ -293,8 +300,9 @@ namespace Kebab
             // 
             // TimeoutCheckBox
             // 
+            this.TimeoutCheckBox.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.TimeoutCheckBox.AutoSize = true;
-            this.TimeoutCheckBox.Location = new System.Drawing.Point(736, 29);
+            this.TimeoutCheckBox.Location = new System.Drawing.Point(1078, 29);
             this.TimeoutCheckBox.Name = "TimeoutCheckBox";
             this.TimeoutCheckBox.Size = new System.Drawing.Size(89, 24);
             this.TimeoutCheckBox.TabIndex = 4;
@@ -304,7 +312,8 @@ namespace Kebab
             // 
             // ClearConnectionsButton
             // 
-            this.ClearConnectionsButton.Location = new System.Drawing.Point(890, 27);
+            this.ClearConnectionsButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.ClearConnectionsButton.Location = new System.Drawing.Point(1232, 27);
             this.ClearConnectionsButton.MinimumSize = new System.Drawing.Size(98, 27);
             this.ClearConnectionsButton.Name = "ClearConnectionsButton";
             this.ClearConnectionsButton.Size = new System.Drawing.Size(152, 28);
@@ -379,10 +388,14 @@ namespace Kebab
             this.ConnectionGridView.ShowRowErrors = false;
             this.ConnectionGridView.Size = new System.Drawing.Size(1390, 548);
             this.ConnectionGridView.StandardTab = true;
-            this.ConnectionGridView.TabIndex = 0;
+            this.ConnectionGridView.TabIndex = 1;
             this.ConnectionGridView.TabStop = false;
+            this.ConnectionGridView.CellClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.ConnectionGridView_CellClick);
+            this.ConnectionGridView.ColumnHeaderMouseClick += new System.Windows.Forms.DataGridViewCellMouseEventHandler(this.ConnectionGridView_ColumnHeaderMouseClick);
             this.ConnectionGridView.RowsAdded += new System.Windows.Forms.DataGridViewRowsAddedEventHandler(this.ConnectionGridView_RowsAdded);
+            this.ConnectionGridView.SelectionChanged += new System.EventHandler(this.ConnectionGridView_SelectionChanged);
             this.ConnectionGridView.Sorted += new System.EventHandler(this.ConnectionGridView_Sorted);
+            this.ConnectionGridView.KeyUp += new System.Windows.Forms.KeyEventHandler(this.ConnectionGridView_KeyUp);
             // 
             // Number
             // 
@@ -502,6 +515,7 @@ namespace Kebab
             // 
             // copyToolStripMenuItem
             // 
+            this.copyToolStripMenuItem.Enabled = false;
             this.copyToolStripMenuItem.Name = "copyToolStripMenuItem";
             this.copyToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.C)));
             this.copyToolStripMenuItem.Size = new System.Drawing.Size(186, 22);
@@ -523,6 +537,7 @@ namespace Kebab
             this.aSNOrganizationToolStripMenuItem,
             this.toolStripSeparator6,
             this.allRemoteHostInformationToolStripMenuItem});
+            this.copyComponentToolStripMenuItem.Enabled = false;
             this.copyComponentToolStripMenuItem.Name = "copyComponentToolStripMenuItem";
             this.copyComponentToolStripMenuItem.Size = new System.Drawing.Size(186, 22);
             this.copyComponentToolStripMenuItem.Text = "Copy Component(s)";
@@ -948,6 +963,21 @@ namespace Kebab
             this.TabControl.Size = new System.Drawing.Size(1404, 587);
             this.TabControl.TabIndex = 0;
             // 
+            // editToolStripMenuItem
+            // 
+            this.editToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.preferencesToolStripMenuItem});
+            this.editToolStripMenuItem.Name = "editToolStripMenuItem";
+            this.editToolStripMenuItem.Size = new System.Drawing.Size(39, 20);
+            this.editToolStripMenuItem.Text = "Edit";
+            // 
+            // preferencesToolStripMenuItem
+            // 
+            this.preferencesToolStripMenuItem.Name = "preferencesToolStripMenuItem";
+            this.preferencesToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.preferencesToolStripMenuItem.Text = "Preferences";
+            this.preferencesToolStripMenuItem.Click += new System.EventHandler(this.preferencesToolStripMenuItem_Click);
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -1061,6 +1091,8 @@ namespace Kebab
         private System.Windows.Forms.DataGridViewTextBoxColumn ByteCount;
         private System.Windows.Forms.DataGridViewTextBoxColumn DstGeo;
         private System.Windows.Forms.DataGridViewTextBoxColumn DstASNOrg;
+        private System.Windows.Forms.ToolStripMenuItem editToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem preferencesToolStripMenuItem;
     }
 }
 

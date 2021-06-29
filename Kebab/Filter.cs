@@ -1,8 +1,9 @@
 ﻿
-using ShimDotNet;
 using System;
-using System.Collections.Generic;
 using System.Net;
+using System.Collections.Generic;
+
+using ShimDotNet;
 
 namespace Kebab
 {
@@ -16,30 +17,49 @@ namespace Kebab
         NULL
     }
 
+    public enum Modifyer
+    {
+        SRC,
+        DST,
+        NONE
+    }
+
     // Basic filter class for holding one of many "anded" conditions.
     public class Filter
     {
+        // The main argument (filter operation).
         private Argument _argument;
         public Argument Argument { get { return _argument; } }
+        // Modifies the argument (src, dst, etc..).
+        private Modifyer _modifyer;
+        public Modifyer Modifyer { get { return _modifyer; } }
+        // The main value that will be paired with the argument to filter out connections.
         private string _value;
         public string Value { get { return _value; } }
+        // A secondary value, usually representing an upper range in a range based value.
         private string _secondaryValue;
         public string SecondaryValue { get { return _secondaryValue; } }
 
-        public Filter(Argument argument, string value, string secondaryValue)
+        // Basic constructor, not usually called without using TryParse().
+        public Filter(Argument argument, Modifyer modifyer, string value, string secondaryValue)
         {
             _argument = argument;
+            _modifyer = modifyer;
             _value = value;
             _secondaryValue = secondaryValue;
         }
 
         // Used to ensure that a valid filter is constructed.
-        static public bool TryParse(Argument argument, string value, out Filter filter)
+        static public bool TryParse(Argument argument, Modifyer modifyer, string value, out Filter filter)
         {
             // Set default value of filter incase parsing fails.
-            filter = new Filter(Argument.NULL, string.Empty, string.Empty);
+            filter = new Filter(Argument.NULL, Modifyer.NONE, string.Empty, string.Empty);
             // Create empty potential secondaryValue (may be used by some arguments).
             string secondaryValue = String.Empty;
+
+            // Don't allow modifyers on arguments that don't use them.
+            if (!(argument == Argument.HOST || argument == Argument.PORT) && modifyer != Modifyer.NONE)
+                return false;
 
             // Validate host argument.
             if (argument == Argument.HOST)
@@ -47,13 +67,16 @@ namespace Kebab
                 // Check for an IP range.
                 if (value.Split('-').Length == 2)
                 {
+                    // Split string based on '-' delimiter (represents a range).
                     secondaryValue = value.Split('-')[1];
                     value = value.Split('-')[0];
 
+                    // Make sure secondary IP is valid.
                     if (!IPAddress.TryParse(secondaryValue, out IPAddress _))
                         return false;
                 }
 
+                // Make sure primary IP is valid.
                 if (!IPAddress.TryParse(value, out IPAddress _))
                     return false;
 
@@ -68,14 +91,17 @@ namespace Kebab
                 // Check for a port range.
                 if (value.Split('-').Length == 2)
                 {
+                    // Split string based on '-' delimiter (represents a range).
                     secondaryValue = value.Split('-')[1];
                     value = value.Split('-')[0];
 
-                    if (!UInt16.TryParse(secondaryValue, out UInt16 _))
+                    // Make sure we have a valid secondary port value.
+                    if (!UInt16.TryParse(secondaryValue, out _))
                         return false;
                 }
 
-                if (!UInt16.TryParse(value, out UInt16 _))
+                // Make sure we have a valid primary port value.
+                if (!UInt16.TryParse(value, out _))
                     return false;
 
                 // Make sure range is sane.
@@ -84,7 +110,7 @@ namespace Kebab
             }
 
             // Create new filter on successful parse.
-            filter = new Filter(argument, value, secondaryValue);
+            filter = new Filter(argument, modifyer, value, secondaryValue);
             return true;
         }
     }
@@ -99,6 +125,13 @@ namespace Kebab
             "udp",
             "host",
             "port",
+        };
+
+        // Values that match the modifyers to the user supplied string.
+        static private readonly string[] ModifyerTokens =
+        {
+            "src",
+            "dst"
         };
 
         // Holds list of user supplied filter conditions.
@@ -123,13 +156,33 @@ namespace Kebab
 
             // Argument being processed, acts as flag.
             Argument argument = Argument.NULL;
+            // Possible modifyer.
+            Modifyer modifyer = Modifyer.NONE;
 
             foreach (string token in tokens)
             {
-                // If an argument is not active then the current token must be an argument.
+                // Check if current token could be an argument modifyer.
+                if (modifyer == Modifyer.NONE && argument == Argument.NULL)
+                {
+                    // Attempt to match a modifyer to the token.
+                    for (uint i = 0; i < ModifyerTokens.Length; i++)
+                    {
+                        if (ModifyerTokens[i].Equals(token))
+                        {
+                            modifyer = (Modifyer)i;
+                            break;
+                        }
+                    }
+
+                    // If a valid modifyer was found, continue to next token (should be an argument).
+                    if (modifyer != Modifyer.NONE)
+                        continue;
+                }
+
+                // Check if the current token should be an argument.
                 if (argument == Argument.NULL)
                 {
-                    // Match the argument to the token.
+                    // Attempt to match an argument to the token.
                     for (uint i = 0; i < ArgumentTokens.Length; i++)
                     {
                         if (ArgumentTokens[i].Equals(token))
@@ -146,7 +199,15 @@ namespace Kebab
                     // Arguments that require no follow up value must be immidiately added.
                     if (argument == Argument.TCP || argument == Argument.UDP)
                     {
-                        tmpFilters.Add(new Filter(argument, string.Empty, string.Empty));
+                        // Make sure regular argument value combo is valid.
+                        if (!Filter.TryParse(argument, modifyer, String.Empty, out Filter tmpFilter))
+                            return false;
+
+                        // Add valid filter to list.
+                        tmpFilters.Add(tmpFilter);
+
+                        // Reset modifyer and argument / flags.
+                        modifyer = Modifyer.NONE;
                         argument = Argument.NULL;
                     }
 
@@ -154,22 +215,20 @@ namespace Kebab
                     continue;
                 }
 
-                // Create new filter from tokens.
-                Filter tmpFilter;
-
                 // Make sure regular argument value combo is valid.
-                if (!Filter.TryParse(argument, token, out tmpFilter))
+                if (!Filter.TryParse(argument, modifyer, token, out Filter tmpfilter))
                     return false;
 
                 // Add valid filter to list.
-                tmpFilters.Add(tmpFilter);
+                tmpFilters.Add(tmpfilter);
 
-                // Reset argument / flag.
+                // Reset modifyer and argument / flags.
+                modifyer = Modifyer.NONE;
                 argument = Argument.NULL;
             }
 
             // If the last argument never recieved a value, then we have an invalid string.
-            if (argument != Argument.NULL)
+            if (!(modifyer == Modifyer.NONE && argument == Argument.NULL))
                 return false;
 
             // Create Display filter and indicate successful result.
@@ -187,43 +246,119 @@ namespace Kebab
             // Check all active filters against the connection.
             foreach (Filter filter in Filters)
             {
+                // Drop through each possible filter type and run the matching argument test.
                 if (filter.Argument == Argument.TCP && conn.Type.Protocol != L4_PROTOCOL.TCP)
                     return false;
                 else if (filter.Argument == Argument.UDP && conn.Type.Protocol != L4_PROTOCOL.UDP)
                     return false;
                 else if (filter.Argument == Argument.HOST)
                 {
-                    if (filter.SecondaryValue != String.Empty)
+                    // Handle ANY matching host.
+                    if (filter.Modifyer == Modifyer.NONE)
                     {
-                        UInt32 lowerRange = ConnectionAddress.IPV4ToUint32(IPAddress.Parse(filter.Value));
-                        UInt32 upperRange = ConnectionAddress.IPV4ToUint32(IPAddress.Parse(filter.SecondaryValue));
+                        // Handle range based values.
+                        if (filter.SecondaryValue != String.Empty)
+                        {
+                            UInt32 lowerRange = ConnectionAddress.IPV4ToUint32(IPAddress.Parse(filter.Value));
+                            UInt32 upperRange = ConnectionAddress.IPV4ToUint32(IPAddress.Parse(filter.SecondaryValue));
 
-                        if (!(conn.Source.AddressValue() >= lowerRange && conn.Source.AddressValue() <= upperRange)
-                            && !(conn.Destination.AddressValue() >= lowerRange && conn.Destination.AddressValue() <= upperRange))
+                            if (!(conn.Source.AddressValue() >= lowerRange && conn.Source.AddressValue() <= upperRange)
+                                && !(conn.Destination.AddressValue() >= lowerRange && conn.Destination.AddressValue() <= upperRange))
+                                return false;
+                        }
+                        // Handle single value.
+                        else if (!conn.Source.Address.ToString().Equals(filter.Value)
+                                 && !conn.Destination.Address.ToString().Equals(filter.Value))
                             return false;
                     }
-                    else if (!conn.Source.Address.ToString().Equals(filter.Value)
-                             && !conn.Destination.Address.ToString().Equals(filter.Value))
-                        return false;
+                    // Handle SRC matching host.
+                    else if (filter.Modifyer == Modifyer.SRC)
+                    {
+                        // Handle range based values.
+                        if (filter.SecondaryValue != String.Empty)
+                        {
+                            UInt32 lowerRange = ConnectionAddress.IPV4ToUint32(IPAddress.Parse(filter.Value));
+                            UInt32 upperRange = ConnectionAddress.IPV4ToUint32(IPAddress.Parse(filter.SecondaryValue));
+
+                            if (!(conn.Source.AddressValue() >= lowerRange && conn.Source.AddressValue() <= upperRange))
+                                return false;
+                        }
+                        // Handle single value.
+                        else if (!conn.Source.Address.ToString().Equals(filter.Value))
+                            return false;
+                    }
+                    // Handle DST matching host.
+                    else if (filter.Modifyer == Modifyer.DST)
+                    {
+                        // Handle range based values.
+                        if (filter.SecondaryValue != String.Empty)
+                        {
+                            UInt32 lowerRange = ConnectionAddress.IPV4ToUint32(IPAddress.Parse(filter.Value));
+                            UInt32 upperRange = ConnectionAddress.IPV4ToUint32(IPAddress.Parse(filter.SecondaryValue));
+
+                            if (!(conn.Destination.AddressValue() >= lowerRange && conn.Destination.AddressValue() <= upperRange))
+                                return false;
+                        }
+                        // Handle single value.
+                        else if (!conn.Destination.Address.ToString().Equals(filter.Value))
+                            return false;
+                    }
                 }
                 else if (filter.Argument == Argument.PORT)
                 {
-                    // Handle port range filter
-                    if (filter.SecondaryValue != String.Empty)
+                    // Handle ANY matching port.
+                    if (filter.Modifyer == Modifyer.NONE)
                     {
-                        UInt16 lowerRange = UInt16.Parse(filter.Value);
-                        UInt16 upperRange = UInt16.Parse(filter.SecondaryValue);
+                        // Handle range based values.
+                        if (filter.SecondaryValue != String.Empty)
+                        {
+                            UInt16 lowerRange = UInt16.Parse(filter.Value);
+                            UInt16 upperRange = UInt16.Parse(filter.SecondaryValue);
 
-                        if (!(conn.SrcPort >= lowerRange && conn.SrcPort <= upperRange)
-                            && !(conn.DstPort >= lowerRange && conn.DstPort <= upperRange))
+                            if (!(conn.SrcPort >= lowerRange && conn.SrcPort <= upperRange)
+                                && !(conn.DstPort >= lowerRange && conn.DstPort <= upperRange))
+                                return false;
+                        }
+                        // Handle single value.
+                        else if (!conn.SrcPort.ToString().Equals(filter.Value) && !conn.DstPort.ToString().Equals(filter.Value))
                             return false;
                     }
-                    else if (!conn.SrcPort.ToString().Equals(filter.Value) && !conn.DstPort.ToString().Equals(filter.Value))
-                        return false;
+                    // Handle SRC matching port.
+                    else if (filter.Modifyer == Modifyer.SRC)
+                    {
+                        // Handle range based values.
+                        if (filter.SecondaryValue != String.Empty)
+                        {
+                            UInt16 lowerRange = UInt16.Parse(filter.Value);
+                            UInt16 upperRange = UInt16.Parse(filter.SecondaryValue);
+
+                            if (!(conn.SrcPort >= lowerRange && conn.SrcPort <= upperRange))
+                                return false;
+                        }
+                        // Handle single value.
+                        else if (!conn.SrcPort.ToString().Equals(filter.Value))
+                            return false;
+                    }
+                    // Handle DST matching port.
+                    else if (filter.Modifyer == Modifyer.DST)
+                    {
+                        // Handle range based values.
+                        if (filter.SecondaryValue != String.Empty)
+                        {
+                            UInt16 lowerRange = UInt16.Parse(filter.Value);
+                            UInt16 upperRange = UInt16.Parse(filter.SecondaryValue);
+
+                            if (!(conn.DstPort >= lowerRange && conn.DstPort <= upperRange))
+                                return false;
+                        }
+                        // Handle single value.
+                        else if (!conn.DstPort.ToString().Equals(filter.Value))
+                            return false;
+                    }
                 }
             }
 
-            // No non matches, so must have a match.
+            // No non-matches were found with active filters, so we must have a match.
             return true;
         }
     }
