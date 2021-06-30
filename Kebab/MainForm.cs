@@ -148,11 +148,21 @@ namespace Kebab
             {
                 captureEngine = new CaptureEngine();
             }
-            // Incase npcap is not installed (thrown if ShimDotNet can't load .../Npcap/wpcap.dll).
-            catch (FileNotFoundException ex)
+            // Incase npcap is not installed (could be thrown if ShimDotNet can't load wpcap.dll).
+            catch (FileNotFoundException)
             {
-                MessageBox.Show(("Error: failed to initilize capture engine:\n" + ex.Message
-                                 + "\n\nMake sure that Npcap is installed properly."), Program.Name);
+                MessageBox.Show(("Error: failed to initilize capture engine!"
+                                 + "\n\nMake sure that you have a recent version of " + Program.Name + "."
+                                 + "\n\nAnd make sure that Npcap is installed properly: https://nmap.org/npcap/"), Program.Name);
+                System.Environment.Exit(1);
+            }
+
+            // Run init routine to make sure that everything (mostly npcap related) is alright.
+            if (!captureEngine.init())
+            {
+                MessageBox.Show(("Error: failed to initilize capture engine!"
+                                 + "\n\nMake sure that you have a recent version of " + Program.Name + "."
+                                 + "\n\nAnd make sure that Npcap is installed properly: https://nmap.org/npcap/"), Program.Name);
                 System.Environment.Exit(1);
             }
 
@@ -181,15 +191,15 @@ namespace Kebab
             catch (FileNotFoundException ex)
             {
                 // Warn user of missing database file and exit.
-                MessageBox.Show(("Error: could not find a database file: " + ex.Message + "\n\nDownload a fresh copy of "
-                                 + Program.Name + " to ensure that you have all the required files."), Program.Name);
+                MessageBox.Show(("Error: could not find a database file: " + ex.Message
+                                 + "\n\nMake sure that you have a recent version of " + Program.Name + "."), Program.Name);
                 System.Environment.Exit(1);
             }
             catch (InvalidDatabaseException ex)
             {
                 // Warn user of missing database file and exit.
-                MessageBox.Show(("Error: invalid or corrupt database file: " + ex.Message + "\n\nDownload a fresh copy of "
-                                 + Program.Name + " to ensure that you have all the required files."), Program.Name);
+                MessageBox.Show(("Error: invalid or corrupt database file: " + ex.Message
+                                 + "\n\nMake sure that you have a recent version of " + Program.Name + "."), Program.Name);
                 System.Environment.Exit(1);
             }
 
