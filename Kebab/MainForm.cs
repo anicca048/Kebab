@@ -31,6 +31,7 @@ namespace Kebab
 
         // Configuration object.
         private Config programConfig;
+        private readonly object programConfigLock = new object();
 
         // Interface drop down list data source.
         private BindingList<string> deviceList;
@@ -54,11 +55,15 @@ namespace Kebab
         private readonly BackgroundWorker captureWorker = new BackgroundWorker { WorkerSupportsCancellation = true };
         // Update checking needs to happen on a separate thread.
         private readonly BackgroundWorker updateWorker = new BackgroundWorker { WorkerSupportsCancellation = false };
+        // Constantly check if there are pending changes in the config file.
+        private readonly BackgroundWorker configWorker = new BackgroundWorker { WorkerSupportsCancellation = true };
 
-        // Timers for updating the connection stats.
+        // Timers for updating the connection stats and view.
         private readonly System.Windows.Forms.Timer packetTimer = new System.Windows.Forms.Timer();
         private readonly System.Windows.Forms.Timer timeoutTimer = new System.Windows.Forms.Timer();
         private readonly System.Windows.Forms.Timer displayFilterTimer = new System.Windows.Forms.Timer();
+        // Timer for applying pending config changes.
+        private readonly System.Windows.Forms.Timer checkConfigTimer = new System.Windows.Forms.Timer();
 
         // Minimal wait time between packet batch processing in milliseconds.
         private const int packetBatchInterval = 10;
@@ -70,16 +75,13 @@ namespace Kebab
         private int timeoutInactivityLimit = 30;
         // How often to apply display filter checks in milliseconds.
         private const int displayFilterInterval = 500;
+        // How often to check config file in milliseconds.
+        private const int checkConfigInterval = 1000;
 
         // File stream for using save option without reprompting dialog.
         private string saveFileName;
         // Filter string to use for file dialog window.
         static private readonly string saveFileFilter = "text file (*.txt)|*.txt|All files (*.*)|*.*";
-
-        // Used to evaluate textfields that should only contian numeric values such as ports.
-        static private readonly string nonNumericRegex = @"[^0-9]";
-        // Used to evaluate textfields that contain numeric vaules and periods such as ip addrs.
-        //static private readonly string nonNumericDotRegex = @"[^0-9\.]";
 
         // GeoLite2 dbase filenames.
         static private readonly string IPCityLookupDB = "db/GeoLite2-City.mmdb";
@@ -108,16 +110,19 @@ namespace Kebab
             packetTimer.Tick += new EventHandler(UpdateConnList);
             timeoutTimer.Tick += new EventHandler(TimeoutConnList);
             displayFilterTimer.Tick += new EventHandler(FilterConnList);
-
-            // Setup background workers.
-            captureWorker.DoWork += CaptureWorker_DoWork;
-            updateWorker.DoWork += UpdateWorker_DoWork;
-            updateWorker.RunWorkerCompleted += UpdateWorker_RunWorkerCompleted;
+            checkConfigTimer.Tick += new EventHandler(CheckConfig);
 
             // Set timer intervals.
             packetTimer.Interval = packetBatchInterval;
             timeoutTimer.Interval = timeoutInterval;
             displayFilterTimer.Interval = displayFilterInterval;
+            checkConfigTimer.Interval = checkConfigInterval;
+
+            // Setup background workers.
+            captureWorker.DoWork += CaptureWorker_DoWork;
+            updateWorker.DoWork += UpdateWorker_DoWork;
+            updateWorker.RunWorkerCompleted += UpdateWorker_RunWorkerCompleted;
+            configWorker.DoWork += ConfigWorker_DoWork;
         }
 
         // User defined init (runs after MainForm constructor).
@@ -216,6 +221,7 @@ namespace Kebab
 
             // Set default and or loaded config.
             ApplyConfig();
+            programConfig.ClearPendingChanges();
 
             // Attempt to overwrite config file with default and or loaded values.
             if (!programConfig.SaveConfig())
@@ -223,22 +229,22 @@ namespace Kebab
                 MessageBox.Show(("Error: failed to save configuration file!" + "\n\n" + Program.Name +
                                  " will run in non-persistent config mode, user preferences will not be saved!"),
                                 Program.Name);
-
-                //nonPersistentConfig = true;
             }
+            else
+                programConfig.SaveOnLoad = true;
 
             // Check if auto update functionality is enabled.
             if (programConfig.CVars.update_check == "true")
             {
                 // Retrieve current version.
-                string tagName = GetCurrentTagName();
+                latestReleaseTagName = GetCurrentTagName();
 
-                // Application is not the latest version.
-                if (!Program.GithubAPI_ReleaseTagElementValue.Equals(tagName))
+                // Check if application is the latest version.
+                if (!Program.GithubAPI_ReleaseTagElementValue.Equals(latestReleaseTagName))
                 {
                     // Inform user of available update, and ask if they would like to visit web page.
                     if (MessageBox.Show("An update is available!\n\nCurrent version: \t" + Program.GithubAPI_ReleaseTagElementValue + "\nLatest version: \t"
-                                        + tagName + "\n\nWould you like to vist the latest release web page?",
+                                        + latestReleaseTagName + "\n\nWould you like to vist the latest release web page?",
                                         Program.Name, MessageBoxButtons.YesNo) == DialogResult.Yes)
                     {
                         // Load URL in default web browser.
@@ -246,6 +252,10 @@ namespace Kebab
                     }
                 }
             }
+
+            // Enable auto config check mechanisms.
+            ConfigWorker_Start();
+            checkConfigTimer.Start();
 
             // Enable form after init is done.
             this.Enabled = true;
@@ -320,7 +330,21 @@ namespace Kebab
         private void ApplyConfig()
         {
             // Apply banner message string to mainform title.
-            this.Text += (" - " + programConfig.CVars.flavor_text);
+            this.Text = (Program.Name + " - " + programConfig.CVars.flavor_text);
+        }
+
+        // Check if there are pending config file changes that need to be applied.
+        private void CheckConfig(object sender, EventArgs e)
+        {
+            lock (programConfigLock)
+            {
+                if (programConfig.ChangesPending)
+                {
+                    // Set default and or loaded config.
+                    ApplyConfig();
+                    programConfig.ClearPendingChanges();
+                }
+            }
         }
 
         // Reusable grouping for cleanup tasks when form needs to close.
@@ -364,9 +388,6 @@ namespace Kebab
 
             // Cleanup.
             MainFormCleanup();
-
-            // Save config to file.
-            programConfig.SaveConfig();
 
             // Otherwise let the form close naturally.
             base.OnFormClosing(e);
@@ -460,7 +481,7 @@ namespace Kebab
         // Threaded pcap packet processing loop.
         private void CaptureWorker_DoWork(object sender, DoWorkEventArgs e)
         {
-            // Build a reference worker so we can check cancellationPending() from ProcessPackets().
+            // Create a reference worker so we can check for cancel signal.
             BackgroundWorker thisWorker = sender as BackgroundWorker;
 
             // Start packet capture loop.
@@ -504,6 +525,9 @@ namespace Kebab
             {
                 latestReleaseTagName = GetCurrentTagName();
             }
+
+            // Signal end of thread work.
+            _updateWorkerDone.Set();
         }
         
         // Shows update information after update check has been performed.
@@ -511,7 +535,7 @@ namespace Kebab
         {
             lock (latestReleaseTagNameLock)
             {
-                // Application is latest version.
+                // Application is the latest version.
                 if (Program.GithubAPI_ReleaseTagElementValue.Equals(latestReleaseTagName))
                 {
                     // Inform user that there are no available updates.
@@ -532,7 +556,7 @@ namespace Kebab
             }
         }
 
-        // Initilizes update check worker.
+        // Guards the starting of update check worker.
         private void UpdateWorker_Start()
         {
             // Don't continue if a background worker already exists and is still running.
@@ -541,6 +565,40 @@ namespace Kebab
 
             // Start packet capture background worker.
             updateWorker.RunWorkerAsync();
+        }
+
+        // End of thread flag.
+        private readonly AutoResetEvent _configWorkerDone = new AutoResetEvent(false);
+        // Checks for pending changes by continuously loading config file.
+        private void ConfigWorker_DoWork(object sender, DoWorkEventArgs e)
+        {
+            // Create a reference worker so we can check for cancel signal.
+            BackgroundWorker thisWorker = sender as BackgroundWorker;
+
+            // Start config file checking loop.
+            while (!thisWorker.CancellationPending)
+            {
+                lock (programConfigLock)
+                {
+                    programConfig.LoadConfig();
+                }
+
+                Thread.Sleep(checkConfigInterval / 2);
+            }
+
+            // Signal end of thread work.
+            _configWorkerDone.Set();
+        }
+
+        // Guards the starting of update check worker.
+        private void ConfigWorker_Start()
+        {
+            // Don't continue if a background worker already exists and is still running.
+            if (configWorker.IsBusy)
+                return;
+
+            // Start packet capture background worker.
+            configWorker.RunWorkerAsync();
         }
 
         // 
@@ -1681,9 +1739,7 @@ namespace Kebab
             // Make sure we have a valid timeout value.
             if (timeLimit.Text.Trim().Length > 0)
             {
-                Match badChar = Regex.Match(timeLimit.Text.Trim(), nonNumericRegex);
-
-                if (badChar.Length > 0)
+                if (Regex.Match(timeLimit.Text.Trim(), Filter.nonNumericRegex).Length > 0)
                 {
                     MessageBox.Show("Error: invalid timeout limit!", Program.Name);
                     timeLimit.Text = timeoutInactivityLimit.ToString();

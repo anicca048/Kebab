@@ -2,6 +2,7 @@
 using System;
 using System.Net;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 
 using ShimDotNet;
 
@@ -14,6 +15,8 @@ namespace Kebab
         UDP,
         HOST,
         PORT,
+        ISO,
+        ASN,
         NULL
     }
 
@@ -27,6 +30,17 @@ namespace Kebab
     // Basic filter class for holding one of many "anded" conditions.
     public class Filter
     {
+        // Used to evaluate alpha only string.
+        static public readonly string nonAlphaRegex = @"[^a-zA-Z]";
+        // Used to evaluate alpha and hyphen string such as ISO.
+        static public readonly string nonAlphaAndDashRegex = @"[^a-zA-Z-]";
+        // Used to evaluate numeric only strings such as ports.
+        static public readonly string nonNumericRegex = @"[^0-9]";
+        // Used to evaluate numeric and period only string such as ip addrs.
+        static public readonly string nonNumericAndDotRegex = @"[^0-9\.]";
+        // Used to evaluate alphanumeric strings that may have seperators such as ASN.
+        static public readonly string nonAlphaNumericAndSeparatorsRegex = @"[^0-9a-zA-Z-_]";
+
         // The main argument (filter operation).
         private readonly Argument _argument;
         public Argument Argument { get { return _argument; } }
@@ -58,7 +72,8 @@ namespace Kebab
             string secondaryValue = String.Empty;
 
             // Don't allow modifyers on arguments that don't use them.
-            if (!(argument == Argument.HOST || argument == Argument.PORT) && modifyer != Modifyer.NONE)
+            if (!(argument == Argument.HOST || argument == Argument.PORT)
+                && modifyer != Modifyer.NONE)
                 return false;
 
             // Validate host argument.
@@ -71,10 +86,18 @@ namespace Kebab
                     secondaryValue = value.Split('-')[1];
                     value = value.Split('-')[0];
 
+                    // Check IP against regex before TryParse.
+                    if (Regex.Match(secondaryValue, Filter.nonNumericAndDotRegex).Length > 0)
+                        return false;
+
                     // Make sure secondary IP is valid.
                     if (!IPAddress.TryParse(secondaryValue, out IPAddress _))
                         return false;
                 }
+
+                // Check IP against regex before TryParse.
+                if (Regex.Match(value, Filter.nonNumericAndDotRegex).Length > 0)
+                    return false;
 
                 // Make sure primary IP is valid.
                 if (!IPAddress.TryParse(value, out IPAddress _))
@@ -86,7 +109,7 @@ namespace Kebab
                     return false;
             }
             // Validate port argument.
-            if (argument == Argument.PORT)
+            else if (argument == Argument.PORT)
             {
                 // Check for a port range.
                 if (value.Split('-').Length == 2)
@@ -95,10 +118,18 @@ namespace Kebab
                     secondaryValue = value.Split('-')[1];
                     value = value.Split('-')[0];
 
+                    // Check Port against regex before TryParse.
+                    if (Regex.Match(secondaryValue, Filter.nonNumericRegex).Length > 0)
+                        return false;
+
                     // Make sure we have a valid secondary port value.
                     if (!UInt16.TryParse(secondaryValue, out _))
                         return false;
                 }
+
+                // Check Port against regex before TryParse.
+                if (Regex.Match(value, Filter.nonNumericRegex).Length > 0)
+                    return false;
 
                 // Make sure we have a valid primary port value.
                 if (!UInt16.TryParse(value, out _))
@@ -106,6 +137,22 @@ namespace Kebab
 
                 // Make sure range is sane.
                 if (secondaryValue != string.Empty && UInt16.Parse(value) >= UInt16.Parse(secondaryValue))
+                    return false;
+            }
+            else if (argument == Argument.ISO)
+            {
+                // ISO code should have at 2 or 5 chars.
+                if (!(value.Length == 2 || value.Length == 5))
+                    return false;
+
+                // Check string against regex before.
+                if (Regex.Match(value, Filter.nonAlphaAndDashRegex).Length > 0)
+                    return false;
+            }
+            else if (argument == Argument.ASN)
+            {
+                // Check string against regex before.
+                if (Regex.Match(value, Filter.nonAlphaNumericAndSeparatorsRegex).Length > 0)
                     return false;
             }
 
@@ -125,6 +172,8 @@ namespace Kebab
             "udp",
             "host",
             "port",
+            "iso",
+            "asn"
         };
 
         // Values that match the modifyers to the user supplied string.
@@ -355,6 +404,16 @@ namespace Kebab
                         else if (!conn.DstPort.ToString().Equals(filter.Value))
                             return false;
                     }
+                }
+                else if (filter.Argument == Argument.ISO)
+                {
+                    if (!(Regex.Match(conn.DstGeo.ToString().ToLower(), filter.Value).Length > 0))
+                        return false;
+                }
+                else if (filter.Argument == Argument.ASN)
+                {
+                    if (!(Regex.Match(conn.DstASNOrg.ToLower(), filter.Value).Length > 0))
+                        return false;
                 }
             }
 

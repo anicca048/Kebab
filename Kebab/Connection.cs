@@ -30,7 +30,13 @@ namespace Kebab
     {
         static public UInt32 IPV4ToUint32(IPAddress address)
         {
-            return (UInt32)IPAddress.NetworkToHostOrder((Int32)(address.Address));
+            // Could not find another way to get direct access to address bytes in numeric format.
+            // IPAddress.Equals() is woefully unequipped for many actions, so stop [FN] saying that it is MS!
+            #pragma warning disable CS0618
+
+            return (UInt32)IPAddress.NetworkToHostOrder((Int32)address.Address);
+
+            #pragma warning restore CS0618
         }
 
         public IPAddress Address { get; set; }
@@ -169,7 +175,7 @@ namespace Kebab
         public override string ToString()
         {
             if (this.StateISO != "--")
-                return (this.CountryISO + ", " + this.StateISO);
+                return (this.CountryISO + "-" + this.StateISO);
             else
                 return (this.CountryISO);
         }
