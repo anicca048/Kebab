@@ -4,6 +4,7 @@ using System.IO;
 using System.Net;
 using System.Linq;
 using System.Drawing;
+using System.Threading;
 using System.Reflection;
 using System.Windows.Forms;
 using System.ComponentModel;
@@ -25,26 +26,6 @@ namespace Kebab
 {
     public partial class MainForm : Form
     {
-        // Breif description of the program.
-        static private readonly string aboutPage = Program.Name + " version " + Program.Version
-                                                   + "\n"
-                                                   + "Copyright © 2018 anicca048\n"
-                                                   + "\n"
-                                                   + "Written in C#, " + Program.Name + " is published for free under the terms of the MIT opensource license.\n"
-                                                   + "\n"
-                                                   + Program.Name + " uses Npcap, and the MaxMind GeoLite2 City and ASN databases and accompanying C# API.\n"
-                                                   + "\n"
-                                                   + "All third party API's / libraries / dll's used by " + Program.Name + " are opensource.\n"
-                                                   + "\n"
-                                                   + "Program and legal documentation are included in the *Readme* and *License* / *Copyright* files respectively.\n"
-                                                   + "\n"
-                                                   + "Further documentation and source code can be found on the project's Github repo.\n"
-                                                   + "\n"
-                                                   + Program.Name + " Github repo: https://github.com/anicca048/Kebab\n"
-                                                   + "Npcap Github repo: https://github.com/nmap/npcap\n"
-                                                   + "MaxMind C# API Github repo: https://github.com/maxmind/MaxMind-DB-Reader-dotnet\n"
-                                                   + "and https://github.com/maxmind/GeoIP2-dotnet";
-
         // Header to match connections for saving list.
         static private readonly string connListHdr = "#    Type    LocalAddress:Port  RXTX    RemoteAddress:Port  PacketsSent  BytesSent       ISO    ASNOrg\n";
 
@@ -58,20 +39,26 @@ namespace Kebab
         private BindingSource connectionSource;
         private ConnectionList connectionList;
 
-        // Connection packet queue and lock for background workers (so as not to overload the UI loop.)
-        private Queue<IPV4_PACKET> pendingPackets = new Queue<IPV4_PACKET>();
+        // Connection packet queue and lock for capture background worker.
+        private readonly Queue<IPV4_PACKET> pendingPackets = new Queue<IPV4_PACKET>();
         private readonly object pendingPacketsLock = new object();
+
+        // Current release tag value and lock for update check background woker.
+        private string latestReleaseTagName;
+        private readonly object latestReleaseTagNameLock = new object();
 
         // Packet capture engine (main class from ShimDotNet).
         private CaptureEngine captureEngine;
 
-        // Background worker for processing packets.
-        private BackgroundWorker _captureWorker;
+        // Packet capture needs to happen on a separate thread.
+        private readonly BackgroundWorker captureWorker = new BackgroundWorker { WorkerSupportsCancellation = true };
+        // Update checking needs to happen on a separate thread.
+        private readonly BackgroundWorker updateWorker = new BackgroundWorker { WorkerSupportsCancellation = false };
 
         // Timers for updating the connection stats.
-        System.Windows.Forms.Timer packetTimer = new System.Windows.Forms.Timer();
-        System.Windows.Forms.Timer timeoutTimer = new System.Windows.Forms.Timer();
-        System.Windows.Forms.Timer displayFilterTimer = new System.Windows.Forms.Timer();
+        private readonly System.Windows.Forms.Timer packetTimer = new System.Windows.Forms.Timer();
+        private readonly System.Windows.Forms.Timer timeoutTimer = new System.Windows.Forms.Timer();
+        private readonly System.Windows.Forms.Timer displayFilterTimer = new System.Windows.Forms.Timer();
 
         // Minimal wait time between packet batch processing in milliseconds.
         private const int packetBatchInterval = 10;
@@ -92,7 +79,7 @@ namespace Kebab
         // Used to evaluate textfields that should only contian numeric values such as ports.
         static private readonly string nonNumericRegex = @"[^0-9]";
         // Used to evaluate textfields that contain numeric vaules and periods such as ip addrs.
-        static private readonly string nonNumericDotRegex = @"[^0-9\.]";
+        //static private readonly string nonNumericDotRegex = @"[^0-9\.]";
 
         // GeoLite2 dbase filenames.
         static private readonly string IPCityLookupDB = "db/GeoLite2-City.mmdb";
@@ -100,9 +87,6 @@ namespace Kebab
         // MM GeoLite2 dbase mapper / reader object.
         private DatabaseReader CityReader;
         private DatabaseReader ASNReader;
-
-        // Indicates that the form closing event has been called and that the worker completion method needs to close the form.
-        private bool formClosePending = false;
 
         // Font to be used for numeric value containers.
         private readonly Font DataFont = new Font("Consolas", 12, FontStyle.Regular);
@@ -124,6 +108,11 @@ namespace Kebab
             packetTimer.Tick += new EventHandler(UpdateConnList);
             timeoutTimer.Tick += new EventHandler(TimeoutConnList);
             displayFilterTimer.Tick += new EventHandler(FilterConnList);
+
+            // Setup background workers.
+            captureWorker.DoWork += CaptureWorker_DoWork;
+            updateWorker.DoWork += UpdateWorker_DoWork;
+            updateWorker.RunWorkerCompleted += UpdateWorker_RunWorkerCompleted;
 
             // Set timer intervals.
             packetTimer.Interval = packetBatchInterval;
@@ -331,6 +320,14 @@ namespace Kebab
             packetTimer.Stop();
             timeoutTimer.Stop();
             displayFilterTimer.Stop();
+            // Dispose timers.
+            packetTimer.Dispose();
+            timeoutTimer.Dispose();
+            displayFilterTimer.Dispose();
+
+            // Dispose backgorund workers.
+            captureWorker.Dispose();
+            updateWorker.Dispose();
 
             // Dispose geolite constructs.
             CityReader.Dispose();
@@ -340,20 +337,26 @@ namespace Kebab
         // Overide form close to do background worker cleanup.
         protected override void OnFormClosing(FormClosingEventArgs e)
         {
-            // Set this before testing if workers are busy to double ensure that a timing gab is impossible.
-            formClosePending = true;
-
             // If background worker is running then force cleanup and let it handle form close.
-            if (_captureWorker != default(BackgroundWorker) && _captureWorker.IsBusy)
+            if (captureWorker != default(BackgroundWorker) && captureWorker.IsBusy)
             {
-                _captureWorker.CancelAsync();
-                e.Cancel = true;
-                this.Enabled = false;
-                return;
+                captureWorker.CancelAsync();
+                _captureWorkerDone.WaitOne();
             }
+
+            if (updateWorker != default(BackgroundWorker) && updateWorker.IsBusy)
+            {
+                _updateWorkerDone.WaitOne();
+            }
+
+            // Do ShimDotNet cleanup.
+            captureEngine.stopCapture();
 
             // Cleanup.
             MainFormCleanup();
+
+            // Save config to file.
+            programConfig.SaveConfig();
 
             // Otherwise let the form close naturally.
             base.OnFormClosing(e);
@@ -442,43 +445,8 @@ namespace Kebab
         // Background worker related methods
         // 
 
-        // Last background worker does form cleanup.
-        private void DoBWCleanup(object sender, RunWorkerCompletedEventArgs e)
-        {
-            // Do ShimDotNet cleanup.
-            captureEngine.stopCapture();
-
-            // Check if user is waiting for form to close.
-            if (formClosePending)
-            {
-                // Cleanup.
-                MainFormCleanup();
-
-                // Close form.
-                this.Close();
-            }
-
-            // Re enable start button now that a new capture can be started.
-            ChangeOnStopCapture(sender, e);
-        }
-
-        // Setup all background workers.
-        private void DoBWSetup()
-        {
-            // Check if backgroundworker exists and Dispose it.
-            if (_captureWorker != default(BackgroundWorker))
-                _captureWorker.Dispose();
-
-            // Initialize new background worker object.
-            _captureWorker = new BackgroundWorker();
-
-            // Start packet capture background worker.
-            _captureWorker.WorkerSupportsCancellation = true;
-            _captureWorker.DoWork += CaptureWorker_DoWork;
-            _captureWorker.RunWorkerCompleted += DoBWCleanup;
-            _captureWorker.RunWorkerAsync();
-        }
-
+        // End of thread flag.
+        private readonly AutoResetEvent _captureWorkerDone = new AutoResetEvent(false);
         // Threaded pcap packet processing loop.
         private void CaptureWorker_DoWork(object sender, DoWorkEventArgs e)
         {
@@ -500,6 +468,69 @@ namespace Kebab
                     }
                 }
             }
+
+            // Signal end of thread work.
+            _captureWorkerDone.Set();
+        }
+
+        // Initilize capture worker.
+        private void CaptureWorker_Start()
+        {
+            // Don't start worker until it's done running.
+            if (captureWorker.IsBusy)
+                return;
+
+            // Start packet capture background worker.
+            captureWorker.RunWorkerAsync();
+        }
+
+        // End of thread flag.
+        private readonly AutoResetEvent _updateWorkerDone = new AutoResetEvent(false);
+        // Parses github json API to determine if an update is available.
+        private void UpdateWorker_DoWork(object sender, DoWorkEventArgs e)
+        {
+            // Retrieve current version.
+            lock (latestReleaseTagNameLock)
+            {
+                latestReleaseTagName = GetCurrentTagName();
+            }
+        }
+        
+        // Shows update information after update check has been performed.
+        private void UpdateWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            lock (latestReleaseTagNameLock)
+            {
+                // Application is latest version.
+                if (Program.GithubAPI_ReleaseTagElementValue.Equals(latestReleaseTagName))
+                {
+                    // Inform user that there are no available updates.
+                    MessageBox.Show("No updates are available.", Program.Name);
+                }
+                // Application is not latest version (not going to do numeric comparision, this should be gud nuf).
+                else
+                {
+                    // Inform user of available update, and ask if they would like to visit web page.
+                    if (MessageBox.Show("An update is available!\n\nCurrent version: \t" + Program.GithubAPI_ReleaseTagElementValue + "\nLatest version: \t"
+                                        + latestReleaseTagName + "\n\nWould you like to vist the latest release web page?",
+                                        Program.Name, MessageBoxButtons.YesNo) == DialogResult.Yes)
+                    {
+                        // Load URL in default web browser.
+                        System.Diagnostics.Process.Start(Program.GithubWEB_LatestReleaseURL);
+                    }
+                }
+            }
+        }
+
+        // Initilizes update check worker.
+        private void UpdateWorker_Start()
+        {
+            // Don't continue if a background worker already exists and is still running.
+            if (updateWorker.IsBusy)
+                return;
+
+            // Start packet capture background worker.
+            updateWorker.RunWorkerAsync();
         }
 
         // 
@@ -603,7 +634,6 @@ namespace Kebab
 
         // Flag to determine if selection is currently allowed.
         private bool _selectionDisabled = true;
-
         // Disable automatically selecting rows.
         private void ConnectionGridView_SelectionChanged(object sender, EventArgs e)
         {
@@ -777,19 +807,19 @@ namespace Kebab
                     if (CityReader.TryCity(newConn.Destination.ToString(), out CityResponse cityResp))
                     {
                         // Add info from response object, or "--" marker for empty components of the response.
-                        if ((newConn.DstGeo.Country = cityResp.Country.Name) == default(string))
+                        if ((newConn.DstGeo.Country = cityResp.Country.Name) == default)
                             newConn.DstGeo.Country = "--";
 
-                        if ((newConn.DstGeo.CountryISO = cityResp.Country.IsoCode) == default(string))
+                        if ((newConn.DstGeo.CountryISO = cityResp.Country.IsoCode) == default)
                             newConn.DstGeo.CountryISO = "--";
 
-                        if ((newConn.DstGeo.State = cityResp.MostSpecificSubdivision.Name) == default(string))
+                        if ((newConn.DstGeo.State = cityResp.MostSpecificSubdivision.Name) == default)
                             newConn.DstGeo.State = "--";
 
-                        if ((newConn.DstGeo.StateISO = cityResp.MostSpecificSubdivision.IsoCode) == default(string))
+                        if ((newConn.DstGeo.StateISO = cityResp.MostSpecificSubdivision.IsoCode) == default)
                             newConn.DstGeo.StateISO = "--";
 
-                        if ((newConn.DstGeo.City = cityResp.City.Name) == default(string))
+                        if ((newConn.DstGeo.City = cityResp.City.Name) == default)
                             newConn.DstGeo.City = "--";
                     }
                     // GeoLookup failed.
@@ -808,7 +838,7 @@ namespace Kebab
                     {
                         newConn.DstASN = asnResp.AutonomousSystemNumber;
 
-                        if ((newConn.DstASNOrg = asnResp.AutonomousSystemOrganization) == default(string))
+                        if ((newConn.DstASNOrg = asnResp.AutonomousSystemOrganization) == default)
                             newConn.DstASNOrg = "--";
                     }
                     else
@@ -937,7 +967,7 @@ namespace Kebab
         //
 
         // Return selected row list (fixes reverse order bug).
-        private List<DataGridViewRow> getSelectedRows()
+        private List<DataGridViewRow> GetSelectedRows()
         {
             List<DataGridViewRow> rows =
             (from DataGridViewRow row in ConnectionGridView.SelectedRows
@@ -949,7 +979,7 @@ namespace Kebab
         }
 
         // Turns specified rows from connListView into formated conn lines as a string for copy and save functions.
-        private string getConnsFromRows(List<DataGridViewRow> rows)
+        private string GetConnsFromRows(List<DataGridViewRow> rows)
         {
             string connList = String.Empty;
 
@@ -971,21 +1001,21 @@ namespace Kebab
         }
 
         // Copy all selected rows with right click.
-        private void copyToolStripMenuItem_Click(object sender, EventArgs e)
+        private void CopyToolStripMenuItem_Click(object sender, EventArgs e)
         {
             // Make sure there is something to copy.
             if (connectionList == null || connectionList.Count == 0
                 || ConnectionGridView == null || ConnectionGridView.SelectedRows.Count == 0)
                 return;
 
-            string connList = getConnsFromRows(getSelectedRows());
+            string connList = GetConnsFromRows(GetSelectedRows());
 
             if (connList != String.Empty)
                 Clipboard.SetText(connList);
         }
 
         // Copy local address of connection for all selected connections.
-        private void localAddressToolStripMenuItem_Click(object sender, EventArgs e)
+        private void LocalAddressToolStripMenuItem_Click(object sender, EventArgs e)
         {
             // Make sure there is something to copy.
             if (connectionList == null || connectionList.Count == 0
@@ -994,7 +1024,7 @@ namespace Kebab
 
             string localAddrList = String.Empty;
 
-            foreach (DataGridViewRow row in getSelectedRows())
+            foreach (DataGridViewRow row in GetSelectedRows())
                 localAddrList += (row.Cells[2].Value.ToString() + "\n");
 
             if (localAddrList != String.Empty)
@@ -1002,7 +1032,7 @@ namespace Kebab
         }
 
         // Copy local port of connection for all selected connections.
-        private void localPortToolStripMenuItem_Click(object sender, EventArgs e)
+        private void LocalPortToolStripMenuItem_Click(object sender, EventArgs e)
         {
             // Make sure there is something to copy.
             if (connectionList == null || connectionList.Count == 0
@@ -1011,7 +1041,7 @@ namespace Kebab
 
             string localPortList = String.Empty;
 
-            foreach (DataGridViewRow row in getSelectedRows())
+            foreach (DataGridViewRow row in GetSelectedRows())
                 localPortList += (row.Cells[3].Value.ToString() + "\n");
 
             if (localPortList != String.Empty)
@@ -1019,7 +1049,7 @@ namespace Kebab
         }
 
         // Copy local address and port pair of connection for all selected connections.
-        private void localAddressPortToolStripMenuItem_Click(object sender, EventArgs e)
+        private void LocalAddressPortToolStripMenuItem_Click(object sender, EventArgs e)
         {
             // Make sure there is something to copy.
             if (connectionList == null || connectionList.Count == 0
@@ -1028,7 +1058,7 @@ namespace Kebab
 
             string localAddrPortList = String.Empty;
 
-            foreach (DataGridViewRow row in getSelectedRows())
+            foreach (DataGridViewRow row in GetSelectedRows())
                 localAddrPortList += (row.Cells[2].Value.ToString() + ":" + row.Cells[3].Value.ToString() + "\n");
 
             if (localAddrPortList != String.Empty)
@@ -1036,7 +1066,7 @@ namespace Kebab
         }
 
         // Copy remote address of connection for all selected connections.
-        private void remoteAddressToolStripMenuItem_Click(object sender, EventArgs e)
+        private void RemoteAddressToolStripMenuItem_Click(object sender, EventArgs e)
         {
             // Make sure there is something to copy.
             if (connectionList == null || connectionList.Count == 0
@@ -1045,7 +1075,7 @@ namespace Kebab
 
             string remoteAddrList = String.Empty;
 
-            foreach (DataGridViewRow row in getSelectedRows())
+            foreach (DataGridViewRow row in GetSelectedRows())
                 remoteAddrList += (row.Cells[5].Value.ToString() + "\n");
 
             if (remoteAddrList != String.Empty)
@@ -1053,7 +1083,7 @@ namespace Kebab
         }
 
         // Copy remote pair of connection for all selected connections.
-        private void remotePortToolStripMenuItem_Click(object sender, EventArgs e)
+        private void RemotePortToolStripMenuItem_Click(object sender, EventArgs e)
         {
             // Make sure there is something to copy.
             if (connectionList == null || connectionList.Count == 0
@@ -1062,7 +1092,7 @@ namespace Kebab
 
             string remotePortList = String.Empty;
 
-            foreach (DataGridViewRow row in getSelectedRows())
+            foreach (DataGridViewRow row in GetSelectedRows())
                 remotePortList += (row.Cells[6].Value.ToString() + "\n");
 
             if (remotePortList != String.Empty)
@@ -1070,7 +1100,7 @@ namespace Kebab
         }
 
         // Copy remote address and port pair of connection for all selected connections.
-        private void remoteAddressPortToolStripMenuItem_Click(object sender, EventArgs e)
+        private void RemoteAddressPortToolStripMenuItem_Click(object sender, EventArgs e)
         {
             // Make sure there is something to copy.
             if (connectionList == null || connectionList.Count == 0
@@ -1079,7 +1109,7 @@ namespace Kebab
 
             string remoteAddrPortList = String.Empty;
 
-            foreach (DataGridViewRow row in getSelectedRows())
+            foreach (DataGridViewRow row in GetSelectedRows())
                 remoteAddrPortList += (row.Cells[5].Value.ToString() + ":" + row.Cells[6].Value.ToString() + "\n");
 
             if (remoteAddrPortList != String.Empty)
@@ -1087,7 +1117,7 @@ namespace Kebab
         }
 
         // Copy ISO Country and Subregion code string for all selected connections.
-        private void iSOToolStripMenuItem_Click(object sender, EventArgs e)
+        private void ISOToolStripMenuItem_Click(object sender, EventArgs e)
         {
             // Make sure there is something to copy.
             if (connectionList == null || connectionList.Count == 0
@@ -1096,7 +1126,7 @@ namespace Kebab
 
             string ISOList = String.Empty;
 
-            foreach (DataGridViewRow row in getSelectedRows())
+            foreach (DataGridViewRow row in GetSelectedRows())
                 ISOList += (row.Cells[9].Value.ToString() + "\n");
 
             if (ISOList != String.Empty)
@@ -1104,7 +1134,7 @@ namespace Kebab
         }
 
         // Copy ASN Organization name for all selected connections.
-        private void aSNOrganizationToolStripMenuItem_Click(object sender, EventArgs e)
+        private void ASNOrganizationToolStripMenuItem_Click(object sender, EventArgs e)
         {
             // Make sure there is something to copy.
             if (connectionList == null || connectionList.Count == 0
@@ -1113,7 +1143,7 @@ namespace Kebab
 
             string ASNOrgList = String.Empty;
 
-            foreach (DataGridViewRow row in getSelectedRows())
+            foreach (DataGridViewRow row in GetSelectedRows())
                 ASNOrgList += (row.Cells[10].Value.ToString() + "\n");
 
             if (ASNOrgList != String.Empty)
@@ -1121,7 +1151,7 @@ namespace Kebab
         }
 
         // Copy remote address, port, and related meta info (such as ASN org and GEO info).
-        private void allRemoteHostInformationToolStripMenuItem_Click(object sender, EventArgs e)
+        private void AllRemoteHostInformationToolStripMenuItem_Click(object sender, EventArgs e)
         {
             // Make sure there is something to copy.
             if (connectionList == null || connectionList.Count == 0
@@ -1130,7 +1160,7 @@ namespace Kebab
 
             string remoteHostInfoList = String.Empty;
 
-            foreach (DataGridViewRow row in getSelectedRows())
+            foreach (DataGridViewRow row in GetSelectedRows())
                 remoteHostInfoList += ((row.Cells[5].Value.ToString() + ":" + row.Cells[6].Value.ToString()).PadRight(21)
                                        + " " + row.Cells[9].Value.ToString().PadRight(6) + " " + row.Cells[10].Value.ToString()
                                        + "\n");
@@ -1140,7 +1170,7 @@ namespace Kebab
         }
 
         // Saves connectionlist to file either with dialog or manually if a dialog was already used.
-        private void saveConnListToFile(bool useSaveDialog)
+        private void SaveConnListToFile(bool useSaveDialog)
         {
             // Create output stream for file writing.
             Stream saveFileStream;
@@ -1149,14 +1179,16 @@ namespace Kebab
             if (useSaveDialog)
             {
                 // Create and setup save file dialog.
-                SaveFileDialog saveFileDialog = new SaveFileDialog();
-                saveFileDialog.Title = "Save As";
-                saveFileDialog.Filter = saveFileFilter;
-                saveFileDialog.FilterIndex = 1;
-                saveFileDialog.RestoreDirectory = true;
+                SaveFileDialog saveFileDialog = new SaveFileDialog
+                {
+                    Title = "Save As",
+                    Filter = saveFileFilter,
+                    FilterIndex = 1,
+                    RestoreDirectory = true
+                };
 
                 // If a file was already saved to before, select that as the assumed save file.
-                if (saveFileName != default(string))
+                if (saveFileName != default)
                     saveFileDialog.FileName = Path.GetFileName(saveFileName);
 
                 // Show file save dialog.
@@ -1212,7 +1244,7 @@ namespace Kebab
             saveFileWriter.Write(connListHdr);
 
             // Write all connections to file.
-            saveFileWriter.Write(getConnsFromRows(ConnectionGridView.Rows.Cast<DataGridViewRow>().ToList()));
+            saveFileWriter.Write(GetConnsFromRows(ConnectionGridView.Rows.Cast<DataGridViewRow>().ToList()));
 
             // Write all data to file before close.
             saveFileWriter.Flush(); 
@@ -1224,38 +1256,33 @@ namespace Kebab
         }
 
         // Save all connections in list to selected file.
-        private void saveToolStripMenuItem_Click(object sender, EventArgs e)
+        private void SaveToolStripMenuItem_Click(object sender, EventArgs e)
         {
             // Make sure there is something to save.
-            if (connectionList == null || connectionList.Count == 0
-                || ConnectionGridView == null || ConnectionGridView.SelectedRows.Count == 0)
+            if (ConnectionGridView == default(DataGridView) || ConnectionGridView.Rows.Count == 0)
             {
                 // Inform user of failure to save and exit.
-                MessageBox.Show("Error: cannot save an empty list!", Program.Name);
+                MessageBox.Show("Error: connection list is empty, there is nothing to save!", Program.Name);
 
                 return;
             }
 
-            if (saveFileName != default(string))
-                saveConnListToFile(false);
-            else
-                saveConnListToFile(true);
+            SaveConnListToFile(false);
         }
 
         // Save all connections to new file.
-        private void saveAsToolStripMenuItem_Click(object sender, EventArgs e)
+        private void SaveAsToolStripMenuItem_Click(object sender, EventArgs e)
         {
             // Make sure there is something to save.
-            if (connectionList == null || connectionList.Count == 0
-                || ConnectionGridView == null || ConnectionGridView.SelectedRows.Count == 0)
+            if (ConnectionGridView == default(DataGridView) || ConnectionGridView.Rows.Count == 0)
             {
                 // Inform user of failure to save and exit.
-                MessageBox.Show("Error: list is empty, nothing to save!", Program.Name);
+                MessageBox.Show("Error: connection list is empty, there is nothing to save!", Program.Name);
 
                 return;
             }
 
-            saveConnListToFile(true);
+            SaveConnListToFile(true);
         }
 
         // 
@@ -1327,7 +1354,7 @@ namespace Kebab
         }
 
         // Build capture filter from user selected controls for use with shim.
-        private int getCaptureFilter(out string captureFilter)
+        private int GetCaptureFilter(out string captureFilter)
         {
             // Init string.
             captureFilter = String.Empty;
@@ -1455,7 +1482,7 @@ namespace Kebab
             if (InterfaceDropDownList.SelectedIndex > 0)
             {
                 // Get libpcap syntax filter string to pass to ShimDotNet.
-                if (getCaptureFilter(out string captureFilter) == -1)
+                if (GetCaptureFilter(out string captureFilter) == -1)
                     return;
 
                 // Open pcap live session (offset index by -1 because of invalid first entry in drop down list).
@@ -1472,14 +1499,16 @@ namespace Kebab
                 if (connectionSource == default(BindingSource))
                 {
                     // Setup BindList for binding to BindSource.
-                    connectionList = new ConnectionList();
-                    connectionList.AllowNew = true;
-                    connectionList.AllowEdit = true;
-                    connectionList.AllowRemove = true;
-                    connectionList.RaiseListChangedEvents = true;
-                    
+                    connectionList = new ConnectionList
+                    {
+                        AllowNew = true,
+                        AllowEdit = true,
+                        AllowRemove = true,
+                        RaiseListChangedEvents = true
+                    };
+
                     // Setup BindSoure for binding to DataGridView.
-                    connectionSource = new BindingSource {DataSource = connectionList};
+                    connectionSource = new BindingSource { DataSource = connectionList };
 
                     // Setup DataGridView and bind BindSource.
                     ConnectionGridView.AutoGenerateColumns = false;
@@ -1494,8 +1523,8 @@ namespace Kebab
                 if (ClearConnsOnStartCheckBox.Checked)
                     ClearConnList();
 
-                // Sets up all background workers.
-                DoBWSetup();
+                // Init caputre worker.
+                CaptureWorker_Start();
 
                 // Start packet batching timer.
                 packetTimer.Start();
@@ -1527,8 +1556,17 @@ namespace Kebab
             CaptureStopButton.Enabled = false;
 
             // Stop Capture.
-            if (_captureWorker != default(BackgroundWorker) && _captureWorker.IsBusy)
-                _captureWorker.CancelAsync();
+            if (captureWorker != default(BackgroundWorker) && captureWorker.IsBusy)
+            {
+                captureWorker.CancelAsync();
+                _captureWorkerDone.WaitOne();
+            }
+
+            // Do ShimDotNet cleanup.
+            captureEngine.stopCapture();
+
+            // Re enable start button now that a new capture can be started.
+            ChangeOnStopCapture(sender, e);
 
             // Stop timers.
             packetTimer.Stop();
@@ -1578,31 +1616,36 @@ namespace Kebab
         // Allow user to quite without using window quit button (Shortcut ^Q).
         private void ExitMenuItem_Click(object sender, EventArgs e)
         {
-            // Set this before testing if workers are busy to double ensure that a timing gab is impossible.
-            formClosePending = true;
-
-            // If background worker is running then force cleanup and let it handle form close.
-            if(_captureWorker != default(BackgroundWorker) && _captureWorker.IsBusy)
-            {
-                _captureWorker.CancelAsync();
-                this.Enabled = false;
-                return;
-            }
-
-            // Otherwise just close form.
+            // Close the form.
             this.Close();
         }
 
         // Open settings file.
-        private void preferencesToolStripMenuItem_Click(object sender, EventArgs e)
+        private void PreferencesToolStripMenuItem_Click(object sender, EventArgs e)
         {
             System.Diagnostics.Process.Start(Program.ConfigFileName);
         }
 
         // Show about page (well really a msgbox becuase I don't want to waste a form on an about page).
-        private void aboutToolStripMenuItem_Click(object sender, EventArgs e)
+        private void AboutToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            MessageBox.Show(aboutPage, Program.Name);
+            // Try to open the readme file for documentation information.
+            try
+            {
+                System.Diagnostics.Process.Start(Program.ReadmeFileName);
+            }
+            catch(System.ComponentModel.Win32Exception)
+            {
+                // If it fails, open the github repo.
+                try
+                {
+                    System.Diagnostics.Process.Start(Program.GithubWEB_RepoURL);
+                }
+                catch(System.ComponentModel.WarningException)
+                {
+                    MessageBox.Show("Error: neither the readme file, nor the github webpage, could be opened!");
+                }
+            }
         }
 
         // Disable capture filter group if force raw is checked (and undo if unchecked).
@@ -1623,7 +1666,7 @@ namespace Kebab
                 this.timeoutTimer.Stop();
         }
         // Set timeout limit var.
-        private void timeLimit_TextChanged(object sender, EventArgs e)
+        private void TimeLimit_TextChanged(object sender, EventArgs e)
         {
             // Make sure we have a valid timeout value.
             if (timeLimit.Text.Trim().Length > 0)
@@ -1644,41 +1687,22 @@ namespace Kebab
         }
 
         // Show dropdown menu on mouse hover.
-        private void copyComponentToolStripMenuItem_MouseHover(object sender, EventArgs e)
+        private void CopyComponentToolStripMenuItem_MouseHover(object sender, EventArgs e)
         {
             copyComponentToolStripMenuItem.ShowDropDown();
         }
 
         // Show libpcap and npcap version info.
-        private void libpcapVersionInfoToolStripMenuItem_Click(object sender, EventArgs e)
+        private void LibpcapVersionInfoToolStripMenuItem_Click(object sender, EventArgs e)
         {
             MessageBox.Show(captureEngine.getLibVersion(), Program.Name);
         }
 
         // Check if there is a newer release by comparing embeded release tag to latest release tag.
-        private void checkForUpdatesToolStripMenuItem_Click(object sender, EventArgs e)
+        private void CheckForUpdatesToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            // Retrieve current version.
-            string tagName = GetCurrentTagName();
-
-            // Application is latest version.
-            if (Program.GithubAPI_ReleaseTagElementValue.Equals(tagName))
-            {
-                // Inform user that there are no available updates.
-                MessageBox.Show("No updates are available.", Program.Name);
-            }
-            // Application is not latest version (not going to do numeric comparision, this should be gud nuf).
-            else
-            {
-                // Inform user of available update, and ask if they would like to visit web page.
-                if (MessageBox.Show("An update is available!\n\nCurrent version: \t" + Program.GithubAPI_ReleaseTagElementValue + "\nLatest version: \t"
-                                    + tagName + "\n\nWould you like to vist the latest release web page?",
-                                    Program.Name, MessageBoxButtons.YesNo) == DialogResult.Yes)
-                {
-                    // Load URL in default web browser.
-                    System.Diagnostics.Process.Start(Program.GithubWEB_LatestReleaseURL);
-                }
-            }
+            // Start update check background thread.
+            UpdateWorker_Start();
         }
     }
 }

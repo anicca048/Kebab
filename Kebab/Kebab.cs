@@ -34,6 +34,7 @@ namespace Kebab
         static public readonly string Version = @"1.1.3.5";
 
         // Links and strings for update checking mechanism.
+        static public readonly string GithubWEB_RepoURL = @"https://github.com/anicca048/Kebab";
         static public readonly string GithubWEB_LatestReleaseURL = @"https://github.com/anicca048/Kebab/releases/latest";
         static public readonly string GithubAPI_LatestReleaseURL = @"https://api.github.com/repos/anicca048/Kebab/releases/latest";
         static public readonly string GithubAPI_ReleaseTagElementName = @"tag_name";
@@ -43,6 +44,8 @@ namespace Kebab
 
         // Name of file to store config variables (in json format).
         static public readonly string ConfigFileName = @"kebab_config.json";
+        // Name of file with documentation information.
+        static public readonly string ReadmeFileName = @"docs\README.md";
 
         // Entry point for program.
         [STAThread]

@@ -355,8 +355,7 @@ namespace Kebab
         public event PropertyChangedEventHandler PropertyChanged;
         private void NotifyPropertyChanged([CallerMemberName] string propertyName = "")
         {
-            if (PropertyChanged != null)
-                PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
         // Match packet to connection (-1 = no match, 0 = match, 1 = reverse match.
@@ -576,8 +575,8 @@ namespace Kebab
             {
                 // Reset sorted vars.
                 _isSortedValue = false;
-                _sortDirectionValue = default(ListSortDirection);
-                _sortPropertyValue = default(PropertyDescriptor);
+                _sortDirectionValue = default;
+                _sortPropertyValue = default;
             }
         }
 

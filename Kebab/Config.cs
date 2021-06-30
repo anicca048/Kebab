@@ -24,10 +24,10 @@ namespace Kebab
     {
         // List of config variables to be (de)serialized to and from json elements.
         public ConfigVariables CVars = new ConfigVariables();
-        private ConfigDefinitions CVarDefs = new ConfigDefinitions();
+        private readonly ConfigDefinitions CVarDefs = new ConfigDefinitions();
 
         // Filename of config file save location.
-        private string ConfigFileName;
+        private readonly string ConfigFileName;
 
         public Config(string fileName)
         {

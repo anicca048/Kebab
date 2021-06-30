@@ -154,7 +154,7 @@ namespace Kebab
             this.saveToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.S)));
             this.saveToolStripMenuItem.Size = new System.Drawing.Size(186, 22);
             this.saveToolStripMenuItem.Text = "Save";
-            this.saveToolStripMenuItem.Click += new System.EventHandler(this.saveToolStripMenuItem_Click);
+            this.saveToolStripMenuItem.Click += new System.EventHandler(this.SaveToolStripMenuItem_Click);
             // 
             // saveAsToolStripMenuItem
             // 
@@ -163,7 +163,7 @@ namespace Kebab
             | System.Windows.Forms.Keys.S)));
             this.saveAsToolStripMenuItem.Size = new System.Drawing.Size(186, 22);
             this.saveAsToolStripMenuItem.Text = "Save As...";
-            this.saveAsToolStripMenuItem.Click += new System.EventHandler(this.saveAsToolStripMenuItem_Click);
+            this.saveAsToolStripMenuItem.Click += new System.EventHandler(this.SaveAsToolStripMenuItem_Click);
             // 
             // toolStripSeparator3
             // 
@@ -196,7 +196,7 @@ namespace Kebab
             this.checkForUpdatesToolStripMenuItem.Name = "checkForUpdatesToolStripMenuItem";
             this.checkForUpdatesToolStripMenuItem.Size = new System.Drawing.Size(181, 22);
             this.checkForUpdatesToolStripMenuItem.Text = "Check for Updates";
-            this.checkForUpdatesToolStripMenuItem.Click += new System.EventHandler(this.checkForUpdatesToolStripMenuItem_Click);
+            this.checkForUpdatesToolStripMenuItem.Click += new System.EventHandler(this.CheckForUpdatesToolStripMenuItem_Click);
             // 
             // toolStripSeparator5
             // 
@@ -208,7 +208,7 @@ namespace Kebab
             this.libpcapVersionInfoToolStripMenuItem.Name = "libpcapVersionInfoToolStripMenuItem";
             this.libpcapVersionInfoToolStripMenuItem.Size = new System.Drawing.Size(181, 22);
             this.libpcapVersionInfoToolStripMenuItem.Text = "Libpcap Version Info";
-            this.libpcapVersionInfoToolStripMenuItem.Click += new System.EventHandler(this.libpcapVersionInfoToolStripMenuItem_Click);
+            this.libpcapVersionInfoToolStripMenuItem.Click += new System.EventHandler(this.LibpcapVersionInfoToolStripMenuItem_Click);
             // 
             // toolStripSeparator4
             // 
@@ -220,7 +220,7 @@ namespace Kebab
             this.aboutToolStripMenuItem.Name = "aboutToolStripMenuItem";
             this.aboutToolStripMenuItem.Size = new System.Drawing.Size(181, 22);
             this.aboutToolStripMenuItem.Text = "About";
-            this.aboutToolStripMenuItem.Click += new System.EventHandler(this.aboutToolStripMenuItem_Click);
+            this.aboutToolStripMenuItem.Click += new System.EventHandler(this.AboutToolStripMenuItem_Click);
             // 
             // ConnectionPage
             // 
@@ -262,7 +262,7 @@ namespace Kebab
             this.timeLimit.Size = new System.Drawing.Size(53, 26);
             this.timeLimit.TabIndex = 5;
             this.timeLimit.Text = "30";
-            this.timeLimit.TextChanged += new System.EventHandler(this.timeLimit_TextChanged);
+            this.timeLimit.TextChanged += new System.EventHandler(this.TimeLimit_TextChanged);
             // 
             // ClearDisplayFilterButton
             // 
@@ -520,7 +520,7 @@ namespace Kebab
             this.copyToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.C)));
             this.copyToolStripMenuItem.Size = new System.Drawing.Size(186, 22);
             this.copyToolStripMenuItem.Text = "Copy  Row(s)";
-            this.copyToolStripMenuItem.Click += new System.EventHandler(this.copyToolStripMenuItem_Click);
+            this.copyToolStripMenuItem.Click += new System.EventHandler(this.CopyToolStripMenuItem_Click);
             // 
             // copyComponentToolStripMenuItem
             // 
@@ -541,28 +541,28 @@ namespace Kebab
             this.copyComponentToolStripMenuItem.Name = "copyComponentToolStripMenuItem";
             this.copyComponentToolStripMenuItem.Size = new System.Drawing.Size(186, 22);
             this.copyComponentToolStripMenuItem.Text = "Copy Component(s)";
-            this.copyComponentToolStripMenuItem.MouseHover += new System.EventHandler(this.copyComponentToolStripMenuItem_MouseHover);
+            this.copyComponentToolStripMenuItem.MouseHover += new System.EventHandler(this.CopyComponentToolStripMenuItem_MouseHover);
             // 
             // localAddressToolStripMenuItem
             // 
             this.localAddressToolStripMenuItem.Name = "localAddressToolStripMenuItem";
             this.localAddressToolStripMenuItem.Size = new System.Drawing.Size(300, 22);
             this.localAddressToolStripMenuItem.Text = "Local Address";
-            this.localAddressToolStripMenuItem.Click += new System.EventHandler(this.localAddressToolStripMenuItem_Click);
+            this.localAddressToolStripMenuItem.Click += new System.EventHandler(this.LocalAddressToolStripMenuItem_Click);
             // 
             // localPortToolStripMenuItem
             // 
             this.localPortToolStripMenuItem.Name = "localPortToolStripMenuItem";
             this.localPortToolStripMenuItem.Size = new System.Drawing.Size(300, 22);
             this.localPortToolStripMenuItem.Text = "Local Port";
-            this.localPortToolStripMenuItem.Click += new System.EventHandler(this.localPortToolStripMenuItem_Click);
+            this.localPortToolStripMenuItem.Click += new System.EventHandler(this.LocalPortToolStripMenuItem_Click);
             // 
             // localAddressPortToolStripMenuItem
             // 
             this.localAddressPortToolStripMenuItem.Name = "localAddressPortToolStripMenuItem";
             this.localAddressPortToolStripMenuItem.Size = new System.Drawing.Size(300, 22);
             this.localAddressPortToolStripMenuItem.Text = "Local Address : Local Port";
-            this.localAddressPortToolStripMenuItem.Click += new System.EventHandler(this.localAddressPortToolStripMenuItem_Click);
+            this.localAddressPortToolStripMenuItem.Click += new System.EventHandler(this.LocalAddressPortToolStripMenuItem_Click);
             // 
             // toolStripSeparator2
             // 
@@ -574,21 +574,21 @@ namespace Kebab
             this.remoteAddressToolStripMenuItem.Name = "remoteAddressToolStripMenuItem";
             this.remoteAddressToolStripMenuItem.Size = new System.Drawing.Size(300, 22);
             this.remoteAddressToolStripMenuItem.Text = "Remote Address";
-            this.remoteAddressToolStripMenuItem.Click += new System.EventHandler(this.remoteAddressToolStripMenuItem_Click);
+            this.remoteAddressToolStripMenuItem.Click += new System.EventHandler(this.RemoteAddressToolStripMenuItem_Click);
             // 
             // remotePortToolStripMenuItem
             // 
             this.remotePortToolStripMenuItem.Name = "remotePortToolStripMenuItem";
             this.remotePortToolStripMenuItem.Size = new System.Drawing.Size(300, 22);
             this.remotePortToolStripMenuItem.Text = "Remote Port";
-            this.remotePortToolStripMenuItem.Click += new System.EventHandler(this.remotePortToolStripMenuItem_Click);
+            this.remotePortToolStripMenuItem.Click += new System.EventHandler(this.RemotePortToolStripMenuItem_Click);
             // 
             // remoteAddressPortToolStripMenuItem
             // 
             this.remoteAddressPortToolStripMenuItem.Name = "remoteAddressPortToolStripMenuItem";
             this.remoteAddressPortToolStripMenuItem.Size = new System.Drawing.Size(300, 22);
             this.remoteAddressPortToolStripMenuItem.Text = "Remote Address : Remote Port";
-            this.remoteAddressPortToolStripMenuItem.Click += new System.EventHandler(this.remoteAddressPortToolStripMenuItem_Click);
+            this.remoteAddressPortToolStripMenuItem.Click += new System.EventHandler(this.RemoteAddressPortToolStripMenuItem_Click);
             // 
             // toolStripSeparator1
             // 
@@ -600,14 +600,14 @@ namespace Kebab
             this.iSOToolStripMenuItem.Name = "iSOToolStripMenuItem";
             this.iSOToolStripMenuItem.Size = new System.Drawing.Size(300, 22);
             this.iSOToolStripMenuItem.Text = "ISO";
-            this.iSOToolStripMenuItem.Click += new System.EventHandler(this.iSOToolStripMenuItem_Click);
+            this.iSOToolStripMenuItem.Click += new System.EventHandler(this.ISOToolStripMenuItem_Click);
             // 
             // aSNOrganizationToolStripMenuItem
             // 
             this.aSNOrganizationToolStripMenuItem.Name = "aSNOrganizationToolStripMenuItem";
             this.aSNOrganizationToolStripMenuItem.Size = new System.Drawing.Size(300, 22);
             this.aSNOrganizationToolStripMenuItem.Text = "ASN Organization";
-            this.aSNOrganizationToolStripMenuItem.Click += new System.EventHandler(this.aSNOrganizationToolStripMenuItem_Click);
+            this.aSNOrganizationToolStripMenuItem.Click += new System.EventHandler(this.ASNOrganizationToolStripMenuItem_Click);
             // 
             // toolStripSeparator6
             // 
@@ -621,7 +621,7 @@ namespace Kebab
             | System.Windows.Forms.Keys.C)));
             this.allRemoteHostInformationToolStripMenuItem.Size = new System.Drawing.Size(300, 22);
             this.allRemoteHostInformationToolStripMenuItem.Text = "All Remote Host Information";
-            this.allRemoteHostInformationToolStripMenuItem.Click += new System.EventHandler(this.allRemoteHostInformationToolStripMenuItem_Click);
+            this.allRemoteHostInformationToolStripMenuItem.Click += new System.EventHandler(this.AllRemoteHostInformationToolStripMenuItem_Click);
             // 
             // CapturePage
             // 
@@ -976,7 +976,7 @@ namespace Kebab
             this.preferencesToolStripMenuItem.Name = "preferencesToolStripMenuItem";
             this.preferencesToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.preferencesToolStripMenuItem.Text = "Preferences";
-            this.preferencesToolStripMenuItem.Click += new System.EventHandler(this.preferencesToolStripMenuItem_Click);
+            this.preferencesToolStripMenuItem.Click += new System.EventHandler(this.PreferencesToolStripMenuItem_Click);
             // 
             // MainForm
             // 

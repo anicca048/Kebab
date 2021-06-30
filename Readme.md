@@ -1,5 +1,5 @@
-# Kebab
-Kebab is a graphical "connection oriented" packet sniffer for MS Windows.
+# Kebab (https://github.com/anicca048/Kebab)
+Kebab is a graphical "connection oriented" packet sniffer for Win32.
 This project's goal is to provide a connection tracking utility for system
 	administration and real time traffic analysis / debugging. While other tools
 	use the kernel's connection tracking system, Kebab reads packets straight
@@ -7,7 +7,7 @@ This project's goal is to provide a connection tracking utility for system
 	of an "existing" connection, and the lack of tracking of packets being
 	routed to other destinations.
 Written in C#, Kebab is published for free under the terms of the MIT
-	OpenSource license.
+	open source license.
 Kebab does not require any special permissions to run, so please do not run
 	Kebab in admin-mode. If a vulnerability is found in the way that Kebab or
 	Npcap parses packet information, or in the parsing of external data, such as
@@ -69,22 +69,24 @@ Capture Tab - The controls on this tab are used to setup the packet capture.
 	Capture Filter Group - This group allows the user to set the libpcap
 		filter, which will be compiled and used to filter out packets from the
 		capture session. There are several displayed filtering options, such as
-		Destination and Source IP. And a "ComplexFilter" box, where a libpcap
+		Destination and Source IP. And a "Filter String" box, where a libpcap
 		filter string can be entered, for the more advanced users. Options from
 		this filter group are much more efficient than any display filter,
 		however, packets not matching the libpcap filter exactly will not show
 		up in the Connections tab, skewing the results. Use these pre-capture
-		filtering options conservatively.
+		filtering options carefully.
 
 Connections Tab - Pretty basic, simply groups captured packets into connections.
 	
 	Display Filter Group - This group is used to filter and clear connections in
-		the Connections Tab. Use the IP and Port filters to make matching
-		connections easier to spot, without removing non matching connections.
-		The display filter will match any connection with at least one host who
-		matches all filters used. If you need more precise filtering, set the 
-		pre-capture libpcap filter using the Capture Filter Group, on the
-		Capture Tab. The timeout checkbox will remove connections that have had
+		the Connections Tab. The "Filter String" box uses a custom display
+        filter syntax, that is very simular to libpcap capture filter syntax.
+        It allows "tcp" and "udp" keywords, and "host" and "port" keywords
+        (with "src" and "dst" modifyers, and allows ranges using '-' delimiter).
+        The display filter string only uses "and" logic, so connetions must
+        match all keywords, modifyers, and values expressed. An example would
+        be: <tcp src host 10.0.0.0-10.255.255.255 dst port 22-23>
+        The timeout checkbox will remove connections that have had
 		no activity based on the user set timeout in seconds (default is 10).
 		The clear connections button, you guessed it, clears all the connections
 		from the list. Use these destructive options with care.
@@ -106,7 +108,7 @@ Connections Tab - Pretty basic, simply groups captured packets into connections.
 			
 			Local Port (Port), the matching port for the Local Address.
 			
-			Transmission Direction (State), the observed one or two way state of
+			Transmission Direction (RXTX), the observed one or two way state of
 			the communication between the endpoints.
 			
 			Remote Address, the assumed remote address (if there is one) in the
@@ -115,32 +117,29 @@ Connections Tab - Pretty basic, simply groups captured packets into connections.
 			
 			Remote Port (Port), the matching port for the Remote Address.
 			
-			Number of Packets (Packets), the observed total number of packets
-			sent between local and remote host.
+			Number of Packets (Packets Sent), the observed total number of
+            packets sent between hosts.
 			
-			Total Data Transmitted (Data Sent), the total size of observed
-			packet protocol payload data, in bytes.
+			Payload Data Transmitted (Bytes Sent), the total size of observed
+			packet protocol payload data, in bytes, sent between hosts.
 			
-			GeoIP info (ISO), this is the country ISO and State / Region
+			GeoIP info (ISO), this is the country and State / Region
 			ISO code for the RemoteAddress field. If the geo data is not found
 			for a given IP than there will be two dashes "--" instead.
 			
 			ASN Organization name, this is the organization that was registered
-			as owning a given IP block that the RemoteAddress is part of.
+			as owning the given IP block that the RemoteAddress is part of.
 
 # Known Issues / Bugs / Errata
 Connection Sorting: Currently if you sort the connection list in any way
 (except by property "Number" in ascending order), under heavy load the UI loop
 can get bogged down by the constant resorting of the list. This may cause
-delayed responses to user input and manipulation of the window / controls. The
-sort algorithm has been optimized to combat this issue. Further optimizations,
+delayed responses to user input and manipulation of the window / controls.
+Optimizations are in place to help combat this issue. Further optimizations,
 and mitigations, are being considered to better deal with the issue.
 
 GeoIP data: sometimes geoip data will be out of date, or missing entirely for a
-given IP address. Currently the database provided is the last release of the
-GeoLite2 database, that doesn't require a MaxMind Account. Eventually an option
-to enter a personal MaxMind account web API key, for more accurate and
-up-to-date results, will be added (should happen fairly soon). However it's
-doubtful that the devs will be able to get a key for Kebab to be used in the
-releases, given that the project is free software and receives no external
-funding.
+given IP address. Currently the dbases provided is a recent release of
+MaxMind GeoLite2, as this doesn't require any accounts or API keys. Eventually
+an option to enter a personal MaxMind account web API key, for more accurate and
+up-to-date results, will be added (should happen in the near future).

@@ -28,16 +28,16 @@ namespace Kebab
     public class Filter
     {
         // The main argument (filter operation).
-        private Argument _argument;
+        private readonly Argument _argument;
         public Argument Argument { get { return _argument; } }
         // Modifies the argument (src, dst, etc..).
-        private Modifyer _modifyer;
+        private readonly Modifyer _modifyer;
         public Modifyer Modifyer { get { return _modifyer; } }
         // The main value that will be paired with the argument to filter out connections.
-        private string _value;
+        private readonly string _value;
         public string Value { get { return _value; } }
         // A secondary value, usually representing an upper range in a range based value.
-        private string _secondaryValue;
+        private readonly string _secondaryValue;
         public string SecondaryValue { get { return _secondaryValue; } }
 
         // Basic constructor, not usually called without using TryParse().
@@ -135,7 +135,7 @@ namespace Kebab
         };
 
         // Holds list of user supplied filter conditions.
-        private List<Filter> Filters;
+        private readonly List<Filter> Filters;
 
         public DisplayFilter(List<Filter> filters)
         {
