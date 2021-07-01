@@ -61,7 +61,7 @@ namespace Kebab
         // Timers for updating the connection stats and view.
         private readonly System.Windows.Forms.Timer packetTimer = new System.Windows.Forms.Timer();
         private readonly System.Windows.Forms.Timer timeoutTimer = new System.Windows.Forms.Timer();
-        private readonly System.Windows.Forms.Timer displayFilterTimer = new System.Windows.Forms.Timer();
+        private readonly System.Windows.Forms.Timer displayTimer = new System.Windows.Forms.Timer();
         // Timer for applying pending config changes.
         private readonly System.Windows.Forms.Timer checkConfigTimer = new System.Windows.Forms.Timer();
 
@@ -74,7 +74,9 @@ namespace Kebab
         // Inactive entry time limit in seconds.
         private int timeoutInactivityLimit = 30;
         // How often to apply display filter checks in milliseconds.
-        private const int displayFilterInterval = 500;
+        private const int displayInterval = 500;
+        // How many connections to lookup metadat for per run.
+        private const int connMetaLookupBatchSize = 10;
         // How often to check config file in milliseconds.
         private const int checkConfigInterval = 1000;
 
@@ -109,13 +111,13 @@ namespace Kebab
             // Add timer event handlers.
             packetTimer.Tick += new EventHandler(UpdateConnList);
             timeoutTimer.Tick += new EventHandler(TimeoutConnList);
-            displayFilterTimer.Tick += new EventHandler(FilterConnList);
+            displayTimer.Tick += new EventHandler(DisplayConnList);
             checkConfigTimer.Tick += new EventHandler(CheckConfig);
 
             // Set timer intervals.
             packetTimer.Interval = packetBatchInterval;
             timeoutTimer.Interval = timeoutInterval;
-            displayFilterTimer.Interval = displayFilterInterval;
+            displayTimer.Interval = displayInterval;
             checkConfigTimer.Interval = checkConfigInterval;
 
             // Setup background workers.
@@ -322,45 +324,45 @@ namespace Kebab
             switch (m.Msg)
             {
                 case 0x0084/*NCHITTEST*/ :
-                {
-                    base.WndProc(ref m);
-
-                    if ((int)m.Result == 0x01/*HTCLIENT*/)
                     {
-                        Point screenPoint = new Point(m.LParam.ToInt32());
-                        Point clientPoint = this.PointToClient(screenPoint);
+                        base.WndProc(ref m);
 
-                        if (clientPoint.Y <= RESIZE_HANDLE_SIZE)
+                        if ((int)m.Result == 0x01/*HTCLIENT*/)
                         {
-                            if (clientPoint.X <= RESIZE_HANDLE_SIZE)
-                                m.Result = (IntPtr)13/*HTTOPLEFT*/ ;
-                            else if (clientPoint.X < (Size.Width - RESIZE_HANDLE_SIZE))
-                                m.Result = (IntPtr)12/*HTTOP*/ ;
+                            Point screenPoint = new Point(m.LParam.ToInt32());
+                            Point clientPoint = this.PointToClient(screenPoint);
+
+                            if (clientPoint.Y <= RESIZE_HANDLE_SIZE)
+                            {
+                                if (clientPoint.X <= RESIZE_HANDLE_SIZE)
+                                    m.Result = (IntPtr)13/*HTTOPLEFT*/ ;
+                                else if (clientPoint.X < (Size.Width - RESIZE_HANDLE_SIZE))
+                                    m.Result = (IntPtr)12/*HTTOP*/ ;
+                                else
+                                    m.Result = (IntPtr)14/*HTTOPRIGHT*/ ;
+                            }
+                            else if (clientPoint.Y <= (Size.Height - RESIZE_HANDLE_SIZE))
+                            {
+                                if (clientPoint.X <= RESIZE_HANDLE_SIZE)
+                                    m.Result = (IntPtr)10/*HTLEFT*/ ;
+                                else if (clientPoint.X < (Size.Width - RESIZE_HANDLE_SIZE))
+                                    m.Result = (IntPtr)2/*HTCAPTION*/ ;
+                                else
+                                    m.Result = (IntPtr)11/*HTRIGHT*/ ;
+                            }
                             else
-                                m.Result = (IntPtr)14/*HTTOPRIGHT*/ ;
+                            {
+                                if (clientPoint.X <= RESIZE_HANDLE_SIZE)
+                                    m.Result = (IntPtr)16/*HTBOTTOMLEFT*/ ;
+                                else if (clientPoint.X < (Size.Width - RESIZE_HANDLE_SIZE))
+                                    m.Result = (IntPtr)15/*HTBOTTOM*/ ;
+                                else
+                                    m.Result = (IntPtr)17/*HTBOTTOMRIGHT*/ ;
+                            }
                         }
-                        else if (clientPoint.Y <= (Size.Height - RESIZE_HANDLE_SIZE))
-                        {
-                            if (clientPoint.X <= RESIZE_HANDLE_SIZE)
-                                m.Result = (IntPtr)10/*HTLEFT*/ ;
-                            else if (clientPoint.X < (Size.Width - RESIZE_HANDLE_SIZE))
-                                m.Result = (IntPtr)2/*HTCAPTION*/ ;
-                            else
-                                m.Result = (IntPtr)11/*HTRIGHT*/ ;
-                        }
-                        else
-                        {
-                            if (clientPoint.X <= RESIZE_HANDLE_SIZE)
-                                m.Result = (IntPtr)16/*HTBOTTOMLEFT*/ ;
-                            else if (clientPoint.X < (Size.Width - RESIZE_HANDLE_SIZE))
-                                m.Result = (IntPtr)15/*HTBOTTOM*/ ;
-                            else
-                                m.Result = (IntPtr)17/*HTBOTTOMRIGHT*/ ;
-                        }
+
+                        return;
                     }
-
-                    return;
-                }
             }
 
             base.WndProc(ref m);
@@ -473,15 +475,19 @@ namespace Kebab
             // Stop timers.
             packetTimer.Stop();
             timeoutTimer.Stop();
-            displayFilterTimer.Stop();
+            displayTimer.Stop();
+            checkConfigTimer.Stop();
+
             // Dispose timers.
             packetTimer.Dispose();
             timeoutTimer.Dispose();
-            displayFilterTimer.Dispose();
+            displayTimer.Dispose();
+            checkConfigTimer.Dispose();
 
             // Dispose backgorund workers.
             captureWorker.Dispose();
             updateWorker.Dispose();
+            configWorker.Dispose();
 
             // Dispose geolite constructs.
             CityReader.Dispose();
@@ -501,6 +507,12 @@ namespace Kebab
             if (updateWorker != default(BackgroundWorker) && updateWorker.IsBusy)
             {
                 _updateWorkerDone.WaitOne();
+            }
+
+            if (configWorker != default(BackgroundWorker) && configWorker.IsBusy)
+            {
+                configWorker.CancelAsync();
+                _configWorkerDone.WaitOne();
             }
 
             // Do ShimDotNet cleanup.
@@ -649,7 +661,7 @@ namespace Kebab
             // Signal end of thread work.
             _updateWorkerDone.Set();
         }
-        
+
         // Shows update information after update check has been performed.
         private void UpdateWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
@@ -785,8 +797,6 @@ namespace Kebab
                 // Enable display filtering.
                 _displayFilterActive = true;
                 ApplyDisplayFilter();
-                displayFilterTimer.Start();
-
                 return;
             }
 
@@ -797,7 +807,6 @@ namespace Kebab
             // Otherwise if a filter is active we need to disable it.
             if (_displayFilterActive)
             {
-                displayFilterTimer.Stop();
                 RemoveDisplayFilter();
                 _displayFilterActive = false;
             }
@@ -807,17 +816,13 @@ namespace Kebab
         private void ConnectionGridView_RowsAdded(object sender, DataGridViewRowsAddedEventArgs e)
         {
             if (_displayFilterActive)
-            {
                 ApplyDisplayFilter();
-            }
         }
         // Force repaint for display filter adhearence when the list is sorted by a property.
         private void ConnectionGridView_Sorted(object sender, EventArgs e)
         {
             if (_displayFilterActive)
-            {
                 ApplyDisplayFilter();
-            }
         }
 
         // Flag to determine if selection is currently allowed.
@@ -991,50 +996,6 @@ namespace Kebab
                         newConn.State.Direction = TransmissionDirection.REV_ONE_WAY;
                     }
 
-                    // Add geographical info.
-                    if (CityReader.TryCity(newConn.Destination.ToString(), out CityResponse cityResp))
-                    {
-                        // Add info from response object, or "--" marker for empty components of the response.
-                        if ((newConn.DstGeo.Country = cityResp.Country.Name) == default)
-                            newConn.DstGeo.Country = "--";
-
-                        if ((newConn.DstGeo.CountryISO = cityResp.Country.IsoCode) == default)
-                            newConn.DstGeo.CountryISO = "--";
-
-                        if ((newConn.DstGeo.State = cityResp.MostSpecificSubdivision.Name) == default)
-                            newConn.DstGeo.State = "--";
-
-                        if ((newConn.DstGeo.StateISO = cityResp.MostSpecificSubdivision.IsoCode) == default)
-                            newConn.DstGeo.StateISO = "--";
-
-                        if ((newConn.DstGeo.City = cityResp.City.Name) == default)
-                            newConn.DstGeo.City = "--";
-                    }
-                    // GeoLookup failed.
-                    else
-                    {
-                        // If city dbase lookup failed, set vals to empty marker.
-                        newConn.DstGeo.Country = "--";
-                        newConn.DstGeo.CountryISO = "--";
-                        newConn.DstGeo.State = "--";
-                        newConn.DstGeo.StateISO = "--";
-                        newConn.DstGeo.City = "--";
-                    }
-
-                    // Add ASN info.
-                    if (ASNReader.TryAsn(newConn.Destination.ToString(), out AsnResponse asnResp))
-                    {
-                        newConn.DstASN = asnResp.AutonomousSystemNumber;
-
-                        if ((newConn.DstASNOrg = asnResp.AutonomousSystemOrganization) == default)
-                            newConn.DstASNOrg = "--";
-                    }
-                    else
-                    {
-                        newConn.DstASN = null;
-                        newConn.DstASNOrg = "--";
-                    }
-
                     // Asing the connection a number.
                     newConn.Number = ((uint)connectionList.Count + 1);
                     // And add it to the list.
@@ -1124,12 +1085,72 @@ namespace Kebab
         }
 
         // Apply displayfilter if enabled.
-        private void FilterConnList(object sender, EventArgs e)
+        private void FilterConnList()
         {
             if (_displayFilterActive)
-            {
                 ApplyDisplayFilter();
+        }
+
+        // Update connections with GEO / ISO and ASN info.
+        private void AddConnListMeta()
+        {
+            // Make sure we process no more than the batch size.
+            int connsToLookup = connectionList.Count;
+
+            if (connsToLookup > connMetaLookupBatchSize)
+                connsToLookup = connMetaLookupBatchSize;
+
+            foreach (Connection conn in connectionList)
+            {
+                // Make sure we don't go ove limit.
+                if (connsToLookup == 0)
+                    break;
+
+                // Make sure meta check hasn't been done before.
+                if (conn.MetaDataLookupDone)
+                    continue;
+
+                // Add geographical info.
+                if (CityReader.TryCity(conn.Destination.ToString(), out CityResponse cityResp))
+                {
+                    // Add info from response object, or "--" marker for empty components of the response.
+                    if (cityResp.Country.Name != default)
+                        conn.DstGeo.Country = cityResp.Country.Name;
+
+                    if (cityResp.Country.IsoCode != default)
+                        conn.DstGeo.CountryISO = cityResp.Country.IsoCode;
+
+                    if (cityResp.MostSpecificSubdivision.Name != default)
+                        conn.DstGeo.State = cityResp.MostSpecificSubdivision.Name;
+
+                    if (cityResp.MostSpecificSubdivision.IsoCode != default)
+                        conn.DstGeo.StateISO = cityResp.MostSpecificSubdivision.IsoCode;
+
+                    if (cityResp.City.Name != default)
+                        conn.DstGeo.City = cityResp.City.Name;
+                }
+
+                // Add ASN info.
+                if (ASNReader.TryAsn(conn.Destination.ToString(), out AsnResponse asnResp))
+                {
+                    conn.DstASN = asnResp.AutonomousSystemNumber;
+
+                    if (asnResp.AutonomousSystemOrganization != default)
+                        conn.DstASNOrg = asnResp.AutonomousSystemOrganization;
+                }
+
+                // Mark metadata lookup done.
+                conn.MetaDataLookupDone = true;
+                // One down.
+                connsToLookup--;
             }
+        }
+
+        // Applys connection meta data and filters.
+        private void DisplayConnList(object sender, EventArgs e)
+        {
+            AddConnListMeta();
+            FilterConnList();
         }
 
         // Allows thread safe clearing of binded data list from background worker.
@@ -1717,9 +1738,8 @@ namespace Kebab
                 // Start packet batching timer.
                 packetTimer.Start();
 
-                // Start displayfilterTimer if display filter is set by user.
-                if (_displayFilterActive)
-                    displayFilterTimer.Start();
+                // Start displayTimer.
+                displayTimer.Start();
 
                 // Start timeoutTimer if timout is set by user.
                 if (TimeoutCheckBox.Checked)
@@ -1759,7 +1779,7 @@ namespace Kebab
             // Stop timers.
             packetTimer.Stop();
             timeoutTimer.Stop();
-            displayFilterTimer.Stop();
+            displayTimer.Stop();
         }
 
         // Refreshes interface list / info.

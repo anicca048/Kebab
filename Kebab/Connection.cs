@@ -164,6 +164,16 @@ namespace Kebab
         public string StateISO { get; set; }
         public string City { get; set; }
 
+        public GeoData()
+        {
+            // Set default / emtpy value.
+            Country = "--";
+            CountryISO = "--";
+            State = "--";
+            StateISO = "--";
+            City = "--";
+        }
+
         public int CompareTo(object obj)
         {
             // Make sure we are comparing to a valid object.
@@ -272,6 +282,9 @@ namespace Kebab
     // Connection object for connections list.
     public class Connection : INotifyPropertyChanged
     {
+        // Signals that metadata has been looked up for the connection.
+        public bool MetaDataLookupDone { get; set; }
+
         // Connection number in connection list.
         private uint _number;
         public uint Number
@@ -363,16 +376,18 @@ namespace Kebab
         // Ctor allows conversion from L4Packet to Connection.
         public Connection(IPV4_PACKET pkt)
         {
-            this.Type = new ConnectionType(pkt.protocol);
-            this.State = new ConnectionState(TransmissionDirection.ONE_WAY);
-            this.Source = new ConnectionAddress(pkt.source_address);
-            this.Destination = new ConnectionAddress(pkt.destination_address);
-            this.SrcPort = pkt.source_port;
-            this.DstPort = pkt.destination_port;
-            this.DstGeo = new GeoData();
-            this.PacketCount = 1;
-            this.ByteCount = pkt.payload_size;
-            this.TimeStamp = DateTime.Now;
+            Type = new ConnectionType(pkt.protocol);
+            State = new ConnectionState(TransmissionDirection.ONE_WAY);
+            Source = new ConnectionAddress(pkt.source_address);
+            Destination = new ConnectionAddress(pkt.destination_address);
+            SrcPort = pkt.source_port;
+            DstPort = pkt.destination_port;
+            DstGeo = new GeoData();
+            PacketCount = 1;
+            ByteCount = pkt.payload_size;
+            TimeStamp = DateTime.Now;
+            DstASN = null;
+            DstASNOrg = "--";
         }
 
         // Implement INotifyPropertyChanged (for auto bind list updating).
