@@ -34,23 +34,23 @@ namespace Kebab
             System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
             System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle3 = new System.Windows.Forms.DataGridViewCellStyle();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
-            this.TopMenu = new System.Windows.Forms.MenuStrip();
+            this.ToolBar = new System.Windows.Forms.MenuStrip();
             this.FileMenu = new System.Windows.Forms.ToolStripMenuItem();
-            this.saveToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.saveAsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.toolStripSeparator3 = new System.Windows.Forms.ToolStripSeparator();
+            this.SaveMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.SaveAsMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.MenuSeparator3 = new System.Windows.Forms.ToolStripSeparator();
             this.ExitMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.editToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.preferencesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.EditMenu = new System.Windows.Forms.ToolStripMenuItem();
+            this.PreferencesMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.HelpMenu = new System.Windows.Forms.ToolStripMenuItem();
-            this.checkForUpdatesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.toolStripSeparator5 = new System.Windows.Forms.ToolStripSeparator();
-            this.libpcapVersionInfoToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.toolStripSeparator4 = new System.Windows.Forms.ToolStripSeparator();
-            this.aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.CheckForUpdatesMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.MenuSeparator5 = new System.Windows.Forms.ToolStripSeparator();
+            this.LibpcapVersionInfoMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.MenuSeparator4 = new System.Windows.Forms.ToolStripSeparator();
+            this.AboutMenu = new System.Windows.Forms.ToolStripMenuItem();
             this.ConnectionPage = new System.Windows.Forms.TabPage();
             this.DisplayFilterGroupBox = new System.Windows.Forms.GroupBox();
-            this.timeLimit = new System.Windows.Forms.TextBox();
+            this.TimeLimit = new System.Windows.Forms.TextBox();
             this.ClearDisplayFilterButton = new System.Windows.Forms.Button();
             this.DisplayFilterStr = new System.Windows.Forms.TextBox();
             this.DisplayFilterStringLabel = new System.Windows.Forms.Label();
@@ -68,21 +68,21 @@ namespace Kebab
             this.ByteCount = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.DstGeo = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.DstASNOrg = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.ConnectionContextMenuStrip = new System.Windows.Forms.ContextMenuStrip(this.components);
-            this.copyToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.copyComponentToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.localAddressToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.localPortToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.localAddressPortToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
-            this.remoteAddressToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.remotePortToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.remoteAddressPortToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
-            this.iSOToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.aSNOrganizationToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.toolStripSeparator6 = new System.Windows.Forms.ToolStripSeparator();
-            this.allRemoteHostInformationToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.ConnectionContextMenu = new System.Windows.Forms.ContextMenuStrip(this.components);
+            this.CopyMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.CopyComponentMenu = new System.Windows.Forms.ToolStripMenuItem();
+            this.LocalAddressMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.LocalPortMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.LocalAddressPortMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.MenuSeparator2 = new System.Windows.Forms.ToolStripSeparator();
+            this.RemoteAddressMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.RemotePortMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.RemoteAddressPortMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.MenuSeparator1 = new System.Windows.Forms.ToolStripSeparator();
+            this.ISOMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.ASNOrganizationMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.MenuSeparator6 = new System.Windows.Forms.ToolStripSeparator();
+            this.AllRemoteHostInformationMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.CapturePage = new System.Windows.Forms.TabPage();
             this.CaptureOptionsGroupBox = new System.Windows.Forms.GroupBox();
             this.ForceRawCheckBox = new System.Windows.Forms.CheckBox();
@@ -113,63 +113,71 @@ namespace Kebab
             this.SourcePortFilter = new System.Windows.Forms.TextBox();
             this.DestinationPortFilter = new System.Windows.Forms.TextBox();
             this.TabControl = new System.Windows.Forms.TabControl();
-            this.TopMenu.SuspendLayout();
+            this.MainPanel = new System.Windows.Forms.Panel();
+            this.TitleBarLebel = new System.Windows.Forms.Label();
+            this.ExitButton = new System.Windows.Forms.Button();
+            this.MaximizeButton = new System.Windows.Forms.Button();
+            this.MinimizeButton = new System.Windows.Forms.Button();
+            this.UnmaximizeButton = new System.Windows.Forms.Button();
+            this.ToolBar.SuspendLayout();
             this.ConnectionPage.SuspendLayout();
             this.DisplayFilterGroupBox.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.ConnectionGridView)).BeginInit();
-            this.ConnectionContextMenuStrip.SuspendLayout();
+            this.ConnectionContextMenu.SuspendLayout();
             this.CapturePage.SuspendLayout();
             this.CaptureOptionsGroupBox.SuspendLayout();
             this.CaptureFilterGroupBox.SuspendLayout();
             this.TabControl.SuspendLayout();
+            this.MainPanel.SuspendLayout();
             this.SuspendLayout();
             // 
-            // TopMenu
+            // ToolBar
             // 
-            this.TopMenu.BackColor = System.Drawing.SystemColors.Window;
-            this.TopMenu.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.ToolBar.BackColor = System.Drawing.Color.Transparent;
+            this.ToolBar.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.FileMenu,
-            this.editToolStripMenuItem,
+            this.EditMenu,
             this.HelpMenu});
-            this.TopMenu.Location = new System.Drawing.Point(0, 0);
-            this.TopMenu.Name = "TopMenu";
-            this.TopMenu.Size = new System.Drawing.Size(1404, 24);
-            this.TopMenu.TabIndex = 1;
+            this.ToolBar.Location = new System.Drawing.Point(0, 0);
+            this.ToolBar.Name = "ToolBar";
+            this.ToolBar.Size = new System.Drawing.Size(1400, 24);
+            this.ToolBar.TabIndex = 1;
             // 
             // FileMenu
             // 
             this.FileMenu.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.saveToolStripMenuItem,
-            this.saveAsToolStripMenuItem,
-            this.toolStripSeparator3,
+            this.SaveMenuItem,
+            this.SaveAsMenuItem,
+            this.MenuSeparator3,
             this.ExitMenuItem});
+            this.FileMenu.ForeColor = System.Drawing.SystemColors.ControlText;
             this.FileMenu.Name = "FileMenu";
             this.FileMenu.Size = new System.Drawing.Size(37, 20);
             this.FileMenu.Text = "File";
             // 
-            // saveToolStripMenuItem
+            // SaveMenuItem
             // 
-            this.saveToolStripMenuItem.Enabled = false;
-            this.saveToolStripMenuItem.Name = "saveToolStripMenuItem";
-            this.saveToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.S)));
-            this.saveToolStripMenuItem.Size = new System.Drawing.Size(186, 22);
-            this.saveToolStripMenuItem.Text = "Save";
-            this.saveToolStripMenuItem.Click += new System.EventHandler(this.SaveToolStripMenuItem_Click);
+            this.SaveMenuItem.Enabled = false;
+            this.SaveMenuItem.Name = "SaveMenuItem";
+            this.SaveMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.S)));
+            this.SaveMenuItem.Size = new System.Drawing.Size(186, 22);
+            this.SaveMenuItem.Text = "Save";
+            this.SaveMenuItem.Click += new System.EventHandler(this.SaveToolStripMenuItem_Click);
             // 
-            // saveAsToolStripMenuItem
+            // SaveAsMenuItem
             // 
-            this.saveAsToolStripMenuItem.Name = "saveAsToolStripMenuItem";
-            this.saveAsToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)(((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Alt) 
+            this.SaveAsMenuItem.Name = "SaveAsMenuItem";
+            this.SaveAsMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)(((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Alt) 
             | System.Windows.Forms.Keys.S)));
-            this.saveAsToolStripMenuItem.Size = new System.Drawing.Size(186, 22);
-            this.saveAsToolStripMenuItem.Text = "Save As...";
-            this.saveAsToolStripMenuItem.Click += new System.EventHandler(this.SaveAsToolStripMenuItem_Click);
+            this.SaveAsMenuItem.Size = new System.Drawing.Size(186, 22);
+            this.SaveAsMenuItem.Text = "Save As...";
+            this.SaveAsMenuItem.Click += new System.EventHandler(this.SaveAsToolStripMenuItem_Click);
             // 
-            // toolStripSeparator3
+            // MenuSeparator3
             // 
-            this.toolStripSeparator3.BackColor = System.Drawing.SystemColors.Control;
-            this.toolStripSeparator3.Name = "toolStripSeparator3";
-            this.toolStripSeparator3.Size = new System.Drawing.Size(183, 6);
+            this.MenuSeparator3.BackColor = System.Drawing.SystemColors.Control;
+            this.MenuSeparator3.Name = "MenuSeparator3";
+            this.MenuSeparator3.Size = new System.Drawing.Size(183, 6);
             // 
             // ExitMenuItem
             // 
@@ -179,63 +187,65 @@ namespace Kebab
             this.ExitMenuItem.Text = "Exit";
             this.ExitMenuItem.Click += new System.EventHandler(this.ExitMenuItem_Click);
             // 
-            // editToolStripMenuItem
+            // EditMenu
             // 
-            this.editToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.preferencesToolStripMenuItem});
-            this.editToolStripMenuItem.Name = "editToolStripMenuItem";
-            this.editToolStripMenuItem.Size = new System.Drawing.Size(39, 20);
-            this.editToolStripMenuItem.Text = "Edit";
+            this.EditMenu.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.PreferencesMenuItem});
+            this.EditMenu.ForeColor = System.Drawing.SystemColors.ControlText;
+            this.EditMenu.Name = "EditMenu";
+            this.EditMenu.Size = new System.Drawing.Size(39, 20);
+            this.EditMenu.Text = "Edit";
             // 
-            // preferencesToolStripMenuItem
+            // PreferencesMenuItem
             // 
-            this.preferencesToolStripMenuItem.Name = "preferencesToolStripMenuItem";
-            this.preferencesToolStripMenuItem.Size = new System.Drawing.Size(135, 22);
-            this.preferencesToolStripMenuItem.Text = "Preferences";
-            this.preferencesToolStripMenuItem.Click += new System.EventHandler(this.PreferencesToolStripMenuItem_Click);
+            this.PreferencesMenuItem.Name = "PreferencesMenuItem";
+            this.PreferencesMenuItem.Size = new System.Drawing.Size(135, 22);
+            this.PreferencesMenuItem.Text = "Preferences";
+            this.PreferencesMenuItem.Click += new System.EventHandler(this.PreferencesToolStripMenuItem_Click);
             // 
             // HelpMenu
             // 
             this.HelpMenu.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.checkForUpdatesToolStripMenuItem,
-            this.toolStripSeparator5,
-            this.libpcapVersionInfoToolStripMenuItem,
-            this.toolStripSeparator4,
-            this.aboutToolStripMenuItem});
+            this.CheckForUpdatesMenuItem,
+            this.MenuSeparator5,
+            this.LibpcapVersionInfoMenuItem,
+            this.MenuSeparator4,
+            this.AboutMenu});
+            this.HelpMenu.ForeColor = System.Drawing.SystemColors.ControlText;
             this.HelpMenu.Name = "HelpMenu";
             this.HelpMenu.Size = new System.Drawing.Size(44, 20);
             this.HelpMenu.Text = "Help";
             // 
-            // checkForUpdatesToolStripMenuItem
+            // CheckForUpdatesMenuItem
             // 
-            this.checkForUpdatesToolStripMenuItem.Name = "checkForUpdatesToolStripMenuItem";
-            this.checkForUpdatesToolStripMenuItem.Size = new System.Drawing.Size(181, 22);
-            this.checkForUpdatesToolStripMenuItem.Text = "Check for Updates";
-            this.checkForUpdatesToolStripMenuItem.Click += new System.EventHandler(this.CheckForUpdatesToolStripMenuItem_Click);
+            this.CheckForUpdatesMenuItem.Name = "CheckForUpdatesMenuItem";
+            this.CheckForUpdatesMenuItem.Size = new System.Drawing.Size(181, 22);
+            this.CheckForUpdatesMenuItem.Text = "Check for Updates";
+            this.CheckForUpdatesMenuItem.Click += new System.EventHandler(this.CheckForUpdatesToolStripMenuItem_Click);
             // 
-            // toolStripSeparator5
+            // MenuSeparator5
             // 
-            this.toolStripSeparator5.Name = "toolStripSeparator5";
-            this.toolStripSeparator5.Size = new System.Drawing.Size(178, 6);
+            this.MenuSeparator5.Name = "MenuSeparator5";
+            this.MenuSeparator5.Size = new System.Drawing.Size(178, 6);
             // 
-            // libpcapVersionInfoToolStripMenuItem
+            // LibpcapVersionInfoMenuItem
             // 
-            this.libpcapVersionInfoToolStripMenuItem.Name = "libpcapVersionInfoToolStripMenuItem";
-            this.libpcapVersionInfoToolStripMenuItem.Size = new System.Drawing.Size(181, 22);
-            this.libpcapVersionInfoToolStripMenuItem.Text = "Libpcap Version Info";
-            this.libpcapVersionInfoToolStripMenuItem.Click += new System.EventHandler(this.LibpcapVersionInfoToolStripMenuItem_Click);
+            this.LibpcapVersionInfoMenuItem.Name = "LibpcapVersionInfoMenuItem";
+            this.LibpcapVersionInfoMenuItem.Size = new System.Drawing.Size(181, 22);
+            this.LibpcapVersionInfoMenuItem.Text = "Libpcap Version Info";
+            this.LibpcapVersionInfoMenuItem.Click += new System.EventHandler(this.LibpcapVersionInfoToolStripMenuItem_Click);
             // 
-            // toolStripSeparator4
+            // MenuSeparator4
             // 
-            this.toolStripSeparator4.Name = "toolStripSeparator4";
-            this.toolStripSeparator4.Size = new System.Drawing.Size(178, 6);
+            this.MenuSeparator4.Name = "MenuSeparator4";
+            this.MenuSeparator4.Size = new System.Drawing.Size(178, 6);
             // 
-            // aboutToolStripMenuItem
+            // AboutMenu
             // 
-            this.aboutToolStripMenuItem.Name = "aboutToolStripMenuItem";
-            this.aboutToolStripMenuItem.Size = new System.Drawing.Size(181, 22);
-            this.aboutToolStripMenuItem.Text = "About";
-            this.aboutToolStripMenuItem.Click += new System.EventHandler(this.AboutToolStripMenuItem_Click);
+            this.AboutMenu.Name = "AboutMenu";
+            this.AboutMenu.Size = new System.Drawing.Size(181, 22);
+            this.AboutMenu.Text = "About";
+            this.AboutMenu.Click += new System.EventHandler(this.AboutToolStripMenuItem_Click);
             // 
             // ConnectionPage
             // 
@@ -245,14 +255,14 @@ namespace Kebab
             this.ConnectionPage.Location = new System.Drawing.Point(4, 29);
             this.ConnectionPage.Name = "ConnectionPage";
             this.ConnectionPage.Padding = new System.Windows.Forms.Padding(3);
-            this.ConnectionPage.Size = new System.Drawing.Size(1396, 554);
+            this.ConnectionPage.Size = new System.Drawing.Size(1392, 526);
             this.ConnectionPage.TabIndex = 1;
             this.ConnectionPage.Text = "Connections";
             this.ConnectionPage.UseVisualStyleBackColor = true;
             // 
             // DisplayFilterGroupBox
             // 
-            this.DisplayFilterGroupBox.Controls.Add(this.timeLimit);
+            this.DisplayFilterGroupBox.Controls.Add(this.TimeLimit);
             this.DisplayFilterGroupBox.Controls.Add(this.ClearDisplayFilterButton);
             this.DisplayFilterGroupBox.Controls.Add(this.DisplayFilterStr);
             this.DisplayFilterGroupBox.Controls.Add(this.DisplayFilterStringLabel);
@@ -260,29 +270,29 @@ namespace Kebab
             this.DisplayFilterGroupBox.Controls.Add(this.ClearConnectionsButton);
             this.DisplayFilterGroupBox.Dock = System.Windows.Forms.DockStyle.Bottom;
             this.DisplayFilterGroupBox.Enabled = false;
-            this.DisplayFilterGroupBox.Location = new System.Drawing.Point(3, 491);
+            this.DisplayFilterGroupBox.Location = new System.Drawing.Point(3, 463);
             this.DisplayFilterGroupBox.Name = "DisplayFilterGroupBox";
-            this.DisplayFilterGroupBox.Size = new System.Drawing.Size(1390, 60);
+            this.DisplayFilterGroupBox.Size = new System.Drawing.Size(1386, 60);
             this.DisplayFilterGroupBox.TabIndex = 2;
             this.DisplayFilterGroupBox.TabStop = false;
             this.DisplayFilterGroupBox.Text = "Display Filter";
             // 
-            // timeLimit
+            // TimeLimit
             // 
-            this.timeLimit.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.timeLimit.Font = new System.Drawing.Font("Consolas", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.timeLimit.Location = new System.Drawing.Point(1173, 28);
-            this.timeLimit.MaxLength = 3;
-            this.timeLimit.Name = "timeLimit";
-            this.timeLimit.Size = new System.Drawing.Size(53, 26);
-            this.timeLimit.TabIndex = 5;
-            this.timeLimit.Text = "10";
-            this.timeLimit.TextChanged += new System.EventHandler(this.TimeLimit_TextChanged);
+            this.TimeLimit.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.TimeLimit.Font = new System.Drawing.Font("Consolas", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.TimeLimit.Location = new System.Drawing.Point(1169, 28);
+            this.TimeLimit.MaxLength = 3;
+            this.TimeLimit.Name = "TimeLimit";
+            this.TimeLimit.Size = new System.Drawing.Size(53, 26);
+            this.TimeLimit.TabIndex = 5;
+            this.TimeLimit.Text = "10";
+            this.TimeLimit.TextChanged += new System.EventHandler(this.TimeLimit_TextChanged);
             // 
             // ClearDisplayFilterButton
             // 
             this.ClearDisplayFilterButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.ClearDisplayFilterButton.Location = new System.Drawing.Point(961, 27);
+            this.ClearDisplayFilterButton.Location = new System.Drawing.Point(957, 27);
             this.ClearDisplayFilterButton.MinimumSize = new System.Drawing.Size(98, 27);
             this.ClearDisplayFilterButton.Name = "ClearDisplayFilterButton";
             this.ClearDisplayFilterButton.Size = new System.Drawing.Size(111, 28);
@@ -299,7 +309,7 @@ namespace Kebab
             this.DisplayFilterStr.Location = new System.Drawing.Point(106, 28);
             this.DisplayFilterStr.MaxLength = 1024;
             this.DisplayFilterStr.Name = "DisplayFilterStr";
-            this.DisplayFilterStr.Size = new System.Drawing.Size(849, 26);
+            this.DisplayFilterStr.Size = new System.Drawing.Size(845, 26);
             this.DisplayFilterStr.TabIndex = 2;
             this.DisplayFilterStr.WordWrap = false;
             this.DisplayFilterStr.TextChanged += new System.EventHandler(this.DisplayFilter_TextChanged);
@@ -317,7 +327,7 @@ namespace Kebab
             // 
             this.TimeoutCheckBox.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.TimeoutCheckBox.AutoSize = true;
-            this.TimeoutCheckBox.Location = new System.Drawing.Point(1078, 29);
+            this.TimeoutCheckBox.Location = new System.Drawing.Point(1074, 29);
             this.TimeoutCheckBox.Name = "TimeoutCheckBox";
             this.TimeoutCheckBox.Size = new System.Drawing.Size(89, 24);
             this.TimeoutCheckBox.TabIndex = 4;
@@ -328,7 +338,7 @@ namespace Kebab
             // ClearConnectionsButton
             // 
             this.ClearConnectionsButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.ClearConnectionsButton.Location = new System.Drawing.Point(1232, 27);
+            this.ClearConnectionsButton.Location = new System.Drawing.Point(1228, 27);
             this.ClearConnectionsButton.MinimumSize = new System.Drawing.Size(98, 27);
             this.ClearConnectionsButton.Name = "ClearConnectionsButton";
             this.ClearConnectionsButton.Size = new System.Drawing.Size(152, 28);
@@ -343,16 +353,16 @@ namespace Kebab
             this.ConnectionGridView.AllowUserToDeleteRows = false;
             this.ConnectionGridView.AllowUserToResizeRows = false;
             this.ConnectionGridView.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
-            this.ConnectionGridView.BackgroundColor = System.Drawing.Color.FromArgb(((int)(((byte)(37)))), ((int)(((byte)(38)))), ((int)(((byte)(46)))));
+            this.ConnectionGridView.BackgroundColor = System.Drawing.Color.FromArgb(((int)(((byte)(40)))), ((int)(((byte)(44)))), ((int)(((byte)(48)))));
             this.ConnectionGridView.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
             this.ConnectionGridView.CellBorderStyle = System.Windows.Forms.DataGridViewCellBorderStyle.None;
             this.ConnectionGridView.ClipboardCopyMode = System.Windows.Forms.DataGridViewClipboardCopyMode.EnableWithoutHeaderText;
             this.ConnectionGridView.ColumnHeadersBorderStyle = System.Windows.Forms.DataGridViewHeaderBorderStyle.None;
             dataGridViewCellStyle1.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle1.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(28)))), ((int)(((byte)(28)))), ((int)(((byte)(37)))));
+            dataGridViewCellStyle1.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(28)))), ((int)(((byte)(32)))), ((int)(((byte)(36)))));
             dataGridViewCellStyle1.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             dataGridViewCellStyle1.ForeColor = System.Drawing.Color.White;
-            dataGridViewCellStyle1.SelectionBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(28)))), ((int)(((byte)(28)))), ((int)(((byte)(37)))));
+            dataGridViewCellStyle1.SelectionBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(28)))), ((int)(((byte)(32)))), ((int)(((byte)(36)))));
             dataGridViewCellStyle1.SelectionForeColor = System.Drawing.Color.White;
             dataGridViewCellStyle1.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
             this.ConnectionGridView.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle1;
@@ -370,20 +380,20 @@ namespace Kebab
             this.ByteCount,
             this.DstGeo,
             this.DstASNOrg});
-            this.ConnectionGridView.ContextMenuStrip = this.ConnectionContextMenuStrip;
+            this.ConnectionGridView.ContextMenuStrip = this.ConnectionContextMenu;
             this.ConnectionGridView.Cursor = System.Windows.Forms.Cursors.Hand;
             dataGridViewCellStyle2.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle2.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(37)))), ((int)(((byte)(38)))), ((int)(((byte)(46)))));
+            dataGridViewCellStyle2.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(40)))), ((int)(((byte)(44)))), ((int)(((byte)(48)))));
             dataGridViewCellStyle2.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             dataGridViewCellStyle2.ForeColor = System.Drawing.Color.White;
             dataGridViewCellStyle2.SelectionBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(4)))), ((int)(((byte)(204)))), ((int)(((byte)(132)))));
-            dataGridViewCellStyle2.SelectionForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(37)))), ((int)(((byte)(38)))), ((int)(((byte)(46)))));
+            dataGridViewCellStyle2.SelectionForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(40)))), ((int)(((byte)(44)))), ((int)(((byte)(48)))));
             dataGridViewCellStyle2.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
             this.ConnectionGridView.DefaultCellStyle = dataGridViewCellStyle2;
             this.ConnectionGridView.Dock = System.Windows.Forms.DockStyle.Fill;
             this.ConnectionGridView.EditMode = System.Windows.Forms.DataGridViewEditMode.EditProgrammatically;
             this.ConnectionGridView.EnableHeadersVisualStyles = false;
-            this.ConnectionGridView.GridColor = System.Drawing.Color.FromArgb(((int)(((byte)(37)))), ((int)(((byte)(38)))), ((int)(((byte)(46)))));
+            this.ConnectionGridView.GridColor = System.Drawing.Color.FromArgb(((int)(((byte)(40)))), ((int)(((byte)(44)))), ((int)(((byte)(48)))));
             this.ConnectionGridView.Location = new System.Drawing.Point(3, 3);
             this.ConnectionGridView.Name = "ConnectionGridView";
             this.ConnectionGridView.ReadOnly = true;
@@ -401,7 +411,7 @@ namespace Kebab
             this.ConnectionGridView.ShowCellToolTips = false;
             this.ConnectionGridView.ShowEditingIcon = false;
             this.ConnectionGridView.ShowRowErrors = false;
-            this.ConnectionGridView.Size = new System.Drawing.Size(1390, 548);
+            this.ConnectionGridView.Size = new System.Drawing.Size(1386, 520);
             this.ConnectionGridView.StandardTab = true;
             this.ConnectionGridView.TabIndex = 1;
             this.ConnectionGridView.TabStop = false;
@@ -520,123 +530,123 @@ namespace Kebab
             this.DstASNOrg.Name = "DstASNOrg";
             this.DstASNOrg.ReadOnly = true;
             // 
-            // ConnectionContextMenuStrip
+            // ConnectionContextMenu
             // 
-            this.ConnectionContextMenuStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.copyToolStripMenuItem,
-            this.copyComponentToolStripMenuItem});
-            this.ConnectionContextMenuStrip.Name = "ConnectionContextMenuStrip";
-            this.ConnectionContextMenuStrip.Size = new System.Drawing.Size(187, 48);
+            this.ConnectionContextMenu.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.CopyMenuItem,
+            this.CopyComponentMenu});
+            this.ConnectionContextMenu.Name = "ConnectionContextMenuStrip";
+            this.ConnectionContextMenu.Size = new System.Drawing.Size(187, 48);
             // 
-            // copyToolStripMenuItem
+            // CopyMenuItem
             // 
-            this.copyToolStripMenuItem.Enabled = false;
-            this.copyToolStripMenuItem.Name = "copyToolStripMenuItem";
-            this.copyToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.C)));
-            this.copyToolStripMenuItem.Size = new System.Drawing.Size(186, 22);
-            this.copyToolStripMenuItem.Text = "Copy  Row(s)";
-            this.copyToolStripMenuItem.Click += new System.EventHandler(this.CopyToolStripMenuItem_Click);
+            this.CopyMenuItem.Enabled = false;
+            this.CopyMenuItem.Name = "CopyMenuItem";
+            this.CopyMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.C)));
+            this.CopyMenuItem.Size = new System.Drawing.Size(186, 22);
+            this.CopyMenuItem.Text = "Copy  Row(s)";
+            this.CopyMenuItem.Click += new System.EventHandler(this.CopyToolStripMenuItem_Click);
             // 
-            // copyComponentToolStripMenuItem
+            // CopyComponentMenu
             // 
-            this.copyComponentToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.localAddressToolStripMenuItem,
-            this.localPortToolStripMenuItem,
-            this.localAddressPortToolStripMenuItem,
-            this.toolStripSeparator2,
-            this.remoteAddressToolStripMenuItem,
-            this.remotePortToolStripMenuItem,
-            this.remoteAddressPortToolStripMenuItem,
-            this.toolStripSeparator1,
-            this.iSOToolStripMenuItem,
-            this.aSNOrganizationToolStripMenuItem,
-            this.toolStripSeparator6,
-            this.allRemoteHostInformationToolStripMenuItem});
-            this.copyComponentToolStripMenuItem.Enabled = false;
-            this.copyComponentToolStripMenuItem.Name = "copyComponentToolStripMenuItem";
-            this.copyComponentToolStripMenuItem.Size = new System.Drawing.Size(186, 22);
-            this.copyComponentToolStripMenuItem.Text = "Copy Component(s)";
-            this.copyComponentToolStripMenuItem.MouseHover += new System.EventHandler(this.CopyComponentToolStripMenuItem_MouseHover);
+            this.CopyComponentMenu.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.LocalAddressMenuItem,
+            this.LocalPortMenuItem,
+            this.LocalAddressPortMenuItem,
+            this.MenuSeparator2,
+            this.RemoteAddressMenuItem,
+            this.RemotePortMenuItem,
+            this.RemoteAddressPortMenuItem,
+            this.MenuSeparator1,
+            this.ISOMenuItem,
+            this.ASNOrganizationMenuItem,
+            this.MenuSeparator6,
+            this.AllRemoteHostInformationMenuItem});
+            this.CopyComponentMenu.Enabled = false;
+            this.CopyComponentMenu.Name = "CopyComponentMenu";
+            this.CopyComponentMenu.Size = new System.Drawing.Size(186, 22);
+            this.CopyComponentMenu.Text = "Copy Component(s)";
+            this.CopyComponentMenu.MouseHover += new System.EventHandler(this.CopyComponentToolStripMenuItem_MouseHover);
             // 
-            // localAddressToolStripMenuItem
+            // LocalAddressMenuItem
             // 
-            this.localAddressToolStripMenuItem.Name = "localAddressToolStripMenuItem";
-            this.localAddressToolStripMenuItem.Size = new System.Drawing.Size(300, 22);
-            this.localAddressToolStripMenuItem.Text = "Local Address";
-            this.localAddressToolStripMenuItem.Click += new System.EventHandler(this.LocalAddressToolStripMenuItem_Click);
+            this.LocalAddressMenuItem.Name = "LocalAddressMenuItem";
+            this.LocalAddressMenuItem.Size = new System.Drawing.Size(300, 22);
+            this.LocalAddressMenuItem.Text = "Local Address";
+            this.LocalAddressMenuItem.Click += new System.EventHandler(this.LocalAddressToolStripMenuItem_Click);
             // 
-            // localPortToolStripMenuItem
+            // LocalPortMenuItem
             // 
-            this.localPortToolStripMenuItem.Name = "localPortToolStripMenuItem";
-            this.localPortToolStripMenuItem.Size = new System.Drawing.Size(300, 22);
-            this.localPortToolStripMenuItem.Text = "Local Port";
-            this.localPortToolStripMenuItem.Click += new System.EventHandler(this.LocalPortToolStripMenuItem_Click);
+            this.LocalPortMenuItem.Name = "LocalPortMenuItem";
+            this.LocalPortMenuItem.Size = new System.Drawing.Size(300, 22);
+            this.LocalPortMenuItem.Text = "Local Port";
+            this.LocalPortMenuItem.Click += new System.EventHandler(this.LocalPortToolStripMenuItem_Click);
             // 
-            // localAddressPortToolStripMenuItem
+            // LocalAddressPortMenuItem
             // 
-            this.localAddressPortToolStripMenuItem.Name = "localAddressPortToolStripMenuItem";
-            this.localAddressPortToolStripMenuItem.Size = new System.Drawing.Size(300, 22);
-            this.localAddressPortToolStripMenuItem.Text = "Local Address : Local Port";
-            this.localAddressPortToolStripMenuItem.Click += new System.EventHandler(this.LocalAddressPortToolStripMenuItem_Click);
+            this.LocalAddressPortMenuItem.Name = "LocalAddressPortMenuItem";
+            this.LocalAddressPortMenuItem.Size = new System.Drawing.Size(300, 22);
+            this.LocalAddressPortMenuItem.Text = "Local Address : Local Port";
+            this.LocalAddressPortMenuItem.Click += new System.EventHandler(this.LocalAddressPortToolStripMenuItem_Click);
             // 
-            // toolStripSeparator2
+            // MenuSeparator2
             // 
-            this.toolStripSeparator2.Name = "toolStripSeparator2";
-            this.toolStripSeparator2.Size = new System.Drawing.Size(297, 6);
+            this.MenuSeparator2.Name = "MenuSeparator2";
+            this.MenuSeparator2.Size = new System.Drawing.Size(297, 6);
             // 
-            // remoteAddressToolStripMenuItem
+            // RemoteAddressMenuItem
             // 
-            this.remoteAddressToolStripMenuItem.Name = "remoteAddressToolStripMenuItem";
-            this.remoteAddressToolStripMenuItem.Size = new System.Drawing.Size(300, 22);
-            this.remoteAddressToolStripMenuItem.Text = "Remote Address";
-            this.remoteAddressToolStripMenuItem.Click += new System.EventHandler(this.RemoteAddressToolStripMenuItem_Click);
+            this.RemoteAddressMenuItem.Name = "RemoteAddressMenuItem";
+            this.RemoteAddressMenuItem.Size = new System.Drawing.Size(300, 22);
+            this.RemoteAddressMenuItem.Text = "Remote Address";
+            this.RemoteAddressMenuItem.Click += new System.EventHandler(this.RemoteAddressToolStripMenuItem_Click);
             // 
-            // remotePortToolStripMenuItem
+            // RemotePortMenuItem
             // 
-            this.remotePortToolStripMenuItem.Name = "remotePortToolStripMenuItem";
-            this.remotePortToolStripMenuItem.Size = new System.Drawing.Size(300, 22);
-            this.remotePortToolStripMenuItem.Text = "Remote Port";
-            this.remotePortToolStripMenuItem.Click += new System.EventHandler(this.RemotePortToolStripMenuItem_Click);
+            this.RemotePortMenuItem.Name = "RemotePortMenuItem";
+            this.RemotePortMenuItem.Size = new System.Drawing.Size(300, 22);
+            this.RemotePortMenuItem.Text = "Remote Port";
+            this.RemotePortMenuItem.Click += new System.EventHandler(this.RemotePortToolStripMenuItem_Click);
             // 
-            // remoteAddressPortToolStripMenuItem
+            // RemoteAddressPortMenuItem
             // 
-            this.remoteAddressPortToolStripMenuItem.Name = "remoteAddressPortToolStripMenuItem";
-            this.remoteAddressPortToolStripMenuItem.Size = new System.Drawing.Size(300, 22);
-            this.remoteAddressPortToolStripMenuItem.Text = "Remote Address : Remote Port";
-            this.remoteAddressPortToolStripMenuItem.Click += new System.EventHandler(this.RemoteAddressPortToolStripMenuItem_Click);
+            this.RemoteAddressPortMenuItem.Name = "RemoteAddressPortMenuItem";
+            this.RemoteAddressPortMenuItem.Size = new System.Drawing.Size(300, 22);
+            this.RemoteAddressPortMenuItem.Text = "Remote Address : Remote Port";
+            this.RemoteAddressPortMenuItem.Click += new System.EventHandler(this.RemoteAddressPortToolStripMenuItem_Click);
             // 
-            // toolStripSeparator1
+            // MenuSeparator1
             // 
-            this.toolStripSeparator1.Name = "toolStripSeparator1";
-            this.toolStripSeparator1.Size = new System.Drawing.Size(297, 6);
+            this.MenuSeparator1.Name = "MenuSeparator1";
+            this.MenuSeparator1.Size = new System.Drawing.Size(297, 6);
             // 
-            // iSOToolStripMenuItem
+            // ISOMenuItem
             // 
-            this.iSOToolStripMenuItem.Name = "iSOToolStripMenuItem";
-            this.iSOToolStripMenuItem.Size = new System.Drawing.Size(300, 22);
-            this.iSOToolStripMenuItem.Text = "ISO";
-            this.iSOToolStripMenuItem.Click += new System.EventHandler(this.ISOToolStripMenuItem_Click);
+            this.ISOMenuItem.Name = "ISOMenuItem";
+            this.ISOMenuItem.Size = new System.Drawing.Size(300, 22);
+            this.ISOMenuItem.Text = "ISO";
+            this.ISOMenuItem.Click += new System.EventHandler(this.ISOToolStripMenuItem_Click);
             // 
-            // aSNOrganizationToolStripMenuItem
+            // ASNOrganizationMenuItem
             // 
-            this.aSNOrganizationToolStripMenuItem.Name = "aSNOrganizationToolStripMenuItem";
-            this.aSNOrganizationToolStripMenuItem.Size = new System.Drawing.Size(300, 22);
-            this.aSNOrganizationToolStripMenuItem.Text = "ASN Organization";
-            this.aSNOrganizationToolStripMenuItem.Click += new System.EventHandler(this.ASNOrganizationToolStripMenuItem_Click);
+            this.ASNOrganizationMenuItem.Name = "ASNOrganizationMenuItem";
+            this.ASNOrganizationMenuItem.Size = new System.Drawing.Size(300, 22);
+            this.ASNOrganizationMenuItem.Text = "ASN Organization";
+            this.ASNOrganizationMenuItem.Click += new System.EventHandler(this.ASNOrganizationToolStripMenuItem_Click);
             // 
-            // toolStripSeparator6
+            // MenuSeparator6
             // 
-            this.toolStripSeparator6.Name = "toolStripSeparator6";
-            this.toolStripSeparator6.Size = new System.Drawing.Size(297, 6);
+            this.MenuSeparator6.Name = "MenuSeparator6";
+            this.MenuSeparator6.Size = new System.Drawing.Size(297, 6);
             // 
-            // allRemoteHostInformationToolStripMenuItem
+            // AllRemoteHostInformationMenuItem
             // 
-            this.allRemoteHostInformationToolStripMenuItem.Name = "allRemoteHostInformationToolStripMenuItem";
-            this.allRemoteHostInformationToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)(((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Shift) 
+            this.AllRemoteHostInformationMenuItem.Name = "AllRemoteHostInformationMenuItem";
+            this.AllRemoteHostInformationMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)(((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Shift) 
             | System.Windows.Forms.Keys.C)));
-            this.allRemoteHostInformationToolStripMenuItem.Size = new System.Drawing.Size(300, 22);
-            this.allRemoteHostInformationToolStripMenuItem.Text = "All Remote Host Information";
-            this.allRemoteHostInformationToolStripMenuItem.Click += new System.EventHandler(this.AllRemoteHostInformationToolStripMenuItem_Click);
+            this.AllRemoteHostInformationMenuItem.Size = new System.Drawing.Size(300, 22);
+            this.AllRemoteHostInformationMenuItem.Text = "All Remote Host Information";
+            this.AllRemoteHostInformationMenuItem.Click += new System.EventHandler(this.AllRemoteHostInformationToolStripMenuItem_Click);
             // 
             // CapturePage
             // 
@@ -646,7 +656,7 @@ namespace Kebab
             this.CapturePage.Location = new System.Drawing.Point(4, 29);
             this.CapturePage.Name = "CapturePage";
             this.CapturePage.Padding = new System.Windows.Forms.Padding(3);
-            this.CapturePage.Size = new System.Drawing.Size(1396, 554);
+            this.CapturePage.Size = new System.Drawing.Size(1392, 526);
             this.CapturePage.TabIndex = 0;
             this.CapturePage.Text = "Capture";
             this.CapturePage.UseVisualStyleBackColor = true;
@@ -665,7 +675,7 @@ namespace Kebab
             this.CaptureOptionsGroupBox.Controls.Add(this.CaptureStartButton);
             this.CaptureOptionsGroupBox.Location = new System.Drawing.Point(6, 6);
             this.CaptureOptionsGroupBox.Name = "CaptureOptionsGroupBox";
-            this.CaptureOptionsGroupBox.Size = new System.Drawing.Size(1384, 218);
+            this.CaptureOptionsGroupBox.Size = new System.Drawing.Size(1380, 218);
             this.CaptureOptionsGroupBox.TabIndex = 12;
             this.CaptureOptionsGroupBox.TabStop = false;
             this.CaptureOptionsGroupBox.Text = "Capture Options";
@@ -750,13 +760,14 @@ namespace Kebab
             // 
             // CaptureStartButton
             // 
+            this.CaptureStartButton.BackColor = System.Drawing.Color.Transparent;
             this.CaptureStartButton.Enabled = false;
-            this.CaptureStartButton.Location = new System.Drawing.Point(139, 69);
+            this.CaptureStartButton.Location = new System.Drawing.Point(139, 68);
             this.CaptureStartButton.Name = "CaptureStartButton";
             this.CaptureStartButton.Size = new System.Drawing.Size(145, 40);
             this.CaptureStartButton.TabIndex = 1;
             this.CaptureStartButton.Text = "Start Sniffing";
-            this.CaptureStartButton.UseVisualStyleBackColor = true;
+            this.CaptureStartButton.UseVisualStyleBackColor = false;
             this.CaptureStartButton.Click += new System.EventHandler(this.CaptureStartButton_Click);
             // 
             // CaptureFilterGroupBox
@@ -785,7 +796,7 @@ namespace Kebab
             this.CaptureFilterGroupBox.Enabled = false;
             this.CaptureFilterGroupBox.Location = new System.Drawing.Point(6, 230);
             this.CaptureFilterGroupBox.Name = "CaptureFilterGroupBox";
-            this.CaptureFilterGroupBox.Size = new System.Drawing.Size(1384, 321);
+            this.CaptureFilterGroupBox.Size = new System.Drawing.Size(1380, 293);
             this.CaptureFilterGroupBox.TabIndex = 12;
             this.CaptureFilterGroupBox.TabStop = false;
             this.CaptureFilterGroupBox.Text = "Capture Filter";
@@ -975,46 +986,146 @@ namespace Kebab
             this.TabControl.Location = new System.Drawing.Point(0, 24);
             this.TabControl.Name = "TabControl";
             this.TabControl.SelectedIndex = 0;
-            this.TabControl.Size = new System.Drawing.Size(1404, 587);
+            this.TabControl.Size = new System.Drawing.Size(1400, 559);
             this.TabControl.TabIndex = 0;
+            // 
+            // MainPanel
+            // 
+            this.MainPanel.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.MainPanel.BackColor = System.Drawing.SystemColors.Window;
+            this.MainPanel.Controls.Add(this.TabControl);
+            this.MainPanel.Controls.Add(this.ToolBar);
+            this.MainPanel.Location = new System.Drawing.Point(2, 26);
+            this.MainPanel.Name = "MainPanel";
+            this.MainPanel.Size = new System.Drawing.Size(1400, 583);
+            this.MainPanel.TabIndex = 0;
+            // 
+            // TitleBarLebel
+            // 
+            this.TitleBarLebel.AutoSize = true;
+            this.TitleBarLebel.Font = new System.Drawing.Font("Microsoft Sans Serif", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.TitleBarLebel.ForeColor = System.Drawing.Color.White;
+            this.TitleBarLebel.Location = new System.Drawing.Point(12, 3);
+            this.TitleBarLebel.Name = "TitleBarLebel";
+            this.TitleBarLebel.Size = new System.Drawing.Size(50, 18);
+            this.TitleBarLebel.TabIndex = 0;
+            this.TitleBarLebel.Text = "Kebab";
+            this.TitleBarLebel.DoubleClick += new System.EventHandler(this.TitleBarLebel_DoubleClick);
+            this.TitleBarLebel.MouseDown += new System.Windows.Forms.MouseEventHandler(this.TitleBarLebel_MouseDown);
+            // 
+            // ExitButton
+            // 
+            this.ExitButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.ExitButton.BackColor = System.Drawing.Color.Transparent;
+            this.ExitButton.FlatAppearance.BorderSize = 0;
+            this.ExitButton.FlatAppearance.MouseOverBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(232)))), ((int)(((byte)(17)))), ((int)(((byte)(35)))));
+            this.ExitButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.ExitButton.Image = ((System.Drawing.Image)(resources.GetObject("ExitButton.Image")));
+            this.ExitButton.Location = new System.Drawing.Point(1378, 0);
+            this.ExitButton.Name = "ExitButton";
+            this.ExitButton.Size = new System.Drawing.Size(26, 26);
+            this.ExitButton.TabIndex = 0;
+            this.ExitButton.TabStop = false;
+            this.ExitButton.UseVisualStyleBackColor = false;
+            this.ExitButton.Click += new System.EventHandler(this.ExitButton_Click);
+            // 
+            // MaximizeButton
+            // 
+            this.MaximizeButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.MaximizeButton.BackColor = System.Drawing.Color.Transparent;
+            this.MaximizeButton.FlatAppearance.BorderSize = 0;
+            this.MaximizeButton.FlatAppearance.MouseOverBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(62)))), ((int)(((byte)(62)))), ((int)(((byte)(64)))));
+            this.MaximizeButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.MaximizeButton.Image = ((System.Drawing.Image)(resources.GetObject("MaximizeButton.Image")));
+            this.MaximizeButton.Location = new System.Drawing.Point(1352, 0);
+            this.MaximizeButton.Name = "MaximizeButton";
+            this.MaximizeButton.Size = new System.Drawing.Size(26, 26);
+            this.MaximizeButton.TabIndex = 0;
+            this.MaximizeButton.TabStop = false;
+            this.MaximizeButton.UseVisualStyleBackColor = false;
+            this.MaximizeButton.Click += new System.EventHandler(this.MaximizeButton_Click);
+            // 
+            // MinimizeButton
+            // 
+            this.MinimizeButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.MinimizeButton.BackColor = System.Drawing.Color.Transparent;
+            this.MinimizeButton.FlatAppearance.BorderSize = 0;
+            this.MinimizeButton.FlatAppearance.MouseOverBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(62)))), ((int)(((byte)(62)))), ((int)(((byte)(64)))));
+            this.MinimizeButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.MinimizeButton.Image = ((System.Drawing.Image)(resources.GetObject("MinimizeButton.Image")));
+            this.MinimizeButton.Location = new System.Drawing.Point(1326, 0);
+            this.MinimizeButton.Name = "MinimizeButton";
+            this.MinimizeButton.Size = new System.Drawing.Size(26, 26);
+            this.MinimizeButton.TabIndex = 0;
+            this.MinimizeButton.TabStop = false;
+            this.MinimizeButton.UseVisualStyleBackColor = false;
+            this.MinimizeButton.Click += new System.EventHandler(this.MinimizeButton_Click);
+            // 
+            // UnmaximizeButton
+            // 
+            this.UnmaximizeButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.UnmaximizeButton.BackColor = System.Drawing.Color.Transparent;
+            this.UnmaximizeButton.FlatAppearance.BorderSize = 0;
+            this.UnmaximizeButton.FlatAppearance.MouseOverBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(62)))), ((int)(((byte)(62)))), ((int)(((byte)(64)))));
+            this.UnmaximizeButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.UnmaximizeButton.Image = ((System.Drawing.Image)(resources.GetObject("UnmaximizeButton.Image")));
+            this.UnmaximizeButton.Location = new System.Drawing.Point(1352, 0);
+            this.UnmaximizeButton.Name = "UnmaximizeButton";
+            this.UnmaximizeButton.Size = new System.Drawing.Size(26, 26);
+            this.UnmaximizeButton.TabIndex = 0;
+            this.UnmaximizeButton.TabStop = false;
+            this.UnmaximizeButton.UseVisualStyleBackColor = false;
+            this.UnmaximizeButton.Visible = false;
+            this.UnmaximizeButton.Click += new System.EventHandler(this.UnmaximizeButton_Click);
             // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.BackColor = System.Drawing.SystemColors.Control;
+            this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(16)))), ((int)(((byte)(20)))), ((int)(((byte)(24)))));
             this.ClientSize = new System.Drawing.Size(1404, 611);
-            this.Controls.Add(this.TabControl);
-            this.Controls.Add(this.TopMenu);
+            this.Controls.Add(this.MainPanel);
+            this.Controls.Add(this.MinimizeButton);
+            this.Controls.Add(this.ExitButton);
+            this.Controls.Add(this.TitleBarLebel);
+            this.Controls.Add(this.MaximizeButton);
+            this.Controls.Add(this.UnmaximizeButton);
             this.DoubleBuffered = true;
             this.Enabled = false;
+            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
-            this.MainMenuStrip = this.TopMenu;
-            this.MinimumSize = new System.Drawing.Size(1080, 590);
+            this.MainMenuStrip = this.ToolBar;
+            this.MinimumSize = new System.Drawing.Size(1080, 575);
             this.Name = "MainForm";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Kebab";
             this.Load += new System.EventHandler(this.MainForm_Load);
-            this.TopMenu.ResumeLayout(false);
-            this.TopMenu.PerformLayout();
+            this.DoubleClick += new System.EventHandler(this.MainForm_DoubleClick);
+            this.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MainForm_MouseDown);
+            this.ToolBar.ResumeLayout(false);
+            this.ToolBar.PerformLayout();
             this.ConnectionPage.ResumeLayout(false);
             this.DisplayFilterGroupBox.ResumeLayout(false);
             this.DisplayFilterGroupBox.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.ConnectionGridView)).EndInit();
-            this.ConnectionContextMenuStrip.ResumeLayout(false);
+            this.ConnectionContextMenu.ResumeLayout(false);
             this.CapturePage.ResumeLayout(false);
             this.CaptureOptionsGroupBox.ResumeLayout(false);
             this.CaptureOptionsGroupBox.PerformLayout();
             this.CaptureFilterGroupBox.ResumeLayout(false);
             this.CaptureFilterGroupBox.PerformLayout();
             this.TabControl.ResumeLayout(false);
+            this.MainPanel.ResumeLayout(false);
+            this.MainPanel.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
         }
 
         #endregion
-        private System.Windows.Forms.MenuStrip TopMenu;
+        private System.Windows.Forms.MenuStrip ToolBar;
         private System.Windows.Forms.ToolStripMenuItem FileMenu;
         private System.Windows.Forms.ToolStripMenuItem ExitMenuItem;
         private System.Windows.Forms.TabPage ConnectionPage;
@@ -1045,35 +1156,35 @@ namespace Kebab
         private System.Windows.Forms.TextBox SourcePortFilter;
         private System.Windows.Forms.TextBox DestinationPortFilter;
         private System.Windows.Forms.TabControl TabControl;
-        private System.Windows.Forms.ContextMenuStrip ConnectionContextMenuStrip;
-        private System.Windows.Forms.ToolStripMenuItem copyComponentToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem localAddressPortToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem remoteAddressPortToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem copyToolStripMenuItem;
+        private System.Windows.Forms.ContextMenuStrip ConnectionContextMenu;
+        private System.Windows.Forms.ToolStripMenuItem CopyComponentMenu;
+        private System.Windows.Forms.ToolStripMenuItem LocalAddressPortMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem RemoteAddressPortMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem CopyMenuItem;
         private System.Windows.Forms.ToolStripMenuItem HelpMenu;
-        private System.Windows.Forms.ToolStripMenuItem aboutToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem AboutMenu;
         private System.Windows.Forms.Label FilterStringLabel;
         private System.Windows.Forms.TextBox CaptureFilterStr;
-        private System.Windows.Forms.ToolStripMenuItem localAddressToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem localPortToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem remoteAddressToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem remotePortToolStripMenuItem;
-        private System.Windows.Forms.ToolStripSeparator toolStripSeparator2;
-        private System.Windows.Forms.ToolStripMenuItem saveToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem saveAsToolStripMenuItem;
-        private System.Windows.Forms.ToolStripSeparator toolStripSeparator3;
-        private System.Windows.Forms.TextBox timeLimit;
-        private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
-        private System.Windows.Forms.ToolStripMenuItem iSOToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem aSNOrganizationToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem LocalAddressMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem LocalPortMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem RemoteAddressMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem RemotePortMenuItem;
+        private System.Windows.Forms.ToolStripSeparator MenuSeparator2;
+        private System.Windows.Forms.ToolStripMenuItem SaveMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem SaveAsMenuItem;
+        private System.Windows.Forms.ToolStripSeparator MenuSeparator3;
+        private System.Windows.Forms.TextBox TimeLimit;
+        private System.Windows.Forms.ToolStripSeparator MenuSeparator1;
+        private System.Windows.Forms.ToolStripMenuItem ISOMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem ASNOrganizationMenuItem;
         private System.Windows.Forms.CheckBox ClearConnsOnStartCheckBox;
-        private System.Windows.Forms.ToolStripMenuItem libpcapVersionInfoToolStripMenuItem;
-        private System.Windows.Forms.ToolStripSeparator toolStripSeparator4;
-        private System.Windows.Forms.ToolStripMenuItem checkForUpdatesToolStripMenuItem;
-        private System.Windows.Forms.ToolStripSeparator toolStripSeparator5;
+        private System.Windows.Forms.ToolStripMenuItem LibpcapVersionInfoMenuItem;
+        private System.Windows.Forms.ToolStripSeparator MenuSeparator4;
+        private System.Windows.Forms.ToolStripMenuItem CheckForUpdatesMenuItem;
+        private System.Windows.Forms.ToolStripSeparator MenuSeparator5;
         private System.Windows.Forms.CheckBox RemoveLocalConnectionsCheckBox;
-        private System.Windows.Forms.ToolStripSeparator toolStripSeparator6;
-        private System.Windows.Forms.ToolStripMenuItem allRemoteHostInformationToolStripMenuItem;
+        private System.Windows.Forms.ToolStripSeparator MenuSeparator6;
+        private System.Windows.Forms.ToolStripMenuItem AllRemoteHostInformationMenuItem;
         private System.Windows.Forms.Button ClearConnectionsButton;
         private System.Windows.Forms.CheckBox ForceRawCheckBox;
         private System.Windows.Forms.TextBox AnyPortFilter;
@@ -1091,8 +1202,14 @@ namespace Kebab
         private System.Windows.Forms.DataGridViewTextBoxColumn ByteCount;
         private System.Windows.Forms.DataGridViewTextBoxColumn DstGeo;
         private System.Windows.Forms.DataGridViewTextBoxColumn DstASNOrg;
-        private System.Windows.Forms.ToolStripMenuItem editToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem preferencesToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem EditMenu;
+        private System.Windows.Forms.ToolStripMenuItem PreferencesMenuItem;
+        private System.Windows.Forms.Panel MainPanel;
+        private System.Windows.Forms.Label TitleBarLebel;
+        private System.Windows.Forms.Button ExitButton;
+        private System.Windows.Forms.Button MaximizeButton;
+        private System.Windows.Forms.Button MinimizeButton;
+        private System.Windows.Forms.Button UnmaximizeButton;
     }
 }
 

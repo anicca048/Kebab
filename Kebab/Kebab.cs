@@ -31,14 +31,14 @@ namespace Kebab
         // Name of program for repeated use.
         static public readonly string Name = @"Kebab";
         // Version of the program (for releases).
-        static public readonly string Version = @"1.1.3.5";
+        static public readonly string Version = @"1.3.0.0";
 
         // Links and strings for update checking mechanism.
         static public readonly string GithubWEB_RepoURL = @"https://github.com/anicca048/Kebab";
         static public readonly string GithubWEB_LatestReleaseURL = @"https://github.com/anicca048/Kebab/releases/latest";
         static public readonly string GithubAPI_LatestReleaseURL = @"https://api.github.com/repos/anicca048/Kebab/releases/latest";
         static public readonly string GithubAPI_ReleaseTagElementName = @"tag_name";
-        static public readonly string GithubAPI_ReleaseTagElementValue = @"v1.1.3.5_Windows_x86_64";
+        static public readonly string GithubAPI_ReleaseTagElementValue = @"v1.3.0.0_Windows_x86_64";
         // Github API requires a http user agent to be set.
         static public readonly string GithubAPI_HTTPUserAgent = (Program.Name + "/" + Program.Version);
 

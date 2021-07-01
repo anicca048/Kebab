@@ -1,7 +1,6 @@
 ﻿
 using System;
 using System.IO;
-using System.Collections.Generic;
 
 using Newtonsoft.Json;
 
@@ -17,7 +16,13 @@ namespace Kebab
     // Definitions of excepted values for config variables (all value types should be easy to validate).
     public class ConfigDefinitions
     {
-        public readonly List<string> update_check = new List<string>() {@"false", @"true"};
+        public readonly string[] update_check = { @"false", @"true" };
+    }
+
+    // Limits on excepted values.
+    public class ConfigBounds
+    {
+        public readonly uint[] flavor_text = { 0, 192 };
     }
 
     public class Config
@@ -27,11 +32,14 @@ namespace Kebab
         // Flag for checking if there are pending config changes.
         private bool _changesPending = false;
         public bool ChangesPending { get { return _changesPending;  } }
+        // Flag to indicate that a json-valid, but incorrect variable was found.
+        private bool InvalidCVarFound = false;
 
         // List of config variables to be (de)serialized to and from json elements.
         private readonly ConfigVariables _cvars = new ConfigVariables();
         public ConfigVariables CVars { get { return _cvars; } }
         private readonly ConfigDefinitions CVarDefs = new ConfigDefinitions();
+        private readonly ConfigBounds CVarBounds = new ConfigBounds();
         
         // Filename of config file save location.
         private readonly string ConfigFileName;
@@ -99,7 +107,7 @@ namespace Kebab
             UpdateConfig(loadedConfig);
 
             // Check if we need to overwrite file.
-            if (( _changesPending) && SaveOnLoad)
+            if ((_changesPending || InvalidCVarFound) && SaveOnLoad)
                 SaveConfig();
 
             // Inform caller the json config parsing succeeded.
@@ -112,17 +120,25 @@ namespace Kebab
             // Apply banner message.
             if (!loadedConfig.flavor_text.Equals(_cvars.flavor_text))
             {
-                _cvars.flavor_text = loadedConfig.flavor_text;
+                if (CVarBoundsCheck((uint)loadedConfig.flavor_text.Length, CVarBounds.flavor_text))
+                {
+                    _cvars.flavor_text = loadedConfig.flavor_text;
 
-                // Trip pending changes flag.
-                if (!_changesPending)
-                    _changesPending = true;
+                    // Trip pending changes flag.
+                    if (!_changesPending)
+                        _changesPending = true;
+                }
+                else
+                {
+                    if (!InvalidCVarFound)
+                        InvalidCVarFound = true;
+                }
             }
 
             // Apply theme if valid.
             if (!loadedConfig.update_check.Equals(_cvars.update_check))
             {
-                if (ValidateConfigVariable(loadedConfig.update_check, CVarDefs.update_check))
+                if (CVarValidation(loadedConfig.update_check, CVarDefs.update_check))
                 {
                     // Write validated change to config var.
                     _cvars.update_check = loadedConfig.update_check;
@@ -130,6 +146,11 @@ namespace Kebab
                     // Trip pending changes flag.
                     if (!_changesPending)
                         _changesPending = true;
+                }
+                else
+                {
+                    if (!InvalidCVarFound)
+                        InvalidCVarFound = true;
                 }
             }
         }
@@ -154,8 +175,8 @@ namespace Kebab
             return true;
         }
 
-        // Check if saved value matches a supprted value.
-        private bool ValidateConfigVariable<T>(T cvar, List<T> defs)
+        // Check if saved value matches a supprted value definition.
+        private bool CVarValidation<T>(T cvar, T[] defs)
         where T : IEquatable<T>
         {
             // Loop through all valid options and return true if one matches.
@@ -166,6 +187,16 @@ namespace Kebab
             }
 
             // Return false if no match is found.
+            return false;
+        }
+
+        // Check if a saved value matches a lower and upper bound limit.
+        private bool CVarBoundsCheck<T>(T cvar, T[] limits)
+        where T : IComparable<T>
+        {
+            if (limits[0].CompareTo(cvar) <= 0 && limits[1].CompareTo(cvar) >= 0)
+                return true;
+
             return false;
         }
     }

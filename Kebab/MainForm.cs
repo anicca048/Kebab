@@ -128,7 +128,7 @@ namespace Kebab
         // User defined init (runs after MainForm constructor).
         private void MainForm_Load(object sender, EventArgs e)
         {
-            // Double buffered property is not transfering to the DGV, so we'll force it through reflection.
+            // Force double buffered property on connection dgv.
             typeof(Control).InvokeMember("DoubleBuffered",
                                          BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.SetProperty,
                                          null, ConnectionGridView, new object[] { true });
@@ -261,6 +261,123 @@ namespace Kebab
             this.Enabled = true;
         }
 
+        // WindowManager argument defs.
+        private static readonly int WM_NCLBUTTONDOWN = 0xA1;
+        private static readonly int HT_CAPTION = 0x2;
+
+        // WindowManager function defs.
+        [System.Runtime.InteropServices.DllImport("user32.dll")]
+        private static extern int SendMessage(IntPtr hWnd, int Msg, int wParam, int lParam);
+        [System.Runtime.InteropServices.DllImport("user32.dll")]
+        private static extern bool ReleaseCapture();
+
+        // Send drag form event on mouse down event.
+        private void MainForm_MouseDown(object sender, System.Windows.Forms.MouseEventArgs e)
+        {
+            if (e.Button == MouseButtons.Left && e.Clicks == 1)
+            {
+                ReleaseCapture();
+                SendMessage(Handle, WM_NCLBUTTONDOWN, HT_CAPTION, 0);
+            }
+        }
+
+        private void TitleBarLebel_MouseDown(object sender, MouseEventArgs e)
+        {
+            if (e.Button == MouseButtons.Left && e.Clicks == 1)
+            {
+                ReleaseCapture();
+                SendMessage(Handle, WM_NCLBUTTONDOWN, HT_CAPTION, 0);
+            }
+        }
+
+        // Maximize on double click.
+        private void MainForm_DoubleClick(object sender, EventArgs e)
+        {
+            if (this.WindowState == FormWindowState.Normal)
+                this.MaximizeButton_Click(sender, e);
+            else if (this.WindowState == FormWindowState.Maximized)
+                this.UnmaximizeButton_Click(sender, e);
+        }
+
+        private void TitleBarLebel_DoubleClick(object sender, EventArgs e)
+        {
+            if (this.WindowState == FormWindowState.Normal)
+                this.MaximizeButton_Click(sender, e);
+            else if (this.WindowState == FormWindowState.Maximized)
+                this.UnmaximizeButton_Click(sender, e);
+        }
+
+        // Create resize handles on edges of Form border.
+        protected override void WndProc(ref Message m)
+        {
+            const int RESIZE_HANDLE_SIZE = 10;
+
+            // Don't show draggable handles if maximized.
+            if (this.WindowState == FormWindowState.Maximized)
+            {
+                base.WndProc(ref m);
+                return;
+            }
+
+            switch (m.Msg)
+            {
+                case 0x0084/*NCHITTEST*/ :
+                {
+                    base.WndProc(ref m);
+
+                    if ((int)m.Result == 0x01/*HTCLIENT*/)
+                    {
+                        Point screenPoint = new Point(m.LParam.ToInt32());
+                        Point clientPoint = this.PointToClient(screenPoint);
+
+                        if (clientPoint.Y <= RESIZE_HANDLE_SIZE)
+                        {
+                            if (clientPoint.X <= RESIZE_HANDLE_SIZE)
+                                m.Result = (IntPtr)13/*HTTOPLEFT*/ ;
+                            else if (clientPoint.X < (Size.Width - RESIZE_HANDLE_SIZE))
+                                m.Result = (IntPtr)12/*HTTOP*/ ;
+                            else
+                                m.Result = (IntPtr)14/*HTTOPRIGHT*/ ;
+                        }
+                        else if (clientPoint.Y <= (Size.Height - RESIZE_HANDLE_SIZE))
+                        {
+                            if (clientPoint.X <= RESIZE_HANDLE_SIZE)
+                                m.Result = (IntPtr)10/*HTLEFT*/ ;
+                            else if (clientPoint.X < (Size.Width - RESIZE_HANDLE_SIZE))
+                                m.Result = (IntPtr)2/*HTCAPTION*/ ;
+                            else
+                                m.Result = (IntPtr)11/*HTRIGHT*/ ;
+                        }
+                        else
+                        {
+                            if (clientPoint.X <= RESIZE_HANDLE_SIZE)
+                                m.Result = (IntPtr)16/*HTBOTTOMLEFT*/ ;
+                            else if (clientPoint.X < (Size.Width - RESIZE_HANDLE_SIZE))
+                                m.Result = (IntPtr)15/*HTBOTTOM*/ ;
+                            else
+                                m.Result = (IntPtr)17/*HTBOTTOMRIGHT*/ ;
+                        }
+                    }
+
+                    return;
+                }
+            }
+
+            base.WndProc(ref m);
+        }
+
+        // Ensure that custom window style parameters are added to base.
+        protected override CreateParams CreateParams
+        {
+            get
+            {
+                CreateParams cp = base.CreateParams;
+                cp.Style |= 0x20000; // <--- use 0x20000.
+
+                return cp;
+            }
+        }
+
         // Fetch update information.
         private string GetCurrentTagName()
         {
@@ -330,7 +447,10 @@ namespace Kebab
         private void ApplyConfig()
         {
             // Apply banner message string to mainform title.
-            this.Text = (Program.Name + " - " + programConfig.CVars.flavor_text);
+            if (programConfig.CVars.flavor_text.Length > 0)
+                TitleBarLebel.Text = (Program.Name + " - " + programConfig.CVars.flavor_text);
+            else
+                TitleBarLebel.Text = Program.Name;
         }
 
         // Check if there are pending config file changes that need to be applied.
@@ -721,7 +841,7 @@ namespace Kebab
                 ConnectionGridView.ClearSelection();
 
                 // Disable context meny items (for copying conn info).
-                foreach (ToolStripItem item in ConnectionContextMenuStrip.Items)
+                foreach (ToolStripItem item in ConnectionContextMenu.Items)
                     item.Enabled = false;
             }
         }
@@ -739,7 +859,7 @@ namespace Kebab
                     ConnectionGridView.CurrentRow.Selected = true;
 
                 // Enable context meny items (for copying conn info).
-                foreach (ToolStripItem item in ConnectionContextMenuStrip.Items)
+                foreach (ToolStripItem item in ConnectionContextMenu.Items)
                     item.Enabled = true;
             }
         }
@@ -1319,8 +1439,8 @@ namespace Kebab
             // Close file.
             saveFileStream.Close();
 
-            if (!saveToolStripMenuItem.Enabled)
-                saveToolStripMenuItem.Enabled = true;
+            if (!SaveMenuItem.Enabled)
+                SaveMenuItem.Enabled = true;
         }
 
         // Save all connections in list to selected file.
@@ -1737,17 +1857,17 @@ namespace Kebab
         private void TimeLimit_TextChanged(object sender, EventArgs e)
         {
             // Make sure we have a valid timeout value.
-            if (timeLimit.Text.Trim().Length > 0)
+            if (TimeLimit.Text.Trim().Length > 0)
             {
-                if (Regex.Match(timeLimit.Text.Trim(), Filter.nonNumericRegex).Length > 0)
+                if (Regex.Match(TimeLimit.Text.Trim(), Filter.nonNumericRegex).Length > 0)
                 {
                     MessageBox.Show("Error: invalid timeout limit!", Program.Name);
-                    timeLimit.Text = timeoutInactivityLimit.ToString();
+                    TimeLimit.Text = timeoutInactivityLimit.ToString();
 
                     return;
                 }
 
-                if (!Int32.TryParse(timeLimit.Text.Trim(), out timeoutInactivityLimit))
+                if (!Int32.TryParse(TimeLimit.Text.Trim(), out timeoutInactivityLimit))
                     MessageBox.Show("Error: invalid timeout limit!", Program.Name);
             }
         }
@@ -1755,7 +1875,7 @@ namespace Kebab
         // Show dropdown menu on mouse hover.
         private void CopyComponentToolStripMenuItem_MouseHover(object sender, EventArgs e)
         {
-            copyComponentToolStripMenuItem.ShowDropDown();
+            CopyComponentMenu.ShowDropDown();
         }
 
         // Show libpcap and npcap version info.
@@ -1769,6 +1889,33 @@ namespace Kebab
         {
             // Start update check background thread.
             UpdateWorker_Start();
+        }
+
+        // 
+        // Titlebar related methods.
+        // 
+
+        private void ExitButton_Click(object sender, EventArgs e)
+        {
+            this.Close();
+        }
+
+        private void MaximizeButton_Click(object sender, EventArgs e)
+        {
+            this.WindowState = FormWindowState.Maximized;
+            UnmaximizeButton.Visible = true;
+            MaximizeButton.Visible = false;
+        }
+
+        private void UnmaximizeButton_Click(object sender, EventArgs e)
+        {
+            this.WindowState = FormWindowState.Normal;
+            MaximizeButton.Visible = true;
+            UnmaximizeButton.Visible = false;
+        }
+        private void MinimizeButton_Click(object sender, EventArgs e)
+        {
+            this.WindowState = FormWindowState.Minimized;
         }
     }
 }
