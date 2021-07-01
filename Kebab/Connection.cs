@@ -30,6 +30,10 @@ namespace Kebab
     {
         static public UInt32 IPV4ToUint32(IPAddress address)
         {
+            // Make sure this is an IPV4 address.
+            if (address.AddressFamily != System.Net.Sockets.AddressFamily.InterNetwork)
+                throw new ArgumentException("Error: IPAddress is not IPV4.");
+
             // Could not find another way to get direct access to address bytes in numeric format.
             // IPAddress.Equals() is woefully unequipped for many actions, so stop [FN] saying that it is MS!
             #pragma warning disable CS0618
@@ -37,6 +41,20 @@ namespace Kebab
             return (UInt32)IPAddress.NetworkToHostOrder((Int32)address.Address);
 
             #pragma warning restore CS0618
+        }
+
+        static public string NetMaskToPrefix(IPAddress address)
+        {
+            // Get numeric representation of IP.
+            UInt32 n = IPV4ToUint32(address);
+
+            // Bit shift left one bit at a time untill we have a 0 value.
+            UInt16 i = 0;
+            for (; n > 0; i++)
+                n <<= 1;
+
+            // Convert count of one bits to notation str.
+            return ("/" + i.ToString());
         }
 
         public IPAddress Address { get; set; }

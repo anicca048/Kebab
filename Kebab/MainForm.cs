@@ -450,7 +450,7 @@ namespace Kebab
                             if (ip.Address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork
                                 && ip.Address.ToString() != "0.0.0.0")
                             {
-                                ifaceName += (" [ " + ip.Address.ToString() + " ]");
+                                ifaceName += (" [ " + ip.Address.ToString() + ConnectionAddress.NetMaskToPrefix(ip.IPv4Mask) + " ]");
                                 break;
                             }
                         }

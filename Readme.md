@@ -64,7 +64,10 @@ Capture Tab - The controls on this tab are used to setup the packet capture.
 		interface to perform a packet capture on. It also provides controls to
 		start and stop a capture, and a method to rescan the libpcap interface
 		list, which could be useful in the event of a network card
-		change / insertion.
+		change / insertion. The "Force Raw Interface Type" checkbox is used to
+        help deal with misidentified interfaces (such as wintun devices). The
+        "Remove Local Connections" box will ignore any connections that have a
+        local / private host on both ends of the connection (lan2lan).
 	
 	Capture Filter Group - This group allows the user to set the libpcap
 		filter, which will be compiled and used to filter out packets from the
@@ -81,11 +84,14 @@ Connections Tab - Pretty basic, simply groups captured packets into connections.
 	Display Filter Group - This group is used to filter and clear connections in
 		the Connections Tab. The "Filter String" box uses a custom display
         filter syntax, that is very simular to libpcap capture filter syntax.
-        It allows "tcp" and "udp" keywords, and "host" and "port" keywords
-        (with "src" and "dst" modifyers, and allows ranges using '-' delimiter).
-        The display filter string only uses "and" logic, so connetions must
-        match all keywords, modifyers, and values expressed. An example would
-        be: <tcp src host 10.0.0.0-10.255.255.255 dst port 22-23>
+        It allows "tcp", "udp", "iso", and "asn" keywords, as well as "host" and
+        "port" keywords (with "src" and "dst" modifyers, and allows ranges using
+        '-' delimiter). The display filter string only uses "and" logic, so
+        connetions must match all keywords, modifyers, and values expressed.
+        An example would be:
+            <tcp src host 10.0.0.0-10.255.255.255 dst port 22-23>
+        and:
+            <tcp dst port 443 iso us asn amazon>
         The timeout checkbox will remove connections that have had
 		no activity based on the user set timeout in seconds (default is 10).
 		The clear connections button, you guessed it, clears all the connections
