@@ -29,6 +29,15 @@ namespace Kebab
         // Header to match connections for saving list.
         static private readonly string connListHdr = "#    Type    LocalAddress:Port  RXTX    RemoteAddress:Port  PacketsSent  BytesSent       ISO    ASNOrg\n";
 
+        // Error string for recognizing removed interface situations.
+        static private readonly string devRemovedErrStr = "ERROR_DEVICE_REMOVED/STATUS_DEVICE_REMOVED";
+        // Auto downed interface recovery loop config vars.
+        static private readonly int autoRecoveryAttempts = 3;
+        static private readonly int autoRecoveryInterval = 1000;
+
+        // Indicate if auto recovery fail event needs to be handled after worker close.
+        private bool autoRecoveryFail = false;
+
         // Configuration object.
         private Config programConfig;
         private readonly object programConfigLock = new object();
@@ -122,6 +131,7 @@ namespace Kebab
 
             // Setup background workers.
             captureWorker.DoWork += CaptureWorker_DoWork;
+            captureWorker.RunWorkerCompleted += CaptureWorker_RunWorkerCompleted;
             updateWorker.DoWork += UpdateWorker_DoWork;
             updateWorker.RunWorkerCompleted += UpdateWorker_RunWorkerCompleted;
             configWorker.DoWork += ConfigWorker_DoWork;
@@ -620,9 +630,10 @@ namespace Kebab
             while (!thisWorker.CancellationPending)
             {
                 IPV4_PACKET pkt = new IPV4_PACKET();
+                int returnCode = captureEngine.getNextPacket(ref pkt);
 
                 // Process a packet / connection, and add it to the queue.
-                if (captureEngine.getNextPacket(ref pkt) != -1)
+                if (returnCode == 0)
                 {
                     // Obtain lock on queue and then add connection / packet.
                     lock (pendingPacketsLock)
@@ -630,10 +641,61 @@ namespace Kebab
                         pendingPackets.Enqueue(pkt);
                     }
                 }
+                // Deal with capture failures.
+                else if (returnCode == -2)
+                {
+                    // Check for downed interface situation.
+                    if (Regex.Match(captureEngine.getEngineError(), devRemovedErrStr).Length > 0)
+                    {
+                        // Mark recovery attempt as active.
+                        bool recovered = false;
+
+                        // Attempt to recover from downed interface.
+                        for (int recoveryAttempts = 0; recoveryAttempts < autoRecoveryAttempts; recoveryAttempts++)
+                        {
+                            // If reload succeeds then we can stop the loop.
+                            if (captureEngine.reloadCapture() != -1)
+                            {
+                                recovered = true;
+                                break;
+                            }
+
+                            // Otherwise wait for specified interval.
+                            Thread.Sleep(autoRecoveryInterval);
+                        }
+
+                        // If autorecovery failed we need to warn the user and stop the capture loop.
+                        if (!recovered)
+                        {
+                            // Set flag for RunWorkerCompleted.
+                            autoRecoveryFail = true;
+                            // Break the capture loop.
+                            break;
+                        }
+                    }
+                }
             }
 
             // Signal end of thread work.
             _captureWorkerDone.Set();
+        }
+
+        // Handle auto recovery fail event.
+        private void CaptureWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            if (autoRecoveryFail)
+            {
+                // Stop capture.
+                StopCapture();
+                // Refresh device list.
+                BuildDeviceList();
+
+                // Notify user.
+                MessageBox.Show("Error: The active interface went down and auto recovery failed!"
+                                + "\n\nStart a new capture when ready.", Program.Name);
+                // Reset flag.
+                autoRecoveryFail = false;
+            }
         }
 
         // Initilize capture worker.
@@ -941,7 +1003,7 @@ namespace Kebab
                     if (packetMatch != MatchType.NON_MATCH)
                     {
                         conn.PacketCount++;
-                        conn.ByteCount += pkt.payload_size;
+                        conn.DataSize += pkt.payload_size;
                         conn.TimeStamp = DateTime.Now;
 
                         // Check if direction needs to be updated to both ways.
@@ -972,7 +1034,7 @@ namespace Kebab
                     Connection newConn = new Connection(pkt);
 
                     // Don't create local connections if not wanted by user.
-                    if (newConn.Source.AddressIsLocal() && newConn.Destination.AddressIsLocal() && RemoveLocalConnectionsCheckBox.Checked)
+                    if (newConn.SrcHost.AddressIsLocal() && newConn.DstHost.AddressIsLocal() && RemoveLocalConnectionsCheckBox.Checked)
                     {
                         // Mark packet as processed.
                         packetsToProcess--;
@@ -980,12 +1042,12 @@ namespace Kebab
                         continue;
                     }
                     // Need to do a check to make sure that local and loobpack connections get priority for the Source address.
-                    else if (newConn.Destination.AddressIsLocal() && !newConn.Source.AddressIsLocal())
+                    else if (newConn.DstHost.AddressIsLocal() && !newConn.SrcHost.AddressIsLocal())
                     {
                         // Swap IP addrs.
-                        IPAddress tmpIP = newConn.Destination.Address;
-                        newConn.Destination.Address = newConn.Source.Address;
-                        newConn.Source.Address = tmpIP;
+                        IPAddress tmpIP = newConn.DstHost.Address;
+                        newConn.DstHost.Address = newConn.SrcHost.Address;
+                        newConn.SrcHost.Address = tmpIP;
 
                         // Swap ports.
                         UInt16 tmpUint16 = newConn.DstPort;
@@ -1107,11 +1169,11 @@ namespace Kebab
                     break;
 
                 // Make sure meta check hasn't been done before.
-                if (conn.MetaDataLookupDone)
+                if (conn.MetaDataAdded)
                     continue;
 
                 // Add geographical info.
-                if (CityReader.TryCity(conn.Destination.ToString(), out CityResponse cityResp))
+                if (CityReader.TryCity(conn.DstHost.ToString(), out CityResponse cityResp))
                 {
                     // Add info from response object, or "--" marker for empty components of the response.
                     if (cityResp.Country.Name != default)
@@ -1131,7 +1193,7 @@ namespace Kebab
                 }
 
                 // Add ASN info.
-                if (ASNReader.TryAsn(conn.Destination.ToString(), out AsnResponse asnResp))
+                if (ASNReader.TryAsn(conn.DstHost.ToString(), out AsnResponse asnResp))
                 {
                     conn.DstASN = asnResp.AutonomousSystemNumber;
 
@@ -1140,7 +1202,7 @@ namespace Kebab
                 }
 
                 // Mark metadata lookup done.
-                conn.MetaDataLookupDone = true;
+                conn.MetaDataAdded = true;
                 // One down.
                 connsToLookup--;
             }
@@ -1498,45 +1560,6 @@ namespace Kebab
         // Other UI and control event related members.
         // 
 
-        // Disables certian bulk UI elements on when a capture is started.
-        private void ChangeOnStartCapture(object sender, EventArgs e)
-        {
-            // Disable Init Page elements.
-            RefreshInterfacesButton.Enabled = false;
-            CaptureStartButton.Enabled = false;
-            InterfaceLabel.Enabled = false;
-            InterfaceDropDownList.Enabled = false;
-            ClearConnsOnStartCheckBox.Enabled = false;
-            RemoveLocalConnectionsCheckBox.Enabled = false;
-            ForceRawCheckBox.Enabled = false;
-            CaptureFilterGroupBox.Enabled = false;
-
-            // Enable Connection page elements.
-            DisplayFilterGroupBox.Enabled = true;
-
-            // Allow user to stop background worker.
-            CaptureStopButton.Enabled = true;
-        }
-
-        // Enables certian bulk UI elements on when a capture is stoped.
-        private void ChangeOnStopCapture(object sender, EventArgs e)
-        {
-            // Disable Connection page elements.
-            DisplayFilterGroupBox.Enabled = false;
-
-            // Enable Init Page elements.
-            RefreshInterfacesButton.Enabled = true;
-            CaptureStartButton.Enabled = true;
-            InterfaceLabel.Enabled = true;
-            InterfaceDropDownList.Enabled = true;
-            ClearConnsOnStartCheckBox.Enabled = true;
-            RemoveLocalConnectionsCheckBox.Enabled = true;
-            ForceRawCheckBox.Enabled = true;
-
-            if (!ForceRawCheckBox.Checked)
-                CaptureFilterGroupBox.Enabled = true;
-        }
-
         // Determine if the user can start a capture or not based on valid drop down selection.
         private void InterfaceDropDownList_SelectedIndexChanged(object sender, EventArgs e)
         {
@@ -1685,8 +1708,8 @@ namespace Kebab
             return 0;
         }
 
-        // Starts the whole pcap process after user presses button.
-        private void CaptureStartButton_Click(object sender, EventArgs e)
+        // Starts capture of packets.
+        private void StartCapture()
         {
             if (InterfaceDropDownList.SelectedIndex > 0)
             {
@@ -1745,8 +1768,22 @@ namespace Kebab
                 if (TimeoutCheckBox.Checked)
                     timeoutTimer.Start();
 
-                // Change UI elements to reflect new capture state.
-                ChangeOnStartCapture(sender, e);
+                // Toggle relevant controls.
+                // Disable Init Page elements.
+                RefreshInterfacesButton.Enabled = false;
+                CaptureStartButton.Enabled = false;
+                InterfaceLabel.Enabled = false;
+                InterfaceDropDownList.Enabled = false;
+                ClearConnsOnStartCheckBox.Enabled = false;
+                RemoveLocalConnectionsCheckBox.Enabled = false;
+                ForceRawCheckBox.Enabled = false;
+                CaptureFilterGroupBox.Enabled = false;
+
+                // Enable Connection page elements.
+                DisplayFilterGroupBox.Enabled = true;
+
+                // Allow user to stop background worker.
+                CaptureStopButton.Enabled = true;
 
                 // Switch over to connections veiw after capture start.
                 TabControl.SelectTab(ConnectionPage);
@@ -1757,8 +1794,13 @@ namespace Kebab
             }
         }
 
-        // Kill background thread doing pcap processing when user presses button.
-        private void CaptureStopButton_Click(object sender, EventArgs e)
+        // Starts the whole pcap process after user presses button.
+        private void CaptureStartButton_Click(object sender, EventArgs e)
+        {
+            StartCapture();
+        }
+
+        private void StopCapture()
         {
             // Don't allow user to stop background worker untill a new one has been started.
             CaptureStopButton.Enabled = false;
@@ -1773,13 +1815,32 @@ namespace Kebab
             // Do ShimDotNet cleanup.
             captureEngine.stopCapture();
 
-            // Re enable start button now that a new capture can be started.
-            ChangeOnStopCapture(sender, e);
+            // Toggle relavant controls.
+            // Disable Connection page elements.
+            DisplayFilterGroupBox.Enabled = false;
+
+            // Enable Init Page elements.
+            RefreshInterfacesButton.Enabled = true;
+            CaptureStartButton.Enabled = true;
+            InterfaceLabel.Enabled = true;
+            InterfaceDropDownList.Enabled = true;
+            ClearConnsOnStartCheckBox.Enabled = true;
+            RemoveLocalConnectionsCheckBox.Enabled = true;
+            ForceRawCheckBox.Enabled = true;
+
+            if (!ForceRawCheckBox.Checked)
+                CaptureFilterGroupBox.Enabled = true;
 
             // Stop timers.
             packetTimer.Stop();
             timeoutTimer.Stop();
             displayTimer.Stop();
+        }
+
+        // Kill background thread doing pcap processing when user presses button.
+        private void CaptureStopButton_Click(object sender, EventArgs e)
+        {
+            StopCapture();
         }
 
         // Refreshes interface list / info.
@@ -1851,7 +1912,7 @@ namespace Kebab
                 }
                 catch(System.ComponentModel.WarningException)
                 {
-                    MessageBox.Show("Error: neither the readme file, nor the github webpage, could be opened!");
+                    MessageBox.Show("Error: neither the readme file, nor the github webpage, could be opened!", Program.Name);
                 }
             }
         }

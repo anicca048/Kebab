@@ -311,13 +311,13 @@ namespace Kebab
                             UInt32 lowerRange = ConnectionAddress.IPV4ToUint32(IPAddress.Parse(filter.Value));
                             UInt32 upperRange = ConnectionAddress.IPV4ToUint32(IPAddress.Parse(filter.SecondaryValue));
 
-                            if (!(conn.Source.AddressValue() >= lowerRange && conn.Source.AddressValue() <= upperRange)
-                                && !(conn.Destination.AddressValue() >= lowerRange && conn.Destination.AddressValue() <= upperRange))
+                            if (!(conn.SrcHost.AddressValue() >= lowerRange && conn.SrcHost.AddressValue() <= upperRange)
+                                && !(conn.DstHost.AddressValue() >= lowerRange && conn.DstHost.AddressValue() <= upperRange))
                                 return false;
                         }
                         // Handle single value.
-                        else if (!conn.Source.Address.ToString().Equals(filter.Value)
-                                 && !conn.Destination.Address.ToString().Equals(filter.Value))
+                        else if (!conn.SrcHost.Address.ToString().Equals(filter.Value)
+                                 && !conn.DstHost.Address.ToString().Equals(filter.Value))
                             return false;
                     }
                     // Handle SRC matching host.
@@ -329,11 +329,11 @@ namespace Kebab
                             UInt32 lowerRange = ConnectionAddress.IPV4ToUint32(IPAddress.Parse(filter.Value));
                             UInt32 upperRange = ConnectionAddress.IPV4ToUint32(IPAddress.Parse(filter.SecondaryValue));
 
-                            if (!(conn.Source.AddressValue() >= lowerRange && conn.Source.AddressValue() <= upperRange))
+                            if (!(conn.SrcHost.AddressValue() >= lowerRange && conn.SrcHost.AddressValue() <= upperRange))
                                 return false;
                         }
                         // Handle single value.
-                        else if (!conn.Source.Address.ToString().Equals(filter.Value))
+                        else if (!conn.SrcHost.Address.ToString().Equals(filter.Value))
                             return false;
                     }
                     // Handle DST matching host.
@@ -345,11 +345,11 @@ namespace Kebab
                             UInt32 lowerRange = ConnectionAddress.IPV4ToUint32(IPAddress.Parse(filter.Value));
                             UInt32 upperRange = ConnectionAddress.IPV4ToUint32(IPAddress.Parse(filter.SecondaryValue));
 
-                            if (!(conn.Destination.AddressValue() >= lowerRange && conn.Destination.AddressValue() <= upperRange))
+                            if (!(conn.DstHost.AddressValue() >= lowerRange && conn.DstHost.AddressValue() <= upperRange))
                                 return false;
                         }
                         // Handle single value.
-                        else if (!conn.Destination.Address.ToString().Equals(filter.Value))
+                        else if (!conn.DstHost.Address.ToString().Equals(filter.Value))
                             return false;
                     }
                 }

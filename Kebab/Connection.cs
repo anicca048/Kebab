@@ -283,7 +283,7 @@ namespace Kebab
     public class Connection : INotifyPropertyChanged
     {
         // Signals that metadata has been looked up for the connection.
-        public bool MetaDataLookupDone { get; set; }
+        public bool MetaDataAdded { get; set; }
 
         // Connection number in connection list.
         private uint _number;
@@ -295,13 +295,11 @@ namespace Kebab
             }
             set
             {
-                if (value != _number)
-                {
-                    _number = value;
-                    NotifyPropertyChanged();
-                }
+                _number = value;
+                NotifyPropertyChanged();
             }
         }
+
         // IP protcol (tcp / udp).
         public ConnectionType Type { get; set; }
         // Direction of transmission of packets.
@@ -314,27 +312,27 @@ namespace Kebab
             }
             set
             {
-                if (value != _state)
-                {
-                    _state = value;
-                    NotifyPropertyChanged();
-                }
+                _state = value;
+                NotifyPropertyChanged();
             }
         }
+
         // Local IP address (sender).
-        public ConnectionAddress Source { get; set; }
+        public ConnectionAddress SrcHost { get; set; }
         // Remote IP address (destination).
-        public ConnectionAddress Destination { get; set; }
+        public ConnectionAddress DstHost { get; set; }
+        // Protocol local port (sender port).
+        public UInt16 SrcPort { get; set; }
+        // Protocol remote port (destination port).
+        public UInt16 DstPort { get; set; }
+
         // GeoIP data object for the Remote / Destination ip addr.
         public GeoData DstGeo { get; set; }
         // Autonomous system number for remote address.
         public long? DstASN { get; set; }
         // ASN registered organization name for remote address.
         public string DstASNOrg { get; set; }
-        // Protocol local port (sender port).
-        public UInt16 SrcPort { get; set; }
-        // Protocol remote port (destination port).
-        public UInt16 DstPort { get; set; }
+        
         // Number of packets seen matching this connection (change forces list view update).
         private UInt64 _packetCount;
         public UInt64 PacketCount
@@ -345,28 +343,22 @@ namespace Kebab
             }
             set
             {
-                if (value != _packetCount)
-                {
-                    _packetCount = value;
-                    NotifyPropertyChanged();
-                }
+                _packetCount = value;
+                NotifyPropertyChanged();
             }
         }
         // Data size (in bytes) of protocol payload segments (change forces list view update).
-        private UInt64 _byteCount;
-        public UInt64 ByteCount
+        private UInt64 _dataSize;
+        public UInt64 DataSize
         {
             get
             {
-                return _byteCount;
+                return _dataSize;
             }
             set
             {
-                if (value != _byteCount)
-                {
-                    _byteCount = value;
-                    NotifyPropertyChanged();
-                }
+                _dataSize = value;
+                NotifyPropertyChanged();
             }
         }
 
@@ -377,14 +369,14 @@ namespace Kebab
         public Connection(IPV4_PACKET pkt)
         {
             Type = new ConnectionType(pkt.protocol);
-            State = new ConnectionState(TransmissionDirection.ONE_WAY);
-            Source = new ConnectionAddress(pkt.source_address);
-            Destination = new ConnectionAddress(pkt.destination_address);
+            _state = new ConnectionState(TransmissionDirection.ONE_WAY);
+            SrcHost = new ConnectionAddress(pkt.source_address);
+            DstHost = new ConnectionAddress(pkt.destination_address);
             SrcPort = pkt.source_port;
             DstPort = pkt.destination_port;
             DstGeo = new GeoData();
-            PacketCount = 1;
-            ByteCount = pkt.payload_size;
+            _packetCount = 1;
+            _dataSize = pkt.payload_size;
             TimeStamp = DateTime.Now;
             DstASN = null;
             DstASNOrg = "--";
@@ -405,11 +397,11 @@ namespace Kebab
                 return MatchType.NON_MATCH;
 
             // Check if IP's and ports (or inverse) match.
-            if ((Equals(this.Source.Address, pkt.source_address) && Equals(this.SrcPort, pkt.source_port))
-                && (Equals(this.Destination.Address, pkt.destination_address) && Equals(this.DstPort, pkt.destination_port)))
+            if ((Equals(this.SrcHost.Address, pkt.source_address) && Equals(this.SrcPort, pkt.source_port))
+                && (Equals(this.DstHost.Address, pkt.destination_address) && Equals(this.DstPort, pkt.destination_port)))
                 return MatchType.MATCH;
-            else if ((Equals(this.Source.Address, pkt.destination_address) && Equals(this.SrcPort, pkt.destination_port))
-                     && (Equals(this.Destination.Address, pkt.source_address) && Equals(this.DstPort, pkt.source_port)))
+            else if ((Equals(this.SrcHost.Address, pkt.destination_address) && Equals(this.SrcPort, pkt.destination_port))
+                     && (Equals(this.DstHost.Address, pkt.source_address) && Equals(this.DstPort, pkt.source_port)))
                 return MatchType.REV_MATCH;
 
             return MatchType.NON_MATCH;
@@ -429,8 +421,8 @@ namespace Kebab
                     return false;
 
                 // Check if IP's and ports (or inverse) match.
-                if ((Equals(this.Source, conn.Source) && Equals(this.SrcPort, conn.SrcPort))
-                    && (Equals(this.Destination, conn.Destination) && Equals(this.DstPort, conn.DstPort)))
+                if ((Equals(this.SrcHost, conn.SrcHost) && Equals(this.SrcPort, conn.SrcPort))
+                    && (Equals(this.DstHost, conn.DstHost) && Equals(this.DstPort, conn.DstPort)))
                     return true;
 
                 return false;
@@ -442,16 +434,16 @@ namespace Kebab
         public override int GetHashCode()
         {
             // Just xor address port combos to get a fairly collision resistent hash.
-            int result = (this.Source.Address.GetHashCode() + this.SrcPort.GetHashCode());
-            result ^= (this.Destination.Address.GetHashCode() + this.DstPort.GetHashCode());
+            int result = (this.SrcHost.Address.GetHashCode() + this.SrcPort.GetHashCode());
+            result ^= (this.DstHost.Address.GetHashCode() + this.DstPort.GetHashCode());
 
             return result;
         }
         // ToString override (cause I can).
         public override string ToString()
         {
-            return (this.Source.ToString() + ":" + this.SrcPort.ToString() + " " + this.State.ToString()
-                    + " " + this.Destination.ToString() + ":" + this.DstPort.ToString());
+            return (this.SrcHost.ToString() + ":" + this.SrcPort.ToString() + " " + this.State.ToString()
+                    + " " + this.DstHost.ToString() + ":" + this.DstPort.ToString());
         }
     }
 
@@ -459,10 +451,7 @@ namespace Kebab
     public class ConnectionList : BindingList<Connection>
     {
         // Check if Searching is Supported.
-        protected override bool SupportsSearchingCore
-        {
-            get { return true; }
-        }
+        protected override bool SupportsSearchingCore { get { return true; } }
 
         // Search Funtionality.
         protected override int FindCore(PropertyDescriptor prop, object key)
