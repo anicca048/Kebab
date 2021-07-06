@@ -333,58 +333,60 @@ namespace Kebab
 
             switch (m.Msg)
             {
-                case 0x0084/*NCHITTEST*/ :
+                // NCHITTEST.
+                case 0x0084:
+                {
+                    base.WndProc(ref m);
+
+                    // HTCLIENT.
+                    if ((int)m.Result == 0x01)
                     {
-                        base.WndProc(ref m);
+                        Point screenPoint = new Point(m.LParam.ToInt32());
+                        Point clientPoint = this.PointToClient(screenPoint);
 
-                        if ((int)m.Result == 0x01/*HTCLIENT*/)
+                        if (clientPoint.Y <= RESIZE_HANDLE_SIZE)
                         {
-                            Point screenPoint = new Point(m.LParam.ToInt32());
-                            Point clientPoint = this.PointToClient(screenPoint);
-
-                            if (clientPoint.Y <= RESIZE_HANDLE_SIZE)
-                            {
-                                if (clientPoint.X <= RESIZE_HANDLE_SIZE)
-                                    m.Result = (IntPtr)13/*HTTOPLEFT*/ ;
-                                else if (clientPoint.X < (Size.Width - RESIZE_HANDLE_SIZE))
-                                    m.Result = (IntPtr)12/*HTTOP*/ ;
-                                else
-                                    m.Result = (IntPtr)14/*HTTOPRIGHT*/ ;
-                            }
-                            else if (clientPoint.Y <= (Size.Height - RESIZE_HANDLE_SIZE))
-                            {
-                                if (clientPoint.X <= RESIZE_HANDLE_SIZE)
-                                    m.Result = (IntPtr)10/*HTLEFT*/ ;
-                                else if (clientPoint.X < (Size.Width - RESIZE_HANDLE_SIZE))
-                                    m.Result = (IntPtr)2/*HTCAPTION*/ ;
-                                else
-                                    m.Result = (IntPtr)11/*HTRIGHT*/ ;
-                            }
+                            if (clientPoint.X <= RESIZE_HANDLE_SIZE)
+                                m.Result = (IntPtr)13; // HTTOPLEFT.
+                            else if (clientPoint.X < (Size.Width - RESIZE_HANDLE_SIZE))
+                                m.Result = (IntPtr)12; // HTTOP.
                             else
-                            {
-                                if (clientPoint.X <= RESIZE_HANDLE_SIZE)
-                                    m.Result = (IntPtr)16/*HTBOTTOMLEFT*/ ;
-                                else if (clientPoint.X < (Size.Width - RESIZE_HANDLE_SIZE))
-                                    m.Result = (IntPtr)15/*HTBOTTOM*/ ;
-                                else
-                                    m.Result = (IntPtr)17/*HTBOTTOMRIGHT*/ ;
-                            }
+                                m.Result = (IntPtr)14; // HTTOPRIGHT.
                         }
-
-                        return;
+                        else if (clientPoint.Y <= (Size.Height - RESIZE_HANDLE_SIZE))
+                        {
+                            if (clientPoint.X <= RESIZE_HANDLE_SIZE)
+                                m.Result = (IntPtr)10; // HTLEFT.
+                            else if (clientPoint.X < (Size.Width - RESIZE_HANDLE_SIZE))
+                                m.Result = (IntPtr)2; // HTCAPTION.
+                            else
+                                m.Result = (IntPtr)11; // HTRIGHT.
+                        }
+                        else
+                        {
+                            if (clientPoint.X <= RESIZE_HANDLE_SIZE)
+                                m.Result = (IntPtr)16; // HTBOTTOMLEFT.
+                            else if (clientPoint.X < (Size.Width - RESIZE_HANDLE_SIZE))
+                                m.Result = (IntPtr)15; // HTBOTTOM.
+                            else
+                                m.Result = (IntPtr)17; // HTBOTTOMRIGHT.
+                        }
                     }
+
+                    return;
+                }
             }
 
             base.WndProc(ref m);
         }
 
-        // Ensure that custom window style parameters are added to base.
+        // Ensure that form is treated as the first control in a group of controls.
         protected override CreateParams CreateParams
         {
             get
             {
                 CreateParams cp = base.CreateParams;
-                cp.Style |= 0x20000; // <--- use 0x20000.
+                cp.Style |= 0x20000; // WS_GROUP.
 
                 return cp;
             }
@@ -642,7 +644,7 @@ namespace Kebab
                     }
                 }
                 // Deal with capture failures.
-                else if (returnCode == -2)
+                else if (returnCode == -3)
                 {
                     // Check for downed interface situation.
                     if (Regex.Match(captureEngine.getEngineError(), devRemovedErrStr).Length > 0)
@@ -1566,22 +1568,28 @@ namespace Kebab
             // Check if interface drop down is on a valid option.
             if (InterfaceDropDownList.SelectedIndex > 0)
             {
-                CaptureStartButton.Enabled = true;
+                StartCaptureButton.Enabled = true;
                 ClearConnsOnStartCheckBox.Enabled = true;
                 RemoveLocalConnectionsCheckBox.Enabled = true;
                 ForceRawCheckBox.Enabled = true;
 
                 if (!ForceRawCheckBox.Checked)
-                    CaptureFilterGroupBox.Enabled = true;
+                {
+                    CaptureFilter.Enabled = true;
+                    CaptureFilterLabel.Enabled = true;
+                    ClearCaptureFilterButton.Enabled = true;
+                }
             }
             // Shouldn't be possible after first selection but just to be safe here it is.
             else
             {
-                CaptureStartButton.Enabled = false;
+                StartCaptureButton.Enabled = false;
                 ClearConnsOnStartCheckBox.Enabled = false;
                 RemoveLocalConnectionsCheckBox.Enabled = false;
                 ForceRawCheckBox.Enabled = false;
-                CaptureFilterGroupBox.Enabled = false;
+                CaptureFilter.Enabled = false;
+                CaptureFilterLabel.Enabled = false;
+                ClearCaptureFilterButton.Enabled = false;
             }
         }
 
@@ -1590,120 +1598,14 @@ namespace Kebab
         {
             // Init string.
             captureFilter = String.Empty;
-            List<String> filterStrs = new List<string>();
 
             // Don't copy filter info if forcing raw interface.
             if (ForceRawCheckBox.Checked)
                 return 0;
 
-            // Ensure at least one protocol (tcp or udp) is selected in Filter Options.
-            if (!TCPCheckBox.Checked && !UDPCheckBox.Checked)
-            {
-                MessageBox.Show("Error: you must select at least one protocol!", Program.Name);
-                return -1;
-            }
-
-            // Add protocol to filter.
-            if (TCPCheckBox.Checked && !UDPCheckBox.Checked)
-                filterStrs.Add("tcp");
-            else if (!TCPCheckBox.Checked && UDPCheckBox.Checked)
-                filterStrs.Add("udp");
-
-            // Check for user entered any-direction-matching IP address.
-            if (AnyIPFilter.Text.Trim().Length > 0)
-            {
-                // Ensure ip is valid.
-                if (!IPAddress.TryParse(AnyIPFilter.Text.Trim(), out IPAddress _))
-                {
-                    MessageBox.Show("Error: invalid any IP address!", Program.Name);
-                    return -1;
-                }
-
-                // Add ip to filter string.
-                filterStrs.Add("host " + AnyIPFilter.Text.Trim());
-            }
-
-            // Check for user entered any-direction-matching port.
-            if (AnyPortFilter.Text.Trim().Length > 0)
-            {
-                // Ensure port number is valid.
-                if (!UInt16.TryParse(AnyPortFilter.Text.Trim(), out _))
-                {
-                    MessageBox.Show("Error: invalid any port number!", Program.Name);
-                    return -1;
-                }
-
-                // Add port to filter string.
-                filterStrs.Add("port " + AnyPortFilter.Text.Trim());
-            }
-
-            // Check for user entered source IP address.
-            if (SourceIPFilter.Text.Trim().Length > 0)
-            {
-                // Ensure ip is valid.
-                if (!IPAddress.TryParse(SourceIPFilter.Text.Trim(), out IPAddress _))
-                {
-                    MessageBox.Show("Error: invalid source IP address!", Program.Name);
-                    return -1;
-                }
-
-                // Add ip to filter string.
-                filterStrs.Add("src host " + SourceIPFilter.Text.Trim());
-            }
-
-            // Check for user entered source port.
-            if (SourcePortFilter.Text.Trim().Length > 0)
-            {
-                // Ensure port number is valid.
-                if (!UInt16.TryParse(SourcePortFilter.Text.Trim(), out _))
-                {
-                    MessageBox.Show("Error: invalid source port number!", Program.Name);
-                    return -1;
-                }
-
-                // Add port to filter string.
-                filterStrs.Add("src port " + SourcePortFilter.Text.Trim());
-            }
-
-            // Check for user entered destination IP address.
-            if (DestinationIPFilter.Text.Trim().Length > 0)
-            {
-                // Ensure ip is valid.
-                if (!IPAddress.TryParse(DestinationIPFilter.Text.Trim(), out IPAddress _))
-                {
-                    MessageBox.Show("Error: invalid destination ip address!", Program.Name);
-                    return -1;
-                }
-
-                // Add ip to filter string.
-                filterStrs.Add("dst host " + DestinationIPFilter.Text.Trim());
-            }
-
-            // Check for user entered destination port.
-            if (DestinationPortFilter.Text.Trim().Length > 0)
-            {
-                // Ensure port number is valid.
-                if (!UInt16.TryParse(DestinationPortFilter.Text.Trim(), out _))
-                {
-                    MessageBox.Show("Error: invalid destination port number!", Program.Name);
-                    return -1;
-                }
-
-                // Add port to filter string.
-                filterStrs.Add("dst port " + DestinationPortFilter.Text.Trim());
-            }
-
             // Check and see if user opted to use complexFilter (directly using libpcap filter string).
-            if (CaptureFilterStr.Text.Trim().Length > 0)
-                filterStrs.Add("( " + CaptureFilterStr.Text.Trim().ToLower() + " )");
-
-            // Add up all the filter strings into the final capture filter string.
-            foreach (string filter in filterStrs)
-                captureFilter += (filter + " and ");
-
-            // Remove trailing " and ".
-            if (captureFilter != String.Empty)
-                captureFilter = captureFilter.Remove(captureFilter.Length - 5);
+            if (CaptureFilter.Text.Trim().Length > 0)
+                captureFilter = CaptureFilter.Text.Trim().ToLower();
 
             return 0;
         }
@@ -1771,19 +1673,21 @@ namespace Kebab
                 // Toggle relevant controls.
                 // Disable Init Page elements.
                 RefreshInterfacesButton.Enabled = false;
-                CaptureStartButton.Enabled = false;
+                StartCaptureButton.Enabled = false;
                 InterfaceLabel.Enabled = false;
                 InterfaceDropDownList.Enabled = false;
                 ClearConnsOnStartCheckBox.Enabled = false;
                 RemoveLocalConnectionsCheckBox.Enabled = false;
                 ForceRawCheckBox.Enabled = false;
-                CaptureFilterGroupBox.Enabled = false;
+                CaptureFilter.Enabled = false;
+                CaptureFilterLabel.Enabled = false;
+                ClearCaptureFilterButton.Enabled = false;
 
                 // Enable Connection page elements.
-                DisplayFilterGroupBox.Enabled = true;
+                ConnectionGroupBox.Enabled = true;
 
                 // Allow user to stop background worker.
-                CaptureStopButton.Enabled = true;
+                StopCaptureButton.Enabled = true;
 
                 // Switch over to connections veiw after capture start.
                 TabControl.SelectTab(ConnectionPage);
@@ -1803,7 +1707,7 @@ namespace Kebab
         private void StopCapture()
         {
             // Don't allow user to stop background worker untill a new one has been started.
-            CaptureStopButton.Enabled = false;
+            StopCaptureButton.Enabled = false;
 
             // Stop Capture.
             if (captureWorker != default(BackgroundWorker) && captureWorker.IsBusy)
@@ -1817,11 +1721,11 @@ namespace Kebab
 
             // Toggle relavant controls.
             // Disable Connection page elements.
-            DisplayFilterGroupBox.Enabled = false;
+            ConnectionGroupBox.Enabled = false;
 
             // Enable Init Page elements.
             RefreshInterfacesButton.Enabled = true;
-            CaptureStartButton.Enabled = true;
+            StartCaptureButton.Enabled = true;
             InterfaceLabel.Enabled = true;
             InterfaceDropDownList.Enabled = true;
             ClearConnsOnStartCheckBox.Enabled = true;
@@ -1829,7 +1733,11 @@ namespace Kebab
             ForceRawCheckBox.Enabled = true;
 
             if (!ForceRawCheckBox.Checked)
-                CaptureFilterGroupBox.Enabled = true;
+            {
+                CaptureFilter.Enabled = true;
+                CaptureFilterLabel.Enabled = true;
+                ClearCaptureFilterButton.Enabled = true;
+            }
 
             // Stop timers.
             packetTimer.Stop();
@@ -1852,20 +1760,11 @@ namespace Kebab
         // Removes any user filter settings.
         private void ClearFiltersButton_Click(object sender, EventArgs e)
         {
-            // Reset protocol check boxes to default.
-            TCPCheckBox.Checked = true;
-            UDPCheckBox.Checked = true;
             // Reset remove local connections checkbox.
             RemoveLocalConnectionsCheckBox.Checked = true;
 
             // Remove any text in filter text boxes.
-            AnyIPFilter.Clear();
-            AnyPortFilter.Clear();
-            SourceIPFilter.Clear();
-            SourcePortFilter.Clear();
-            DestinationIPFilter.Clear();
-            DestinationPortFilter.Clear();
-            CaptureFilterStr.Clear();
+            CaptureFilter.Clear();
         }
 
         // Clear binded connection list if user presses button.
@@ -1921,9 +1820,17 @@ namespace Kebab
         private void ForceRawCheckBox_CheckedChanged(object sender, EventArgs e)
         {
             if (ForceRawCheckBox.Checked)
-                CaptureFilterGroupBox.Enabled = false;
+            {
+                CaptureFilter.Enabled = false;
+                CaptureFilterLabel.Enabled = false;
+                ClearCaptureFilterButton.Enabled = false;
+            }
             else
-                CaptureFilterGroupBox.Enabled = true;
+            {
+                CaptureFilter.Enabled = true;
+                CaptureFilterLabel.Enabled = true;
+                ClearCaptureFilterButton.Enabled = true;
+            }
         }
 
         // Decide if filter timer needs to be started or stoped.

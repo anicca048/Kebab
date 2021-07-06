@@ -67,40 +67,36 @@ Capture Tab - The controls on this tab are used to setup the packet capture.
 		change / insertion. The "Force Raw Interface Type" checkbox is used to
         help deal with misidentified interfaces (such as wintun devices). The
         "Remove Local Connections" box will ignore any connections that have a
-        local / private host on both ends of the connection (lan2lan).
-	
-	Capture Filter Group - This group allows the user to set the libpcap
-		filter, which will be compiled and used to filter out packets from the
-		capture session. There are several displayed filtering options, such as
-		Destination and Source IP. And a "Filter String" box, where a libpcap
-		filter string can be entered, for the more advanced users. Options from
-		this filter group are much more efficient than any display filter,
-		however, packets not matching the libpcap filter exactly will not show
-		up in the Connections tab, skewing the results. Use these pre-capture
-		filtering options carefully.
+        local / private host on both ends of the connection (lan2lan). The
+        capture filter text box can hold a libpcap capture filter string, which
+        will prevent non matching packets from even being parsed. This is the
+        best option for speed, but you will have to start a new capture if the
+        connections you are looking for don't match the range of the filter.
+        Sometimes it is best to go with a conservative, or empty, capture
+        filter, and instead rely on the display filter to find your target.
 
 Connections Tab - Pretty basic, simply groups captured packets into connections.
 	
-	Display Filter Group - This group is used to filter and clear connections in
-		the Connections Tab. The "Filter String" box uses a custom display
-        filter syntax, that is very simular to libpcap capture filter syntax.
-        It allows "tcp", "udp", "iso", and "asn" keywords, as well as "host" and
-        "port" keywords (with "src" and "dst" modifyers, and allows ranges using
-        '-' delimiter). The display filter string only uses "and" logic, so
-        connetions must match all keywords, modifyers, and values expressed.
-        An example would be:
+	Connection Options Group - This group is used to filter and clear
+        connections in the Connections Tab. The Display filter text box uses a
+        custom display filter syntax, that is very simular to libpcap capture
+        filter syntax. It allows "tcp", "udp", "iso", and "asn" keywords, as
+        well as "host" and "port" keywords (with "src" and "dst" modifyers, and
+        ranges using '-' delimiter). The display filter string only uses "and"
+        logic, so connetions must match all keywords, modifyers, and values
+        expressed. An example would be:
             <tcp src host 10.0.0.0-10.255.255.255 dst port 22-23>
-        and:
+        or:
             <tcp dst port 443 iso us asn amazon>
-        The timeout checkbox will remove connections that have had
-		no activity based on the user set timeout in seconds (default is 10).
+        The timeout checkbox will remove connections that have had no recent
+		activity, based on the user set timeout in seconds (default is 10).
 		The clear connections button, you guessed it, clears all the connections
 		from the list. Use these destructive options with care.
 	
-	Connections Data Grid View - This is used to display the simplified
-		components of the connection in a list like fashion. All connections
-		are made up of several core components, and a few extra components
-		which are subject to change. The core components are as follows:
+	Connections List - This is used to display the simplified components of the
+		connections in a list like fashion. All connections are made up of
+		several core components, and a few extra components which are subject to
+		change. The core components are as follows:
 			
 			Number (#), this is the number of the connection in order of first
 			observed packet.
@@ -128,8 +124,10 @@ Connections Tab - Pretty basic, simply groups captured packets into connections.
 			
 			Payload Data Transmitted (Bytes Sent), the total size of observed
 			packet protocol payload data, in bytes, sent between hosts.
+        
+        The extra components are:
 			
-			GeoIP info (ISO), this is the country and State / Region
+            GeoIP info (ISO), this is the country and State / Region
 			ISO code for the RemoteAddress field. If the geo data is not found
 			for a given IP than there will be two dashes "--" instead.
 			
@@ -142,7 +140,7 @@ Connection Sorting: Currently if you sort the connection list in any way
 can get bogged down by the constant resorting of the list. This may cause
 delayed responses to user input and manipulation of the window / controls.
 Optimizations are in place to help combat this issue. Further optimizations,
-and mitigations, are being considered to better deal with the issue.
+and mitigations, are being considered.
 
 GeoIP data: sometimes geoip data will be out of date, or missing entirely for a
 given IP address. Currently the dbases provided is a recent release of
