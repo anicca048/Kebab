@@ -44,7 +44,7 @@ Kebab uses the MaxMind GeoLite2 City and ASN databases and accompanying C# API.
 	which parses MaxMind GeoLite2 databases, and GeoIP2-dotnet which handles
 	both the use of the web API, and the static lookups through the
 	MaxMind-DB-Reader-dotnet library.
-Both parts of the API are published for free under the OpenSource Apache
+Both parts of the API are published for free under the open source Apache
 	License, Version 2.0, while the database is published for free under custom
 	licensing terms.
 You can read more about their products and projects on the MaxMind site here:
@@ -67,11 +67,12 @@ Capture Tab - The controls on this tab are used to setup the packet capture.
 		change / insertion. The "Force Raw Interface Type" checkbox is used to
         help deal with misidentified interfaces (such as wintun devices). The
         "Remove Local Connections" box will ignore any connections that have a
-        local / private host on both ends of the connection (lan2lan). The
-        capture filter text box can hold a libpcap capture filter string, which
-        will prevent non matching packets from even being parsed. This is the
-        best option for speed, but you will have to start a new capture if the
-        connections you are looking for don't match the range of the filter.
+        local / private host on both ends of the connection (lan2lan).
+        
+        The capture filter text box can hold a libpcap capture filter string,
+        which will prevent non matching packets from even being parsed. This is
+        the best option for speed, but you will have to start a new capture if
+        the connections you are looking for don't match the range of the filter.
         Sometimes it is best to go with a conservative, or empty, capture
         filter, and instead rely on the display filter to find your target.
 
@@ -79,11 +80,11 @@ Connections Tab - Pretty basic, simply groups captured packets into connections.
 	
 	Connection Options Group - This group is used to filter and clear
         connections in the Connections Tab. The Display filter text box uses a
-        custom display filter syntax, that is very simular to libpcap capture
+        custom display filter syntax, that is very similar to libpcap capture
         filter syntax. It allows "tcp", "udp", "iso", and "asn" keywords, as
-        well as "host" and "port" keywords (with "src" and "dst" modifyers, and
+        well as "host" and "port" keywords (with "src" and "dst" modifiers, and
         ranges using '-' delimiter). The display filter string only uses "and"
-        logic, so connetions must match all keywords, modifyers, and values
+        logic, so connections must match all keywords, modifiers, and values
         expressed. An example would be:
             <tcp src host 10.0.0.0-10.255.255.255 dst port 22-23>
         or:
@@ -127,12 +128,23 @@ Connections Tab - Pretty basic, simply groups captured packets into connections.
         
         The extra components are:
 			
+            Notes (Note), these are user defined strings attached to the remote
+            address of the connection, stored in the config file.
+            
             GeoIP info (ISO), this is the country and State / Region
 			ISO code for the RemoteAddress field. If the geo data is not found
 			for a given IP than there will be two dashes "--" instead.
 			
 			ASN Organization name, this is the organization that was registered
 			as owning the given IP block that the RemoteAddress is part of.
+
+Configuration File - Holds configuration variables.
+    
+    There is a .json file in the program directory that holds the setting vars.
+    Using the settings option from the title menu will open it in your default
+    text editor. All variables are strings, and all string values are validated
+    before being loaded. Any invalid or out of bounds values will be discarded.
+    The config file is regularly checked for changes during runtime.
 
 # Known Issues / Bugs / Errata
 Connection Sorting: Currently if you sort the connection list in any way
