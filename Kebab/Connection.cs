@@ -283,7 +283,34 @@ namespace Kebab
     public class Connection : INotifyPropertyChanged
     {
         // Signals that metadata has been looked up for the connection.
-        public bool MetaDataAdded { get; set; }
+        private bool _metaDataAdded;
+        public bool MetaDataAdded
+        {
+            get
+            {
+                return _metaDataAdded;
+            }
+            set
+            {
+                _metaDataAdded = value;
+                NotifyPropertyChanged();
+            }
+        }
+
+        // User set persistant string to identify and track connections across time.
+        private string _note;
+        public string Note
+        { 
+            get
+            {
+                return _note;
+            }
+            set
+            {
+                _note = value;
+                NotifyPropertyChanged();
+            }
+        }
 
         // Connection number in connection list.
         private uint _number;
@@ -332,7 +359,7 @@ namespace Kebab
         public long? DstASN { get; set; }
         // ASN registered organization name for remote address.
         public string DstASNOrg { get; set; }
-        
+
         // Number of packets seen matching this connection (change forces list view update).
         private UInt64 _packetCount;
         public UInt64 PacketCount
@@ -380,6 +407,7 @@ namespace Kebab
             TimeStamp = DateTime.Now;
             DstASN = null;
             DstASNOrg = "--";
+            Note = "";
         }
 
         // Implement INotifyPropertyChanged (for auto bind list updating).
@@ -544,8 +572,7 @@ namespace Kebab
             if (prop.DisplayName == "Number" && direction == ListSortDirection.Ascending && _alreadyInOrder)
             {
                 // Indicate that a sort has occured.
-                if (!_isSortedValue)
-                    _isSortedValue = true;
+                _isSortedValue = true;
 
                 // Stop suppressing notification events.
                 _suppressNotification = false;
@@ -579,8 +606,7 @@ namespace Kebab
                 _alreadyInOrder = false;
 
             // Indicate that a sort has occured.
-            if (!_isSortedValue)
-                _isSortedValue = true;
+            _isSortedValue = true;
 
             // Stop suppressing notification events.
             _suppressNotification = false;

@@ -120,6 +120,9 @@
   <metadata name="ToolBar.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
     <value>17, 17</value>
   </metadata>
+  <metadata name="Note.UserAddedColumn" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>True</value>
+  </metadata>
   <metadata name="Number.UserAddedColumn" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
     <value>True</value>
   </metadata>
@@ -160,30 +163,31 @@
   <data name="ExitButton.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
     <value>
         iVBORw0KGgoAAAANSUhEUgAAABoAAAAaCAYAAACpSkzOAAAABGdBTUEAALGPC/xhBQAAAAlwSFlzAAAu
-        IwAALiMBeKU/dgAAAFlJREFUSEvtz0EKACAIRFHvf+WgIkhwIZU4BpFv5SLmE6X0qVJqm+eW5a3qZMAd
-        YashWIRpg/AIk8NhETYC4ZHhSkgGwmLaMDy2GoTFTobcMcsA7GcpvYaoA4f1Xsl08Ja1AAAAAElFTkSu
-        QmCC
+        IwAALiMBeKU/dgAAAFpJREFUSEvt0MEKQCEIRFH//6crwYEWYoa6iDyrgsdcetTap8Yix6Obb1WegXAE
+        rKG0CGiD6RHYh8siwAEm1zrSqX+NHOt+nTacHrMG02KeoXDsZiAca+1VRBMIrF+hEc/28AAAAABJRU5E
+        rkJggg==
 </value>
   </data>
   <data name="MaximizeButton.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
     <value>
         iVBORw0KGgoAAAANSUhEUgAAABoAAAAaCAYAAACpSkzOAAAABGdBTUEAALGPC/xhBQAAAAlwSFlzAAAu
-        IwAALiMBeKU/dgAAADhJREFUSEtjGAWjYISC37///ScFQ7WRDkjRPGoRChi1CMokHYxaBGWSDuhqESkY
-        qm0UjIKRBRgYAMW2rcWnFZ2qAAAAAElFTkSuQmCC
+        IwAALiMBeKU/dgAAADJJREFUSEvtzaERADAMw0Dvv3RDTApFQqJHJj5FOupBvXHkbOhjqJMz1Mmthoje
+        pFuSAQcDr1H1L6fpAAAAAElFTkSuQmCC
 </value>
   </data>
   <data name="MinimizeButton.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
     <value>
         iVBORw0KGgoAAAANSUhEUgAAABoAAAAaCAYAAACpSkzOAAAABGdBTUEAALGPC/xhBQAAAAlwSFlzAAAu
-        IwAALiMBeKU/dgAAACFJREFUSEvty6EBAAAIA6D9/7QWHzCYhE4AvqulaQDcShrYWi/Ro5tOmAAAAABJ
+        IwAALiMBeKU/dgAAACFJREFUSEvty6EBAAAIA6D9/7QWH7BYhE4AOFJL0wCeSho67S/RjXJ/IAAAAABJ
         RU5ErkJggg==
 </value>
   </data>
   <data name="UnmaximizeButton.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
     <value>
         iVBORw0KGgoAAAANSUhEUgAAABoAAAAaCAYAAACpSkzOAAAABGdBTUEAALGPC/xhBQAAAAlwSFlzAAAu
-        IwAALiMBeKU/dgAAAEpJREFUSEvtzjEKACAMQ9He/8oFFaSFuvU7dciDoAghmsg87muTRI0j5a+h+stO
-        snPLBClp6KGheiIaysRTHx2KK1d/2UnURMYwO3DrEI8YY3T4AAAAAElFTkSuQmCC
+        IwAALiMBeKU/dgAAAGBJREFUSEvtzTEOwEAIxED+/+lERHjr+KorcIl2RG3bfT2yYT6Djx41MmE+bDKI
+        rTHJILbGJIPYGpMMYmtMMoitMckgtsYkg9gakwxia0wyqLc0p/8ZdPSAGpuGbds1Vb3ysxL8z/s/WQAA
+        AABJRU5ErkJggg==
 </value>
   </data>
   <metadata name="$this.TrayHeight" type="System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">

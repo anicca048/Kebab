@@ -27,7 +27,7 @@ namespace Kebab
     public partial class MainForm : Form
     {
         // Header to match connections for saving list.
-        static private readonly string connListHdr = "#    Type    LocalAddress:Port  RXTX    RemoteAddress:Port  PacketsSent  BytesSent       ISO    ASNOrg\n";
+        static private readonly string connListHdr = "#    Type    LocalAddress:Port  RXTX    RemoteAddress:Port  PacketsSent  BytesSent       ISO    ASNOrg                                                                                          Note\n";
 
         // Error string for recognizing removed interface situations.
         static private readonly string devRemovedErrStr = "ERROR_DEVICE_REMOVED/STATUS_DEVICE_REMOVED";
@@ -48,6 +48,22 @@ namespace Kebab
         // Grid view data source (connection list).
         private BindingSource connectionSource;
         private ConnectionList connectionList;
+
+        private enum ConnListIndex
+        {
+            NOTE,
+            NUMBER,
+            TYPE,
+            SRC_HOST,
+            SRC_PORT,
+            STATE,
+            DST_HOST,
+            DST_PORT,
+            PKT_CNT,
+            DATA_SIZE,
+            ISO,
+            ASN
+        }
 
         // Connection packet queue and lock for capture background worker.
         private readonly Queue<IPV4_PACKET> pendingPackets = new Queue<IPV4_PACKET>();
@@ -111,11 +127,31 @@ namespace Kebab
         // Entry function for the form.
         public MainForm()
         {
-            // Combat form flickering and resize drawing glitching.
+            // Ensure that the form is double buffered to combat flickering and tearing.
             this.DoubleBuffered = true;
+            this.SetStyle(ControlStyles.OptimizedDoubleBuffer, true);
 
             // Sets up form components / gui elements.
             InitializeComponent();
+        }
+
+        // User defined init (runs after MainForm constructor).
+        private void MainForm_Load(object sender, EventArgs e)
+        {
+            // Force double buffered property on certain controls.
+            typeof(Control).InvokeMember("DoubleBuffered",
+                                         BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.SetProperty,
+                                         null, ConnectionListView, new object[] { true });
+
+            // Set DGV fonts and fore colors (becuase VS UI editor keeps reseting them).
+            ConnectionListView.DefaultCellStyle.Font = DataFont;
+            ConnectionListView.DefaultCellStyle.ForeColor = Color.White;
+            ConnectionListView.ColumnHeadersDefaultCellStyle.Font = DataFont;
+            ConnectionListView.ColumnHeadersDefaultCellStyle.ForeColor = Color.White;
+
+            // Spawn mainform on top (but don't force always on top).
+            this.TopMost = true;
+            this.TopMost = false;
 
             // Add timer event handlers.
             packetTimer.Tick += new EventHandler(UpdateConnList);
@@ -135,23 +171,6 @@ namespace Kebab
             updateWorker.DoWork += UpdateWorker_DoWork;
             updateWorker.RunWorkerCompleted += UpdateWorker_RunWorkerCompleted;
             configWorker.DoWork += ConfigWorker_DoWork;
-        }
-
-        // User defined init (runs after MainForm constructor).
-        private void MainForm_Load(object sender, EventArgs e)
-        {
-            // Force double buffered property on connection dgv.
-            typeof(Control).InvokeMember("DoubleBuffered",
-                                         BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.SetProperty,
-                                         null, ConnectionGridView, new object[] { true });
-
-            // Set DGV fonts (becuase VS UI editor keeps reseting them).
-            ConnectionGridView.DefaultCellStyle.Font = DataFont;
-            ConnectionGridView.ColumnHeadersDefaultCellStyle.Font = DataFont;
-
-            // Spawn mainform on top (but don't force always on top).
-            this.TopMost = true;
-            this.TopMost = false;
 
             // Check if program is running as admin, and inform user of danger if so.
             if ((new WindowsPrincipal(WindowsIdentity.GetCurrent())).IsInRole(WindowsBuiltInRole.Administrator))
@@ -273,111 +292,105 @@ namespace Kebab
             this.Enabled = true;
         }
 
-        // WindowManager argument defs.
-        private static readonly int WM_NCLBUTTONDOWN = 0xA1;
-        private static readonly int HT_CAPTION = 0x2;
-
-        // WindowManager function defs.
+        // Sends a message to the specified window.
         [System.Runtime.InteropServices.DllImport("user32.dll")]
         private static extern int SendMessage(IntPtr hWnd, int Msg, int wParam, int lParam);
+        // Releases the mouse capture from the window.
         [System.Runtime.InteropServices.DllImport("user32.dll")]
         private static extern bool ReleaseCapture();
 
-        // Send drag form event on mouse down event.
-        private void MainForm_MouseDown(object sender, System.Windows.Forms.MouseEventArgs e)
-        {
-            if (e.Button == MouseButtons.Left && e.Clicks == 1)
-            {
-                ReleaseCapture();
-                SendMessage(Handle, WM_NCLBUTTONDOWN, HT_CAPTION, 0);
-            }
-        }
+        // Determine what part of the window was clicked on by the mouse.
+        private const int WM_NCHITTEST = 0x84;
+        // Left mouse button down.
+        private const int WM_NCLBUTTONDOWN = 0xA1;
 
-        private void TitleBarLebel_MouseDown(object sender, MouseEventArgs e)
-        {
-            if (e.Button == MouseButtons.Left && e.Clicks == 1)
-            {
-                ReleaseCapture();
-                SendMessage(Handle, WM_NCLBUTTONDOWN, HT_CAPTION, 0);
-            }
-        }
+        // The client area.
+        private const int HTCLIENT = 0x01;
+        // Title bar area (just under the upper border).
+        private const int HTCAPTION = 0x02;
+        // Left border area.
+        private const int HTLEFT = 0x0A;
+        // Right border area.
+        private const int HTRIGHT = 0x0B;
+        // Upper border area.
+        private const int HTTOP = 0x0C;
+        // Upper left corner border area.
+        private const int HTTOPLEFT = 0x0D;
+        // Upper right corner border area.
+        private const int HTTOPRIGHT = 0x0E;
+        // Lower border area.
+        private const int HTBOTTOM = 0x0F;
+        // Lower left corner border area.
+        private const int HTBOTTOMLEFT = 0x10;
+        // Lower right corner border area.
+        private const int HTBOTTOMRIGHT = 0x11;
 
-        // Maximize on double click.
-        private void MainForm_DoubleClick(object sender, EventArgs e)
-        {
-            if (this.WindowState == FormWindowState.Normal)
-                this.MaximizeButton_Click(sender, e);
-            else if (this.WindowState == FormWindowState.Maximized)
-                this.UnmaximizeButton_Click(sender, e);
-        }
-
-        private void TitleBarLebel_DoubleClick(object sender, EventArgs e)
-        {
-            if (this.WindowState == FormWindowState.Normal)
-                this.MaximizeButton_Click(sender, e);
-            else if (this.WindowState == FormWindowState.Maximized)
-                this.UnmaximizeButton_Click(sender, e);
-        }
-
-        // Create resize handles on edges of Form border.
+        // Create resize handles on edges of client area for a borderless form.
         protected override void WndProc(ref Message m)
         {
-            const int RESIZE_HANDLE_SIZE = 10;
+            // Size of region that will result in a resize handle being drawn.
+            const int RESIZE_REGION_SIZE = 3;
 
-            // Don't show draggable handles if maximized.
-            if (this.WindowState == FormWindowState.Maximized)
-            {
-                base.WndProc(ref m);
-                return;
-            }
+            // Run base functionality.
+            base.WndProc(ref m);
 
+            // Check window event type.
             switch (m.Msg)
             {
-                // NCHITTEST.
-                case 0x0084:
-                {
-                    base.WndProc(ref m);
-
-                    // HTCLIENT.
-                    if ((int)m.Result == 0x01)
+                case WM_NCHITTEST:
+                    if ((int)m.Result == HTCLIENT)
                     {
+                        // Get client relative coordinates.
                         Point screenPoint = new Point(m.LParam.ToInt32());
                         Point clientPoint = this.PointToClient(screenPoint);
 
-                        if (clientPoint.Y <= RESIZE_HANDLE_SIZE)
+                        // Handle being in the upper region.
+                        if (clientPoint.Y <= RESIZE_REGION_SIZE)
                         {
-                            if (clientPoint.X <= RESIZE_HANDLE_SIZE)
-                                m.Result = (IntPtr)13; // HTTOPLEFT.
-                            else if (clientPoint.X < (Size.Width - RESIZE_HANDLE_SIZE))
-                                m.Result = (IntPtr)12; // HTTOP.
+                            if (clientPoint.X <= RESIZE_REGION_SIZE)
+                                m.Result = (IntPtr)HTTOPLEFT;
+                            else if (clientPoint.X < (Size.Width - RESIZE_REGION_SIZE))
+                            {
+                                // If maximized we want to be dragable from the very top.
+                                if (this.WindowState != FormWindowState.Maximized)
+                                    m.Result = (IntPtr)HTTOP;
+                                else
+                                    m.Result = (IntPtr)HTCAPTION;
+                            }
                             else
-                                m.Result = (IntPtr)14; // HTTOPRIGHT.
+                                m.Result = (IntPtr)HTTOPRIGHT;
                         }
-                        else if (clientPoint.Y <= (Size.Height - RESIZE_HANDLE_SIZE))
+                        // Handle being in the middle region (most of the form).
+                        else if (clientPoint.Y <= (Size.Height - RESIZE_REGION_SIZE))
                         {
-                            if (clientPoint.X <= RESIZE_HANDLE_SIZE)
-                                m.Result = (IntPtr)10; // HTLEFT.
-                            else if (clientPoint.X < (Size.Width - RESIZE_HANDLE_SIZE))
-                                m.Result = (IntPtr)2; // HTCAPTION.
+                            if (clientPoint.X <= RESIZE_REGION_SIZE)
+                                m.Result = (IntPtr)HTLEFT;
+                            else if (clientPoint.X < (Size.Width - RESIZE_REGION_SIZE))
+                                m.Result = (IntPtr)HTCAPTION;
                             else
-                                m.Result = (IntPtr)11; // HTRIGHT.
+                                m.Result = (IntPtr)HTRIGHT;
                         }
+                        // Handle being in the lower region.
                         else
                         {
-                            if (clientPoint.X <= RESIZE_HANDLE_SIZE)
-                                m.Result = (IntPtr)16; // HTBOTTOMLEFT.
-                            else if (clientPoint.X < (Size.Width - RESIZE_HANDLE_SIZE))
-                                m.Result = (IntPtr)15; // HTBOTTOM.
+                            if (clientPoint.X <= RESIZE_REGION_SIZE)
+                                m.Result = (IntPtr)HTBOTTOMLEFT;
+                            else if (clientPoint.X < (Size.Width - RESIZE_REGION_SIZE))
+                                m.Result = (IntPtr)HTBOTTOM;
                             else
-                                m.Result = (IntPtr)17; // HTBOTTOMRIGHT.
+                                m.Result = (IntPtr)HTBOTTOMRIGHT;
                         }
+
+                        // Don't show draggable handles if maximized.
+                        if (this.WindowState == FormWindowState.Maximized
+                            && (int)m.Result != HTCAPTION)
+                            m.Result = (IntPtr)HTCLIENT;
                     }
-
-                    return;
-                }
+                    
+                    break;
+                default:
+                    break;
             }
-
-            base.WndProc(ref m);
         }
 
         // Ensure that form is treated as the first control in a group of controls.
@@ -386,7 +399,8 @@ namespace Kebab
             get
             {
                 CreateParams cp = base.CreateParams;
-                cp.Style |= 0x20000; // WS_GROUP.
+                // Turn on WS_GROUP.
+                cp.Style |= 0x20000;
 
                 return cp;
             }
@@ -465,6 +479,22 @@ namespace Kebab
                 TitleBarLebel.Text = (Program.Name + " - " + programConfig.CVars.flavor_text);
             else
                 TitleBarLebel.Text = Program.Name;
+
+            // Apply connection tags.
+            if (connectionList?.Count > 0)
+            {
+                foreach (Connection conn in connectionList)
+                {
+                    foreach (string[] tag in programConfig.CVars.tag_list)
+                    {
+                        if (tag[0] == conn.DstHost.Address.ToString())
+                        {
+                            conn.Note = tag[1];
+                            break;
+                        }
+                    }
+                }
+            }
         }
 
         // Check if there are pending config file changes that need to be applied.
@@ -805,24 +835,24 @@ namespace Kebab
         private void ApplyDisplayFilter()
         {
             // Loop through connectionList and hide any connections that don't match filter (and unhide ones that do).
-            foreach (DataGridViewRow row in ConnectionGridView.Rows)
+            foreach (DataGridViewRow row in ConnectionListView.Rows)
             {
                 if (!_displayFilter.IsMatch((Connection)row.DataBoundItem))
                 {
                     row.DefaultCellStyle.ForeColor = SystemColors.GrayText;
-                    row.DefaultCellStyle.Font = ConnectionGridView.DefaultCellStyle.Font;
+                    row.DefaultCellStyle.Font = ConnectionListView.DefaultCellStyle.Font;
                 }
                 else
                 {
-                    row.DefaultCellStyle.ForeColor = System.Drawing.ColorTranslator.FromHtml("#04cc84");
-                    row.DefaultCellStyle.Font = new Font(ConnectionGridView.DefaultCellStyle.Font.Name,
-                                                         ConnectionGridView.DefaultCellStyle.Font.Size,
+                    row.DefaultCellStyle.ForeColor = System.Drawing.ColorTranslator.FromHtml("#08D088");
+                    row.DefaultCellStyle.Font = new Font(ConnectionListView.DefaultCellStyle.Font.Name,
+                                                         ConnectionListView.DefaultCellStyle.Font.Size,
                                                          FontStyle.Bold);
                 }
             }
 
             // Show displayfilter changes.
-            ConnectionGridView.Update();
+            ConnectionListView.Invalidate();
         }
 
         // Clears text from display filter and removes filter from connections list.
@@ -836,14 +866,14 @@ namespace Kebab
         private void RemoveDisplayFilter()
         {
             // Remove displayfilter font changes.
-            foreach (DataGridViewRow row in ConnectionGridView.Rows)
+            foreach (DataGridViewRow row in ConnectionListView.Rows)
             {
-                row.DefaultCellStyle.ForeColor = ConnectionGridView.DefaultCellStyle.ForeColor;
-                row.DefaultCellStyle.Font = ConnectionGridView.DefaultCellStyle.Font;
+                row.DefaultCellStyle.ForeColor = ConnectionListView.DefaultCellStyle.ForeColor;
+                row.DefaultCellStyle.Font = ConnectionListView.DefaultCellStyle.Font;
             }
 
             // Show displayfilter changes.
-            ConnectionGridView.Update();
+            ConnectionListView.Invalidate();
         }
 
         private DisplayFilter _displayFilter;
@@ -877,13 +907,13 @@ namespace Kebab
         }
 
         // Force repaint for display filter adhearence when rows are added.
-        private void ConnectionGridView_RowsAdded(object sender, DataGridViewRowsAddedEventArgs e)
+        private void ConnectionListView_RowsAdded(object sender, DataGridViewRowsAddedEventArgs e)
         {
             if (_displayFilterActive)
                 ApplyDisplayFilter();
         }
         // Force repaint for display filter adhearence when the list is sorted by a property.
-        private void ConnectionGridView_Sorted(object sender, EventArgs e)
+        private void ConnectionListView_Sorted(object sender, EventArgs e)
         {
             if (_displayFilterActive)
                 ApplyDisplayFilter();
@@ -892,10 +922,10 @@ namespace Kebab
         // Flag to determine if selection is currently allowed.
         private bool _selectionDisabled = true;
         // Disable automatically selecting rows.
-        private void ConnectionGridView_SelectionChanged(object sender, EventArgs e)
+        private void ConnectionListView_SelectionChanged(object sender, EventArgs e)
         {
             if (_selectionDisabled)
-                ConnectionGridView.ClearSelection();
+                ConnectionListView.ClearSelection();
         }
 
         // Disables row selection and ensures current row is not selected if applicable.
@@ -907,7 +937,7 @@ namespace Kebab
                 _selectionDisabled = true;
 
                 // Deselect rows.
-                ConnectionGridView.ClearSelection();
+                ConnectionListView.ClearSelection();
 
                 // Disable context meny items (for copying conn info).
                 foreach (ToolStripItem item in ConnectionContextMenu.Items)
@@ -924,8 +954,8 @@ namespace Kebab
                 _selectionDisabled = false;
 
                 // Select current row if applicaable.
-                if (ConnectionGridView.CurrentRow != null)
-                    ConnectionGridView.CurrentRow.Selected = true;
+                if (ConnectionListView.CurrentRow != null)
+                    ConnectionListView.CurrentRow.Selected = true;
 
                 // Enable context meny items (for copying conn info).
                 foreach (ToolStripItem item in ConnectionContextMenu.Items)
@@ -934,19 +964,19 @@ namespace Kebab
         }
 
         // Enable row selection on click.
-        private void ConnectionGridView_CellClick(object sender, DataGridViewCellEventArgs e)
+        private void ConnectionListView_CellClick(object sender, DataGridViewCellEventArgs e)
         {
             EnableRowSelection();
         }
 
         // Clear row selection on header click.
-        private void ConnectionGridView_ColumnHeaderMouseClick(object sender, DataGridViewCellMouseEventArgs e)
+        private void ConnectionListView_ColumnHeaderMouseClick(object sender, DataGridViewCellMouseEventArgs e)
         {
             DisableRowSelection();
         }
 
         // Handle row selection events on certian key releases.
-        private void ConnectionGridView_KeyUp(object sender, KeyEventArgs e)
+        private void ConnectionListView_KeyUp(object sender, KeyEventArgs e)
         {
             // Disable selection on escape.
             if (e.KeyCode == Keys.Escape)
@@ -957,7 +987,7 @@ namespace Kebab
             else if (e.Modifiers == Keys.Control && e.KeyCode == Keys.A)
             {
                 EnableRowSelection();
-                ConnectionGridView.SelectAll();
+                ConnectionListView.SelectAll();
             }
         }
 
@@ -1121,9 +1151,7 @@ namespace Kebab
                         // Remove inactive entry and mark flag so that we will do another inactive connection check.
                         connectionList.Remove(conn);
                         removedConnection = true;
-
-                        if (!reorderConnections)
-                            reorderConnections = true;
+                        reorderConnections = true;
 
                         // Must break beause loop limit was changed.
                         break;
@@ -1140,7 +1168,7 @@ namespace Kebab
                         ReorderOnInsertionDeletion();
 
                         // Refresh DataGridView values to avoid errors with pending UI events on removed connections.
-                        ConnectionGridView.Update();
+                        ConnectionListView.Invalidate();
                     }
 
                     break;
@@ -1228,11 +1256,11 @@ namespace Kebab
 
             // Clear the binded list of entries.
             _selectionDisabled = true;
-            ConnectionGridView.ClearSelection();
+            ConnectionListView.ClearSelection();
             connectionList.Clear();
             
             // Make control redraw.
-            ConnectionGridView.Update();
+            ConnectionListView.Invalidate();
         }
 
         //
@@ -1243,7 +1271,7 @@ namespace Kebab
         private List<DataGridViewRow> GetSelectedRows()
         {
             List<DataGridViewRow> rows =
-            (from DataGridViewRow row in ConnectionGridView.SelectedRows
+            (from DataGridViewRow row in ConnectionListView.SelectedRows
              where !row.IsNewRow
              orderby row.Index
              select row).ToList<DataGridViewRow>();
@@ -1258,15 +1286,16 @@ namespace Kebab
 
             foreach (DataGridViewRow row in rows)
             {
-                connList += (row.Cells[0].Value.ToString().PadRight(4) + " "
-                             + row.Cells[1].Value.ToString().PadRight(4) + " "
-                             + row.Cells[2].Value.ToString().PadLeft(15) + ":" + row.Cells[3].Value.ToString().PadRight(5) + " "
-                             + row.Cells[4].Value.ToString().PadRight(5) + " "
-                             + row.Cells[5].Value.ToString().PadLeft(15) + ":" + row.Cells[6].Value.ToString().PadRight(5) + " "
-                             + row.Cells[7].Value.ToString().PadRight(12) + " "
-                             + row.Cells[8].Value.ToString().PadRight(15) + " "
-                             + row.Cells[9].Value.ToString().PadRight(6) + " "
-                             + row.Cells[10].Value.ToString()
+                connList += (row.Cells[(int)ConnListIndex.NUMBER].Value.ToString().PadRight(4) + " "
+                             + row.Cells[(int)ConnListIndex.TYPE].Value.ToString().PadRight(4) + " "
+                             + row.Cells[(int)ConnListIndex.SRC_HOST].Value.ToString().PadLeft(15) + ":" + row.Cells[(int)ConnListIndex.SRC_PORT].Value.ToString().PadRight(5) + " "
+                             + row.Cells[(int)ConnListIndex.STATE].Value.ToString().PadRight(5) + " "
+                             + row.Cells[(int)ConnListIndex.DST_HOST].Value.ToString().PadLeft(15) + ":" + row.Cells[(int)ConnListIndex.DST_PORT].Value.ToString().PadRight(5) + " "
+                             + row.Cells[(int)ConnListIndex.PKT_CNT].Value.ToString().PadRight(12) + " "
+                             + row.Cells[(int)ConnListIndex.DATA_SIZE].Value.ToString().PadRight(15) + " "
+                             + row.Cells[(int)ConnListIndex.ISO].Value.ToString().PadRight(6) + " "
+                             + row.Cells[(int)ConnListIndex.ASN].Value.ToString().PadRight(96) + " "
+                             + row.Cells[(int)ConnListIndex.NOTE].Value.ToString()
                              + "\n");
             }
 
@@ -1278,7 +1307,7 @@ namespace Kebab
         {
             // Make sure there is something to copy.
             if (connectionList == null || connectionList.Count == 0
-                || ConnectionGridView == null || ConnectionGridView.SelectedRows.Count == 0)
+                || ConnectionListView == null || ConnectionListView.SelectedRows.Count == 0)
                 return;
 
             string connList = GetConnsFromRows(GetSelectedRows());
@@ -1292,13 +1321,13 @@ namespace Kebab
         {
             // Make sure there is something to copy.
             if (connectionList == null || connectionList.Count == 0
-                || ConnectionGridView == null || ConnectionGridView.SelectedRows.Count == 0)
+                || ConnectionListView == null || ConnectionListView.SelectedRows.Count == 0)
                 return;
 
             string localAddrList = String.Empty;
 
             foreach (DataGridViewRow row in GetSelectedRows())
-                localAddrList += (row.Cells[2].Value.ToString() + "\n");
+                localAddrList += (row.Cells[(int)ConnListIndex.SRC_HOST].Value.ToString() + "\n");
 
             if (localAddrList != String.Empty)
                 Clipboard.SetText(localAddrList);
@@ -1309,13 +1338,13 @@ namespace Kebab
         {
             // Make sure there is something to copy.
             if (connectionList == null || connectionList.Count == 0
-                || ConnectionGridView == null || ConnectionGridView.SelectedRows.Count == 0)
+                || ConnectionListView == null || ConnectionListView.SelectedRows.Count == 0)
                 return;
 
             string localPortList = String.Empty;
 
             foreach (DataGridViewRow row in GetSelectedRows())
-                localPortList += (row.Cells[3].Value.ToString() + "\n");
+                localPortList += (row.Cells[(int)ConnListIndex.SRC_PORT].Value.ToString() + "\n");
 
             if (localPortList != String.Empty)
                 Clipboard.SetText(localPortList);
@@ -1326,13 +1355,14 @@ namespace Kebab
         {
             // Make sure there is something to copy.
             if (connectionList == null || connectionList.Count == 0
-                || ConnectionGridView == null || ConnectionGridView.SelectedRows.Count == 0)
+                || ConnectionListView == null || ConnectionListView.SelectedRows.Count == 0)
                 return;
 
             string localAddrPortList = String.Empty;
 
             foreach (DataGridViewRow row in GetSelectedRows())
-                localAddrPortList += (row.Cells[2].Value.ToString() + ":" + row.Cells[3].Value.ToString() + "\n");
+                localAddrPortList += (row.Cells[(int)ConnListIndex.SRC_HOST].Value.ToString()
+                                      + ":" + row.Cells[(int)ConnListIndex.SRC_PORT].Value.ToString() + "\n");
 
             if (localAddrPortList != String.Empty)
                 Clipboard.SetText(localAddrPortList);
@@ -1343,13 +1373,13 @@ namespace Kebab
         {
             // Make sure there is something to copy.
             if (connectionList == null || connectionList.Count == 0
-                || ConnectionGridView == null || ConnectionGridView.SelectedRows.Count == 0)
+                || ConnectionListView == null || ConnectionListView.SelectedRows.Count == 0)
                 return;
 
             string remoteAddrList = String.Empty;
 
             foreach (DataGridViewRow row in GetSelectedRows())
-                remoteAddrList += (row.Cells[5].Value.ToString() + "\n");
+                remoteAddrList += (row.Cells[(int)ConnListIndex.DST_HOST].Value.ToString() + "\n");
 
             if (remoteAddrList != String.Empty)
                 Clipboard.SetText(remoteAddrList);
@@ -1360,13 +1390,13 @@ namespace Kebab
         {
             // Make sure there is something to copy.
             if (connectionList == null || connectionList.Count == 0
-                || ConnectionGridView == null || ConnectionGridView.SelectedRows.Count == 0)
+                || ConnectionListView == null || ConnectionListView.SelectedRows.Count == 0)
                     return;
 
             string remotePortList = String.Empty;
 
             foreach (DataGridViewRow row in GetSelectedRows())
-                remotePortList += (row.Cells[6].Value.ToString() + "\n");
+                remotePortList += (row.Cells[(int)ConnListIndex.DST_PORT].Value.ToString() + "\n");
 
             if (remotePortList != String.Empty)
                 Clipboard.SetText(remotePortList);
@@ -1377,13 +1407,14 @@ namespace Kebab
         {
             // Make sure there is something to copy.
             if (connectionList == null || connectionList.Count == 0
-                || ConnectionGridView == null || ConnectionGridView.SelectedRows.Count == 0)
+                || ConnectionListView == null || ConnectionListView.SelectedRows.Count == 0)
                 return;
 
             string remoteAddrPortList = String.Empty;
 
             foreach (DataGridViewRow row in GetSelectedRows())
-                remoteAddrPortList += (row.Cells[5].Value.ToString() + ":" + row.Cells[6].Value.ToString() + "\n");
+                remoteAddrPortList += (row.Cells[(int)ConnListIndex.DST_HOST].Value.ToString()
+                                       + ":" + row.Cells[(int)ConnListIndex.DST_PORT].Value.ToString() + "\n");
 
             if (remoteAddrPortList != String.Empty)
                 Clipboard.SetText(remoteAddrPortList);
@@ -1394,13 +1425,13 @@ namespace Kebab
         {
             // Make sure there is something to copy.
             if (connectionList == null || connectionList.Count == 0
-                || ConnectionGridView == null || ConnectionGridView.SelectedRows.Count == 0)
+                || ConnectionListView == null || ConnectionListView.SelectedRows.Count == 0)
                 return;
 
             string ISOList = String.Empty;
 
             foreach (DataGridViewRow row in GetSelectedRows())
-                ISOList += (row.Cells[9].Value.ToString() + "\n");
+                ISOList += (row.Cells[(int)ConnListIndex.ISO].Value.ToString() + "\n");
 
             if (ISOList != String.Empty)
                 Clipboard.SetText(ISOList);
@@ -1411,13 +1442,13 @@ namespace Kebab
         {
             // Make sure there is something to copy.
             if (connectionList == null || connectionList.Count == 0
-                || ConnectionGridView == null || ConnectionGridView.SelectedRows.Count == 0)
+                || ConnectionListView == null || ConnectionListView.SelectedRows.Count == 0)
                 return;
 
             string ASNOrgList = String.Empty;
 
             foreach (DataGridViewRow row in GetSelectedRows())
-                ASNOrgList += (row.Cells[10].Value.ToString() + "\n");
+                ASNOrgList += (row.Cells[(int)ConnListIndex.ASN].Value.ToString() + "\n");
 
             if (ASNOrgList != String.Empty)
                 Clipboard.SetText(ASNOrgList);
@@ -1428,14 +1459,17 @@ namespace Kebab
         {
             // Make sure there is something to copy.
             if (connectionList == null || connectionList.Count == 0
-                || ConnectionGridView == null || ConnectionGridView.SelectedRows.Count == 0)
+                || ConnectionListView == null || ConnectionListView.SelectedRows.Count == 0)
                 return;
 
             string remoteHostInfoList = String.Empty;
 
             foreach (DataGridViewRow row in GetSelectedRows())
-                remoteHostInfoList += ((row.Cells[5].Value.ToString() + ":" + row.Cells[6].Value.ToString()).PadRight(21)
-                                       + " " + row.Cells[9].Value.ToString().PadRight(6) + " " + row.Cells[10].Value.ToString()
+                remoteHostInfoList += ((row.Cells[(int)ConnListIndex.DST_HOST].Value.ToString()
+                                       + ":" + row.Cells[(int)ConnListIndex.DST_PORT].Value.ToString()).PadRight(21)
+                                       + " " + row.Cells[(int)ConnListIndex.ISO].Value.ToString().PadRight(6)
+                                       + " " + row.Cells[(int)ConnListIndex.ASN].Value.ToString().PadRight(96)
+                                       + " " + row.Cells[(int)ConnListIndex.NOTE].Value.ToString()
                                        + "\n");
 
             if (remoteHostInfoList != String.Empty)
@@ -1517,22 +1551,21 @@ namespace Kebab
             saveFileWriter.Write(connListHdr);
 
             // Write all connections to file.
-            saveFileWriter.Write(GetConnsFromRows(ConnectionGridView.Rows.Cast<DataGridViewRow>().ToList()));
+            saveFileWriter.Write(GetConnsFromRows(ConnectionListView.Rows.Cast<DataGridViewRow>().ToList()));
 
             // Write all data to file before close.
             saveFileWriter.Flush(); 
             // Close file.
             saveFileStream.Close();
 
-            if (!SaveMenuItem.Enabled)
-                SaveMenuItem.Enabled = true;
+            SaveMenuItem.Enabled = true;
         }
 
         // Save all connections in list to selected file.
         private void SaveToolStripMenuItem_Click(object sender, EventArgs e)
         {
             // Make sure there is something to save.
-            if (ConnectionGridView == default(DataGridView) || ConnectionGridView.Rows.Count == 0)
+            if (ConnectionListView == default(DataGridView) || ConnectionListView.Rows.Count == 0)
             {
                 // Inform user of failure to save and exit.
                 MessageBox.Show("Error: connection list is empty, there is nothing to save!", Program.Name);
@@ -1547,7 +1580,7 @@ namespace Kebab
         private void SaveAsToolStripMenuItem_Click(object sender, EventArgs e)
         {
             // Make sure there is something to save.
-            if (ConnectionGridView == default(DataGridView) || ConnectionGridView.Rows.Count == 0)
+            if (ConnectionListView == default(DataGridView) || ConnectionListView.Rows.Count == 0)
             {
                 // Inform user of failure to save and exit.
                 MessageBox.Show("Error: connection list is empty, there is nothing to save!", Program.Name);
@@ -1645,13 +1678,13 @@ namespace Kebab
                     connectionSource = new BindingSource { DataSource = connectionList };
 
                     // Setup DataGridView and bind BindSource.
-                    ConnectionGridView.AutoGenerateColumns = false;
-                    ConnectionGridView.ColumnHeadersVisible = true;
-                    ConnectionGridView.DataSource = connectionSource;
+                    ConnectionListView.AutoGenerateColumns = false;
+                    ConnectionListView.ColumnHeadersVisible = true;
+                    ConnectionListView.DataSource = connectionSource;
                 }
 
                 // Don't select a sell by defualt on start.
-                ConnectionGridView.ClearSelection();
+                ConnectionListView.ClearSelection();
 
                 // Clear connections list if settings is set.
                 if (ClearConnsOnStartCheckBox.Checked)
@@ -1684,7 +1717,7 @@ namespace Kebab
                 ClearCaptureFilterButton.Enabled = false;
 
                 // Enable Connection page elements.
-                ConnectionGroupBox.Enabled = true;
+                ConnectionGroup.Enabled = true;
 
                 // Allow user to stop background worker.
                 StopCaptureButton.Enabled = true;
@@ -1721,7 +1754,7 @@ namespace Kebab
 
             // Toggle relavant controls.
             // Disable Connection page elements.
-            ConnectionGroupBox.Enabled = false;
+            ConnectionGroup.Enabled = false;
 
             // Enable Init Page elements.
             RefreshInterfacesButton.Enabled = true;
@@ -1760,9 +1793,6 @@ namespace Kebab
         // Removes any user filter settings.
         private void ClearFiltersButton_Click(object sender, EventArgs e)
         {
-            // Reset remove local connections checkbox.
-            RemoveLocalConnectionsCheckBox.Checked = true;
-
             // Remove any text in filter text boxes.
             CaptureFilter.Clear();
         }
@@ -1789,13 +1819,13 @@ namespace Kebab
         }
 
         // Open settings file.
-        private void PreferencesToolStripMenuItem_Click(object sender, EventArgs e)
+        private void SettingsMenuItem_Click(object sender, EventArgs e)
         {
             System.Diagnostics.Process.Start(Program.ConfigFileName);
         }
 
         // Show about page (well really a msgbox becuase I don't want to waste a form on an about page).
-        private void AboutToolStripMenuItem_Click(object sender, EventArgs e)
+        private void AboutMenuItem_Click(object sender, EventArgs e)
         {
             // Try to open the readme file for documentation information.
             try
@@ -1847,7 +1877,7 @@ namespace Kebab
             // Make sure we have a valid timeout value.
             if (TimeLimit.Text.Trim().Length > 0)
             {
-                if (Regex.Match(TimeLimit.Text.Trim(), Filter.nonNumericRegex).Length > 0)
+                if (Filter.nonNumericRegex.Match(TimeLimit.Text.Trim()).Length > 0)
                 {
                     MessageBox.Show("Error: invalid timeout limit!", Program.Name);
                     TimeLimit.Text = timeoutInactivityLimit.ToString();
@@ -1861,19 +1891,19 @@ namespace Kebab
         }
 
         // Show dropdown menu on mouse hover.
-        private void CopyComponentToolStripMenuItem_MouseHover(object sender, EventArgs e)
+        private void CopyComponentMenuItem_MouseHover(object sender, EventArgs e)
         {
             CopyComponentMenu.ShowDropDown();
         }
 
         // Show libpcap and npcap version info.
-        private void LibpcapVersionInfoToolStripMenuItem_Click(object sender, EventArgs e)
+        private void LibpcapVersionInfoMenuItem_Click(object sender, EventArgs e)
         {
             MessageBox.Show(captureEngine.getLibVersion(), Program.Name);
         }
 
         // Check if there is a newer release by comparing embeded release tag to latest release tag.
-        private void CheckForUpdatesToolStripMenuItem_Click(object sender, EventArgs e)
+        private void CheckForUpdatesMenuItem_Click(object sender, EventArgs e)
         {
             // Start update check background thread.
             UpdateWorker_Start();
@@ -1883,27 +1913,112 @@ namespace Kebab
         // Titlebar related methods.
         // 
 
+        private FormWindowState _lastSeenState = FormWindowState.Normal;
+
+        // Anytime the window size is changed, we need to make sure the right maximize button is visible.
+        private void MainForm_SizeChanged(object sender, EventArgs e)
+        {
+            // Check if a change is needed, and then apply it.
+            if (WindowState != _lastSeenState && WindowState != FormWindowState.Minimized)
+            {
+                // Hide maximize button and show unmaximize button.
+                if (this.WindowState == FormWindowState.Maximized)
+                {
+                    UnmaximizeButton.Enabled = true;
+                    UnmaximizeButton.Visible = true;
+                    MaximizeButton.Visible = false;
+                    MaximizeButton.Enabled = false;
+                }
+                // Hide unmaximize button and show maximize button.
+                else
+                {
+                    MaximizeButton.Enabled = true;
+                    MaximizeButton.Visible = true;
+                    UnmaximizeButton.Visible = false;
+                    UnmaximizeButton.Enabled = false;
+                }
+
+                // Flag current state.
+                _lastSeenState = WindowState;
+            }
+        }
+
+        // Maximize the form / window.
+        private void MaximizeForm()
+        {
+            // Set window state to mzximized (triggers maximize event).
+            this.WindowState = FormWindowState.Maximized;
+        }
+
+        // Minimize form / window.
+        private void MinimizeForm()
+        {
+            this.WindowState = FormWindowState.Minimized;
+        }
+
+        // Unmaximize the form / window.
+        private void UnmaximizeForm()
+        {
+            // Set window state to normal (triggers unmaximize event).
+            this.WindowState = FormWindowState.Normal;
+        }
+
+        // Exit program on button click.
         private void ExitButton_Click(object sender, EventArgs e)
         {
             this.Close();
         }
 
+        // Maximize window on button click.
         private void MaximizeButton_Click(object sender, EventArgs e)
         {
-            this.WindowState = FormWindowState.Maximized;
-            UnmaximizeButton.Visible = true;
-            MaximizeButton.Visible = false;
+            MaximizeForm();
         }
 
+        // Unmaximize window on button click.
         private void UnmaximizeButton_Click(object sender, EventArgs e)
         {
-            this.WindowState = FormWindowState.Normal;
-            MaximizeButton.Visible = true;
-            UnmaximizeButton.Visible = false;
+            UnmaximizeForm();
         }
+
+        // Minimize window on button click.
         private void MinimizeButton_Click(object sender, EventArgs e)
         {
-            this.WindowState = FormWindowState.Minimized;
+            MinimizeForm();
+        }
+
+        // Send drag form event on label mouse down.
+        private void TitleBarLebel_MouseDown(object sender, MouseEventArgs e)
+        {
+            if (e.Button == MouseButtons.Left && e.Clicks == 1)
+            {
+                ReleaseCapture();
+                SendMessage(Handle, WM_NCLBUTTONDOWN, HTCAPTION, 0);
+            }
+        }
+
+        // Maximize form on label double click.
+        private void TitleBarLebel_MouseDoubleClick(object sender, MouseEventArgs e)
+        {
+            if (e.Button == MouseButtons.Left)
+            {
+                if (WindowState == FormWindowState.Normal)
+                    MaximizeForm();
+                else if (WindowState == FormWindowState.Maximized)
+                    UnmaximizeForm();
+            }
+        }
+
+        // Combat flickering when changing tab due to tab background color differences.
+        private void TabControl_Deselecting(object sender, TabControlCancelEventArgs e)
+        {
+            if (e.TabPage == ConnectionPage)
+            {
+                ConnectionListView.Visible = false;
+                ConnectionPage.Invalidate();
+            }
+            else
+                ConnectionListView.Visible = true;
         }
     }
 }

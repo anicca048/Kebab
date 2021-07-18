@@ -1,6 +1,8 @@
 ﻿
 using System;
 using System.IO;
+using System.Net;
+using System.Collections.Generic;
 
 using Newtonsoft.Json;
 
@@ -9,8 +11,9 @@ namespace Kebab
     // Class for config variables to be written to conf file (all value types should be easy to validate).
     public class ConfigVariables
     {
-        public string flavor_text = (@"v" + Program.Version);
         public string update_check = @"false";
+        public string flavor_text = (@"v" + Program.Version);
+        public List<string[]> tag_list = new List<string[]>();
     }
 
     // Definitions of excepted values for config variables (all value types should be easy to validate).
@@ -22,7 +25,8 @@ namespace Kebab
     // Limits on excepted values.
     public class ConfigBounds
     {
-        public readonly uint[] flavor_text = { 0, 192 };
+        public readonly uint[] flavor_text = { 0, 160 };
+        public readonly uint[] tag_list = { 1, 80 };
     }
 
     public class Config
@@ -117,41 +121,61 @@ namespace Kebab
         // Update varisables with new values if valid.
         private void UpdateConfig(ConfigVariables loadedConfig)
         {
-            // Apply banner message.
+            // Save banner message.
             if (!loadedConfig.flavor_text.Equals(_cvars.flavor_text))
             {
+                // Check for variable validity.
                 if (CVarBoundsCheck((uint)loadedConfig.flavor_text.Length, CVarBounds.flavor_text))
                 {
                     _cvars.flavor_text = loadedConfig.flavor_text;
 
                     // Trip pending changes flag.
-                    if (!_changesPending)
-                        _changesPending = true;
+                    _changesPending = true;
                 }
                 else
-                {
-                    if (!InvalidCVarFound)
-                        InvalidCVarFound = true;
-                }
+                    // Trip invalid var flag.
+                    InvalidCVarFound = true;
             }
 
-            // Apply theme if valid.
+            // Enable auto update.
             if (!loadedConfig.update_check.Equals(_cvars.update_check))
             {
+                // Check for variable validity.
                 if (CVarValidation(loadedConfig.update_check, CVarDefs.update_check))
                 {
                     // Write validated change to config var.
                     _cvars.update_check = loadedConfig.update_check;
 
                     // Trip pending changes flag.
-                    if (!_changesPending)
-                        _changesPending = true;
+                    _changesPending = true;
                 }
                 else
+                    // Trip invalid var flag.
+                    InvalidCVarFound = true;
+            }
+
+            // Load connection tag list.
+            for (int i = 0; i < loadedConfig.tag_list.Count; i++)
+            {
+                // Check for variable validity.
+                if (IPAddress.TryParse(loadedConfig.tag_list[i][0], out _)
+                    && CVarBoundsCheck(loadedConfig.tag_list[i][1], CVarBounds.tag_list))
                 {
-                    if (!InvalidCVarFound)
-                        InvalidCVarFound = true;
+                    if (i < _cvars.tag_list.Count)
+                    {
+                        // Overwrite existing entry.
+                        _cvars.tag_list[i][0] = loadedConfig.tag_list[i][0];
+                        _cvars.tag_list[i][1] = loadedConfig.tag_list[i][1];
+
+                        // Trip pending changes flag.
+                        _changesPending = true;
+                    }
+                    else
+                        _cvars.tag_list.Add(loadedConfig.tag_list[i]);
                 }
+                else
+                    // Trip invalid var flag.
+                    InvalidCVarFound = true;
             }
         }
 
@@ -195,6 +219,15 @@ namespace Kebab
         where T : IComparable<T>
         {
             if (limits[0].CompareTo(cvar) <= 0 && limits[1].CompareTo(cvar) >= 0)
+                return true;
+
+            return false;
+        }
+
+        // String bounds check overload.
+        private bool CVarBoundsCheck(string cvar, uint[] limits)
+        {
+            if (cvar.Length >= limits[0] && cvar.Length <= limits[1])
                 return true;
 
             return false;

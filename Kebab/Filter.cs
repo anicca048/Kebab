@@ -17,6 +17,7 @@ namespace Kebab
         PORT,
         ISO,
         ASN,
+        NOTE,
         NULL
     }
 
@@ -30,16 +31,14 @@ namespace Kebab
     // Basic filter class for holding one of many "anded" conditions.
     public class Filter
     {
-        // Used to evaluate alpha only string.
-        static public readonly string nonAlphaRegex = @"[^a-zA-Z]";
-        // Used to evaluate alpha and hyphen string such as ISO.
-        static public readonly string nonAlphaAndDashRegex = @"[^a-zA-Z-]";
+        // Used to match or remove whitespace in strings.
+        static public readonly Regex whiteSpaceRegex = new Regex(@"\s+", RegexOptions.Compiled);
         // Used to evaluate numeric only strings such as ports.
-        static public readonly string nonNumericRegex = @"[^0-9]";
-        // Used to evaluate numeric and period only string such as ip addrs.
-        static public readonly string nonNumericAndDotRegex = @"[^0-9\.]";
+        static public readonly Regex nonNumericRegex = new Regex(@"[^0-9]", RegexOptions.Compiled);
+        // Used to evaluate alpha and hyphen string such as ISO.
+        static public readonly Regex nonAlphaAndDashRegex = new Regex(@"[^a-zA-Z-]", RegexOptions.Compiled);
         // Used to evaluate alphanumeric strings that may have seperators such as ASN.
-        static public readonly string nonAlphaNumericAndSeparatorsRegex = @"[^0-9a-zA-Z-_]";
+        static public readonly Regex nonAlphaNumericAndSeparatorsRegex = new Regex(@"[^0-9a-zA-Z-_\.]", RegexOptions.Compiled);
 
         // The main argument (filter operation).
         private readonly Argument _argument;
@@ -86,21 +85,13 @@ namespace Kebab
                     secondaryValue = value.Split('-')[1];
                     value = value.Split('-')[0];
 
-                    // Check IP against regex before TryParse.
-                    if (Regex.Match(secondaryValue, Filter.nonNumericAndDotRegex).Length > 0)
-                        return false;
-
                     // Make sure secondary IP is valid.
-                    if (!IPAddress.TryParse(secondaryValue, out IPAddress _))
+                    if (!IPAddress.TryParse(secondaryValue, out _))
                         return false;
                 }
 
-                // Check IP against regex before TryParse.
-                if (Regex.Match(value, Filter.nonNumericAndDotRegex).Length > 0)
-                    return false;
-
                 // Make sure primary IP is valid.
-                if (!IPAddress.TryParse(value, out IPAddress _))
+                if (!IPAddress.TryParse(value, out _))
                     return false;
 
                 // Make sure range is sane.
@@ -118,18 +109,10 @@ namespace Kebab
                     secondaryValue = value.Split('-')[1];
                     value = value.Split('-')[0];
 
-                    // Check Port against regex before TryParse.
-                    if (Regex.Match(secondaryValue, Filter.nonNumericRegex).Length > 0)
-                        return false;
-
                     // Make sure we have a valid secondary port value.
                     if (!UInt16.TryParse(secondaryValue, out _))
                         return false;
                 }
-
-                // Check Port against regex before TryParse.
-                if (Regex.Match(value, Filter.nonNumericRegex).Length > 0)
-                    return false;
 
                 // Make sure we have a valid primary port value.
                 if (!UInt16.TryParse(value, out _))
@@ -146,13 +129,13 @@ namespace Kebab
                     return false;
 
                 // Check string against regex before.
-                if (Regex.Match(value, Filter.nonAlphaAndDashRegex).Length > 0)
+                if (nonAlphaAndDashRegex.Match(value).Length > 0)
                     return false;
             }
             else if (argument == Argument.ASN)
             {
                 // Check string against regex before.
-                if (Regex.Match(value, Filter.nonAlphaNumericAndSeparatorsRegex).Length > 0)
+                if (nonAlphaNumericAndSeparatorsRegex.Match(value).Length > 0)
                     return false;
             }
 
@@ -173,7 +156,8 @@ namespace Kebab
             "host",
             "port",
             "iso",
-            "asn"
+            "asn",
+            "note"
         };
 
         // Values that match the modifyers to the user supplied string.
@@ -412,7 +396,14 @@ namespace Kebab
                 }
                 else if (filter.Argument == Argument.ASN)
                 {
-                    if (!(Regex.Match(conn.DstASNOrg.ToLower(), filter.Value).Length > 0))
+                    // Compare against non whitespace version of ASNOrg to allow filtering.
+                    if (!(Regex.Match(Filter.whiteSpaceRegex.Replace(conn.DstASNOrg.ToLower(), ""), filter.Value).Length > 0))
+                        return false;
+                }
+                else if (filter.Argument == Argument.NOTE)
+                {
+                    // Compare against non whitespace version of note to allow filtering.
+                    if (!(Regex.Match(Filter.whiteSpaceRegex.Replace(conn.Note.ToLower(), ""), filter.Value).Length > 0))
                         return false;
                 }
             }
